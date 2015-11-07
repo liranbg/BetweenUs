@@ -1,6 +1,6 @@
 # JCEFinalProject
 
-> Administrative Information
+> ###Repository Information
 #### Issues Manager
 [Issues Backlog](https://waffle.io/liranbg/JCEFinalProject)
 #### Calendar Manager
