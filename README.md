@@ -1,4 +1,4 @@
-# JCEFinalProject
+# BetweenUS
 
 > ###Repository Information
 #### Issues Manager
