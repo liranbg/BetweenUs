@@ -9,7 +9,7 @@ var BetweenUsModule = (function() {
     algorithm_name: 'aes-256-ctr',
     passphrase_byte_size: 32,
     init_vector_byte_size: 16
-  }
+  };
 
   /**
    * Contains the data to be used when symmetric encryption is set to AES 128 bits.
@@ -19,7 +19,7 @@ var BetweenUsModule = (function() {
     algorithm_name: 'aes-128-ctr',
     passphrase_byte_size: 16,
     init_vector_byte_size: 16
-  }
+  };
 
   /* Defaults */
   /**
@@ -46,7 +46,7 @@ var BetweenUsModule = (function() {
     serialized.key = dictionary.key.toString('hex');
     serialized.iv = dictionary.iv.toString('hex');
     return JSON.stringify(dictionary);
-  }
+  };
 
   /**
    * Deserializes a JSON stringified dictionary into a javascript dictionary.
@@ -64,7 +64,7 @@ var BetweenUsModule = (function() {
     deserialized.key = Buffer(parsed_dictionary.key);
     deserialized.iv = Buffer(parsed_dictionary.iv);
     return deserialized;
-  }
+  };
 
   /**
    * This function generates two random byte buffers, that act as the symmetric key passphrase and IV.
@@ -79,42 +79,85 @@ var BetweenUsModule = (function() {
       key: symmetric_key,
       iv: initialization_vector
     });
-  }
+  };
 
+/**
+ *	Symmetric Encryption Section
+ */
+/**
+ * Encrypts a message with the symmetric key data dictionary.
+ * @param  {string}     message                  [Plain text to be encrypted.]
+ * @param  {dictionary} symmetric_key_dictionary [Dictionary containing the data needed for encrypting the plain text.]
+ * @return {Buffer}                              [Buffer containing the output data - the cipher text.]
+ */
   var Symmetric_Encrypt = function(message, symmetric_key_dictionary) {
     var key_object = _deserialized_symmetric_dictionary(symmetric_key_dictionary);
     var cipher = _crypto.createCipheriv(defaults.symmetric_algorithm.name, key_object.key, key_object.iv);
     var crypted = Buffer.concat([cipher.update(message), cipher.final()]);
     return crypted;
-  }
+  };
 
+
+/**
+ * Receives an hex Buffer, and the dictionary containing the symmetric key data, and decrypts it.
+ * @param  {Buffer} encrypted_message           [Encryped message, in the form of a Buffer object.]
+ * @param  {string} symmetric_key_dictionary    [Serialized dictionary containing the symmetric key data.]
+ * @return {Buffer}                             [Buffer containing the decrypted cipher text.]
+ */
   var Symmetric_Decrypt = function(encrypted_message, symmetric_key_dictionary) {
       var key_object = _deserialized_symmetric_dictionary(symmetric_key_dictionary);
       var decipher = _crypto.createDecipheriv(defaults.symmetric_algorithm.name, key_object.key, key_object.iv);
       var dec = Buffer.concat([decipher.update(encrypted_message), decipher.final()]);
       return dec;
-    }
-    /* Start Shamir Secret Sharing Public Functions */
+    };
+
+/**
+ *  Shamir Secret Sharing Section
+ */
+/**
+ * TODO: [function description]
+ * @param  {[type]} serialized_dictionary [description]
+ * @param  {[type]} shares                [description]
+ * @param  {[type]} threshold             [description]
+ * @param  {[type]} zeropadding           [description]
+ * @return {[type]}                       [description]
+ */
   var SerializedDictionaryToShares = function(serialized_dictionary, shares, threshold, zeropadding) {
     if (typeof serialized_dictionary !== "string") {
       throw "Invalid Input: String Input Only";
     }
     return _secrets.share(_secrets.str2hex(serialized_dictionary), shares, threshold, zeropadding);
-  }
+  };
+
+  /**
+   * TODO: [function description]
+   * @param  {[type]} shares [description]
+   * @return {[type]}        [description]
+   */
   var SharesToSerializedDictionary = function(shares) {
     if (typeof shares !== "object") {
       throw "Invalid Input: Shares Only";
     }
-    var hex_string = _secrets.combine(shares)
+    var hex_string = _secrets.combine(shares);
     return _secrets.hex2str(hex_string);
-  }
+  };
+
+  /**
+   * TODO: [function description]
+   * @param  {[type]} id     [description]
+   * @param  {[type]} shares [description]
+   * @return {[type]}        [description]
+   */
   var GetNewShare = function(id, shares) {
       if (typeof shares !== "object") {
         throw "Invalid Input: Shares Only";
       }
       return _secrets.newShare(id, shares); // => newShare = '808xxx...xxx'
-    }
-    /* End Shamir Secret Sharing Public Functions */
+    };
+
+    /**
+     * BetweenUs Module API
+     */
   return {
     SerializedDictionaryToShares: SerializedDictionaryToShares,
     SharesToSerializedDictionary: SharesToSerializedDictionary,
