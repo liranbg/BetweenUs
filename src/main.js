@@ -6,6 +6,7 @@ function encrypt_with_public_key(share, public_key) {
   var crypted = Buffer.concat([cipher.update(share), cipher.final()]);
   return crypted;
 }
+
 function decrypt_with_private_key(enc_share, private_key) {
   var decipher = crypto.createDecipher('aes-128-ctr', private_key);
   var dec = Buffer.concat([decipher.update(enc_share), decipher.final()]);
@@ -21,7 +22,8 @@ var client_1 = {
     private_key: "client_1_key",
     public_key: "client_1_key",
   },
-  owned_share: null
+  owned_share: null,
+  share_hold: []
 };
 var client_2 = {
   id: 'client2',
@@ -29,7 +31,8 @@ var client_2 = {
     private_key: "client_2_key",
     public_key: "client_2_key",
   },
-  owned_share: null
+  owned_share: null,
+  share_hold: []
 };
 var client_3 = {
   id: 'client3',
@@ -37,7 +40,8 @@ var client_3 = {
     private_key: "client_3_key",
     public_key: "client_3_key",
   },
-  owned_share: null
+  owned_share: null,
+  share_hold: []
 };
 
 /*
@@ -83,7 +87,9 @@ for (var i in clients_to_share_with) {
   }
 }
 
+//Restoring information from raw shares
+shares_to_derypt = [clients_to_share_with[0].owned_share, clients_to_share_with[1].owned_share];
 
-// var from_shares_symmetric_key_dictionary = BetweenUsModule.SharesToSerializedDictionary(symmetric_key_shares.slice(0, 3));
-// var decrypted_buffer = BetweenUsModule.Symmetric_Decrypt(encrypted_buffer, from_shares_symmetric_key_dictionary);
-// console.log(decrypted_buffer.toString('utf8'));
+var from_shares_symmetric_key_dictionary = BetweenUsModule.SharesToSerializedDictionary(shares_to_derypt);
+var decrypted_buffer = BetweenUsModule.SymmetricDecrypt(encrypted_buffer, from_shares_symmetric_key_dictionary);
+console.log(decrypted_buffer.toString('utf8'));
