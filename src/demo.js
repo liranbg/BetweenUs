@@ -92,7 +92,7 @@ var BetweenUsModule = (function() {
  */
   var Symmetric_Encrypt = function(message, symmetric_key_dictionary) {
     var key_object = _deserialized_symmetric_dictionary(symmetric_key_dictionary);
-    var cipher = _crypto.createCipheriv(defaults.symmetric_algorithm.name, key_object.key, key_object.iv);
+    var cipher = _crypto.createCipheriv(defaults.symmetric_algorithm.algorithm_name, key_object.key, key_object.iv);
     var crypted = Buffer.concat([cipher.update(message), cipher.final()]);
     return crypted;
   };
@@ -106,7 +106,7 @@ var BetweenUsModule = (function() {
  */
   var Symmetric_Decrypt = function(encrypted_message, symmetric_key_dictionary) {
       var key_object = _deserialized_symmetric_dictionary(symmetric_key_dictionary);
-      var decipher = _crypto.createDecipheriv(defaults.symmetric_algorithm.name, key_object.key, key_object.iv);
+      var decipher = _crypto.createDecipheriv(defaults.symmetric_algorithm.algorithm_name, key_object.key, key_object.iv);
       var dec = Buffer.concat([decipher.update(encrypted_message), decipher.final()]);
       return dec;
     };
