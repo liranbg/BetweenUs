@@ -115,24 +115,27 @@ var BetweenUsModule = (function() {
  *  Shamir Secret Sharing Section
  */
 /**
- * TODO: [function description]
- * @param  {[type]} serialized_dictionary [description]
- * @param  {[type]} shares                [description]
- * @param  {[type]} threshold             [description]
- * @param  {[type]} zeropadding           [description]
- * @return {[type]}                       [description]
+ * Receives a serialized dictionary that contains the Symmetric encryption data
+ * and uses Shamir's Secret Sharing algorithm to divide it into N shares, with
+ * a threshold of K.
+ * @param  {string} serialized_dictionary [Serialized dicionary that contains the encryption information]
+ * @param  {number} shares                [Numbers of shares to produce with SSS algo. out of the original text.]
+ * @param  {number} threshold             [Threshold of shares needed to restore the original text.]
+ * @param  {number} zeropadding           [Padding.]
+ * @return {Object}                       [Object that contains the list of the actual shares in hex string forms.]
  */
   var SerializedDictionaryToShares = function(serialized_dictionary, shares, threshold, zeropadding) {
     if (typeof serialized_dictionary !== "string") {
       throw "Invalid Input: String Input Only";
     }
-    return _secrets.share(_secrets.str2hex(serialized_dictionary), shares, threshold, zeropadding);
+     var share_list = _secrets.share(_secrets.str2hex(serialized_dictionary), shares, threshold, zeropadding);
+     return share_list;
   };
 
   /**
-   * TODO: [function description]
-   * @param  {[type]} shares [description]
-   * @return {[type]}        [description]
+   * Receives a list of shares, and reconstruct the original text with them.
+   * @param  {Object} shares [A list of shares, each share should be an hex string.]
+   * @return {string}        [Resolve the shares into the serialized dictionary that contains the encryption data.]
    */
   var SharesToSerializedDictionary = function(shares) {
     if (typeof shares !== "object") {
@@ -143,7 +146,7 @@ var BetweenUsModule = (function() {
   };
 
   /**
-   * TODO: [function description]
+   * [function description]
    * @param  {[type]} id     [description]
    * @param  {[type]} shares [description]
    * @return {[type]}        [description]
