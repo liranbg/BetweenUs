@@ -62,37 +62,30 @@ var BetweenUsModule = (function() {
     buffer: Buffer("s"),
     obj: {}
   };
+
   /**
-   * Serializes a dictionary into a stringfied JSON.
-   * @param  {dictionary} dictionary  [contains a .key{Buffer} (random passphrase) and .iv{Buffer} (init vector) keys.]
-   * @return {string}                 [Stringified input dictionary.]
+   * [function description]
+   * @param  {[type]} sym_key_dict [description]
+   * @return {[type]}              [description]
    */
-  var _serializedSymmetricDictionary = function(dictionary) {
-    var serialized = {};
-    _type_assert(dictionary, _types.dictionary);
-    serialized.key = dictionary.key.toString('hex');
-    serialized.iv = dictionary.iv.toString('hex');
-    return JSON.stringify(dictionary);
+  var _SymmetricKeyDataDictionaryToString = function(sym_key_dict) {
+    var output_string = sym_key_dict.key.toString('hex') + ":" +
+      sym_key_dict.iv.toString('hex');
+    return output_string;
   };
 
   /**
-   * Deserializes a JSON stringified dictionary into a javascript dictionary.
-   * @param  {string}     json_string [JSON stringified dictionary containing .key and .iv in _hex_]
-   * @return {dictionary}             [dictionary parsed from the stingified JSON]
+   * [function description]
+   * @param  {[type]} sym_string [description]
+   * @return {[type]}            [description]
    */
-  var _deserializedSymmetricDictionary = function(json_string) {
-    var deserialized = {};
-    _type_assert(json_string, _types.string);
-    try {
-      parsed_dictionary = JSON.parse(json_string);
-    } catch (e) {
-      throw "Invalid JSON Object to parse.";
-    }
-    /* Convert the hex strings into Buffer types (required by the AES algo.)  */
-    _type_assert(parsed_dictionary, _types.dictionary);
-    deserialized.key = Buffer(parsed_dictionary.key);
-    deserialized.iv = Buffer(parsed_dictionary.iv);
-    return deserialized;
+  var _StringToKeyDataDictionary = function(sym_string) {
+    var key = sym_string.split(':')[0];
+    var iv = sym_string.split(':')[1];
+    return ({
+      key: Buffer(key, 'hex'),
+      iv: Buffer(iv, 'hex')
+    });
   };
 
   /**
@@ -106,7 +99,7 @@ var BetweenUsModule = (function() {
     var initialization_vector = _crypto.randomBytes(defaults.symmetric_algorithm.init_vector_byte_size);
     _type_assert(symmetric_key, _types.buffer);
     _type_assert(initialization_vector, _types.buffer);
-    return _serializedSymmetricDictionary({
+    return _SymmetricKeyDataDictionaryToString({
       key: symmetric_key,
       iv: initialization_vector
     });
@@ -123,8 +116,9 @@ var BetweenUsModule = (function() {
    */
   var SymmetricEncrypt = function(message, symmetric_key_dictionary) {
     _type_assert(message, _types.string);
-    var key_object = _deserializedSymmetricDictionary(symmetric_key_dictionary);
-    var cipher = _crypto.createCipheriv(defaults.symmetric_algorithm.algorithm_name, key_object.key, key_object.iv);
+    var key_object = _StringToKeyDataDictionary(symmetric_key_dictionary);
+    var cipher = _crypto.createCipheriv(defaults.symmetric_algorithm.algorithm_name,
+      key_object.key, key_object.iv);
     var crypted = Buffer.concat([cipher.update(message), cipher.final()]);
     _type_assert(crypted, _types.buffer);
     return crypted;
@@ -136,10 +130,11 @@ var BetweenUsModule = (function() {
    * @param  {string} symmetric_key_dictionary    [Serialized dictionary containing the symmetric key data.]
    * @return {Buffer}                             [Buffer containing the decrypted cipher text.]
    */
+
   var SymmetricDecrypt = function(encrypted_message, symmetric_key_dictionary) {
     _type_assert(encrypted_message, _types.buffer);
     _type_assert(symmetric_key_dictionary, _types.string);
-    var key_object = _deserializedSymmetricDictionary(symmetric_key_dictionary);
+    var key_object = _StringToKeyDataDictionary(symmetric_key_dictionary);
     var decipher = _crypto.createDecipheriv(defaults.symmetric_algorithm.algorithm_name, key_object.key, key_object.iv);
     var dec = Buffer.concat([decipher.update(encrypted_message), decipher.final()]);
     _type_assert(dec, _types.buffer);
