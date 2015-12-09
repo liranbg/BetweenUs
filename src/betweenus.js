@@ -64,22 +64,27 @@ var BetweenUsModule = (function() {
   };
 
   /**
-   * [function description]
-   * @param  {[type]} sym_key_dict [description]
-   * @return {[type]}              [description]
+   * Receives dictionary with symmetric key encryption data, serializes it into
+   * a string.
+   * @param  {dictionary} sym_key_dict  [Encryption data, passphrase and IV.]
+   * @return {string}                   [The symmetric key encrypted data
+   *                                    concatenated. 'passphrase:iv'.]
    */
   var _SymmetricKeyDataDictionaryToString = function(sym_key_dict) {
+    _type_assert(sym_key_dict, _types.dictionary);
     var output_string = sym_key_dict.key.toString('hex') + ":" +
       sym_key_dict.iv.toString('hex');
     return output_string;
   };
 
   /**
-   * [function description]
-   * @param  {[type]} sym_string [description]
-   * @return {[type]}            [description]
+   * Receives a string, deserializes it into a dictionary with the symmetric key
+   * encryption data.
+   * @param  {string} sym_string [String with the encryption data, 'passphrase:iv'.]
+   * @return {dictionary}        [Dictionary with the encryption data]
    */
   var _StringToKeyDataDictionary = function(sym_string) {
+    _type_assert(sym_string, _types.string);
     var key = sym_string.split(':')[0];
     var iv = sym_string.split(':')[1];
     return ({
