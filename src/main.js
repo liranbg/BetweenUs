@@ -3,11 +3,11 @@ var RSA = require('node-rsa');
 var rsa_bits = 512;
 
 function encrypt_with_public_key(share, rsa_key) {
-  return rsa_key.encryptPrivate(share, 'base64');
+  return rsa_key.encrypt(share, 'base64');
 }
 
 function decrypt_with_private_key(enc_share, rsa_key) {
-  return rsa_key.decryptPublic(enc_share, 'utf8');
+  return rsa_key.decrypt(enc_share, 'utf8');
 }
 
 var text_to_encrypt = "Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.";
