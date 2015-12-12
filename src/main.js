@@ -1,26 +1,21 @@
-var BetweenUsModule = require('./betweenus.js');
-var crypto = require('crypto');
+var BetweenUsModule = require('./betweenus');
+var RSA = require('node-rsa');
+var rsa_bits = 512;
 
-function encrypt_with_public_key(share, public_key) {
-  var cipher = crypto.createCipher('aes-128-ctr', public_key);
-  var crypted = Buffer.concat([cipher.update(share), cipher.final()]);
-  return crypted;
+function encrypt_with_public_key(share, rsa_key) {
+  return rsa_key.encryptPrivate(share, 'base64');
 }
 
-function decrypt_with_private_key(enc_share, private_key) {
-  var decipher = crypto.createDecipher('aes-128-ctr', private_key);
-  var dec = Buffer.concat([decipher.update(enc_share), decipher.final()]);
-  return dec.toString('utf8');
+function decrypt_with_private_key(enc_share, rsa_key) {
+  return rsa_key.decryptPublic(enc_share, 'utf8');
 }
-
 
 var text_to_encrypt = "Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.";
 
 var client_1 = {
   id: 'client1',
   assymetric_key: {
-    private_key: "client_1_key",
-    public_key: "client_1_key",
+    rsa_key: new RSA({b: rsa_bits})
   },
   owned_share: null,
   share_hold: []
@@ -28,8 +23,7 @@ var client_1 = {
 var client_2 = {
   id: 'client2',
   assymetric_key: {
-    private_key: "client_2_key",
-    public_key: "client_2_key",
+    rsa_key: new RSA({b: rsa_bits})
   },
   owned_share: null,
   share_hold: []
@@ -37,13 +31,11 @@ var client_2 = {
 var client_3 = {
   id: 'client3',
   assymetric_key: {
-    private_key: "client_3_key",
-    public_key: "client_3_key",
+    rsa_key: new RSA({b: rsa_bits})
   },
   owned_share: null,
   share_hold: []
 };
-
 /*
 Scenario: [Encryption\Creating transaction] -  Client 1 wants to encrypt the text declared in [text_to_encrypt].
 1. Creates a transaction by generating symmetric key that will be used to encrypt the [text_to_encrypt]
@@ -74,7 +66,7 @@ for (var i in shares) {
   console.log('ID: ' + clients_to_share_with[i].id + ', Share: ' + shares[i]);
   assigned_shares.push({
     belong_to: clients_to_share_with[i].id,
-    share: encrypt_with_public_key(shares[i], clients_to_share_with[i].assymetric_key.public_key)
+    share: encrypt_with_public_key(shares[i], clients_to_share_with[i].assymetric_key.rsa_key)
   });
 }
 //SKIPPED: Server gets all shares and assign it to the relevant oarticipant
@@ -83,7 +75,7 @@ for (var i in shares) {
 for (var i in clients_to_share_with) {
   for (var j in assigned_shares) {
     if (assigned_shares[j].belong_to == clients_to_share_with[i].id) {
-      clients_to_share_with[i].owned_share = decrypt_with_private_key(assigned_shares[j].share, clients_to_share_with[i].assymetric_key.private_key);
+      clients_to_share_with[i].owned_share = decrypt_with_private_key(assigned_shares[j].share, clients_to_share_with[i].assymetric_key.rsa_key);
     }
   }
 }
@@ -100,4 +92,4 @@ shares_to_derypt = [clients_to_share_with[0].owned_share, clients_to_share_with[
 var from_shares_symmetric_key_dictionary = BetweenUsModule.SharesToSerializedDictionary(shares_to_derypt);
 var decrypted_buffer = BetweenUsModule.SymmetricDecrypt(encrypted_buffer, from_shares_symmetric_key_dictionary);
 
-console.log(decrypted_buffer.toString('utf8'));
+console.log(decrypted_buffer.toString('utf-8'));

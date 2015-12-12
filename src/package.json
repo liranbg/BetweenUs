@@ -1,0 +1,34 @@
+{
+  "name": "betweenus",
+  "version": "1.0.0",
+  "description": "Sharing encrypted data with friends",
+  "main": "main.js",
+  "scripts": {
+    "test": "main.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/liranbg/BetweenUs.git"
+  },
+  "dependencies": {
+    "node-rsa": "0.2.26"
+  },
+  "keywords": [
+    "secret",
+    "sharing",
+    "encryption"
+  ],
+  "author": [
+	{ "name": "Liran Ben Gida", "email": "liranbg@gmail.com" },
+	{ "name": "Nadav Luzzato"}
+	],
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/liranbg/BetweenUs/issues"
+  },
+  "homepage": "https://github.com/liranbg/BetweenUs#readme",
+  "files": [
+  "betweenus.js",
+  "secrets.js"
+  ]
+}
