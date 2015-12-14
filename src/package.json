@@ -11,7 +11,9 @@
     "url": "git+https://github.com/liranbg/BetweenUs.git"
   },
   "dependencies": {
-    "node-rsa": "0.2.26"
+    "node-rsa": "0.2.26",
+    "winston": "2.1.1",
+    "moment": "2.10.6"
   },
   "keywords": [
     "secret",
