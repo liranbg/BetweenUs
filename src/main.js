@@ -34,7 +34,7 @@ var logger = new(winston.Logger)({
     })
   ]
 });
-var rsa_bits = 512;
+var rsa_bits = 1024;
 
 function encrypt_with_public_key(share, rsa_key) {
   return rsa_key.encrypt(share, 'base64');
@@ -84,6 +84,7 @@ Scenario: [Encryption\Creating transaction] -  Client 1 wants to encrypt the tex
  */
 
 //Client 1 creates symmetric key [represented as dictoinary. holds key and initial vector]
+logger.info("-------------------");
 logger.info('Starting BetweenUs flow on text:');
 logger.info('"' + text_to_encrypt + '"');
 logger.info('Generating Symmetric Key...');
@@ -101,22 +102,28 @@ var clients_to_share_with = [client_1, client_2, client_3];
 logger.info('Using Shamir\'s Secret Sharing to split symmetric key into shares.');
 var shares = BetweenUsModule.SerializedDictionaryToShares(symmetric_key, clients_to_share_with.length, 2, 0);
 logger.info('Done.');
-logger.info('Shares:');
+logger.info('Starting encryption with RSA');
 var assigned_shares = [];
 for (var i in shares) {
   logger.info('ID: ' + clients_to_share_with[i].id + ', Share: ' + shares[i]);
+  var start = process.hrtime();
   assigned_shares.push({
     belong_to: clients_to_share_with[i].id,
     share: encrypt_with_public_key(shares[i], clients_to_share_with[i].assymetric_key.rsa_key)
   });
+  logger.info("Took %d seconds", (process.hrtime(start)[1]*1e-9).toFixed(5));
 }
 //SKIPPED: Server gets all shares and assign it to the relevant oarticipant
 
 //each client reveals his share by decrypt with private key
+logger.info('Starting decryption client\'s shares');
 for (var i in clients_to_share_with) {
   for (var j in assigned_shares) {
     if (assigned_shares[j].belong_to == clients_to_share_with[i].id) {
+      logger.info('ID: ' + clients_to_share_with[i].id + ', Encrypted Share: ' + assigned_shares[j].share);
+      var start = process.hrtime();
       clients_to_share_with[i].owned_share = decrypt_with_private_key(assigned_shares[j].share, clients_to_share_with[i].assymetric_key.rsa_key);
+      logger.info("Took %d seconds", (process.hrtime(start)[1]*1e-9).toFixed(5));
     }
   }
 }
