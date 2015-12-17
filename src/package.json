@@ -14,7 +14,7 @@
     "node-rsa": "0.2.26",
     "winston": "2.1.1",
     "moment": "2.10.6",
-    "exress": "4.13.3"
+    "express": "4.13.3"
   },
   "keywords": [
     "secret",
