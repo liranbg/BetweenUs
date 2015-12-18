@@ -1,10 +1,13 @@
 const
     express = require('express'),
-    session = require('express-session');
+    session = require('express-session'),
+    body_parser = require('body-parser');
 var app = express();
 
 /* Initialize Session */
 app.use(session({secret: 'ArbitraryStringToUseAsSession', resave: true, saveUninitialized: true}));
+app.use(body_parser.urlencoded({extended: false}));
+app.use(body_parser.json());
 
 /* Mock Database */
 var user_login_db = [
@@ -166,6 +169,11 @@ app.get('/get_public_keys/:transaction_id', function (req, res) {
         return;
     }
 
+});
+
+app.post('/submit_transaction', function (req, res) {
+    console.log("Received new transaction request");
+    console.log(req.body)
 });
 
 var server = app.listen(3000, function () {
