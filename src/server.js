@@ -76,12 +76,11 @@ var GetTransactionSharesForUser = function(transaction_id, user_id) {
                 if (transaction_to_share_db[i].transaction_id == transaction_id && user_id == transaction_to_share_db[i].user_id) {
                     return_share_data.push(transaction_to_share_db[i]);
                 }
-                return return_share_data;
             }
-            /* If transaction / user_id shares not found */
-            return null;
+            return return_share_data;
         }
     }
+    return null;
 };
 
 /* Start of server */
@@ -94,10 +93,10 @@ app.get('/login/:user_id', function (req, res) {
     var user_id = req.params.user_id;
     var password = req.query.password;
     if (AuthenticateUser(req, user_id, password)){
-        res.json({message: "Authenticated successfully."});
+        res.json({success: true, message: "Authenticated successfully."});
     }
     else {
-        res.json({err: "User name or password not found."});
+        res.json({success: false, message: "User name or password not found."});
     }
 });
 
@@ -107,7 +106,7 @@ app.get('/get_shares/:user_id', function(req, res) {
   var transaction_id = parseInt(req.query.transaction_id);
     /* See if the user is logged in */
     if (isUserAuthenticated(req) == false) {
-        res.json({err: "Please log in first."});
+        res.json({success: false, message: "Please log in first."});
         return;
     }
   /* Search for the transaction */
@@ -116,7 +115,7 @@ app.get('/get_shares/:user_id', function(req, res) {
     res.json(share_data);
   }
   else {
-    res.json({err: "Transaction not found"});
+    res.json({success: false, message: "Transaction not found"});
   }
 });
 
