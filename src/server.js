@@ -18,13 +18,13 @@ var group_mock_db = [
 ];
 
 var transaction_mock_db = [
-  {transaction_id: 1000, ciper_text: "encrypted_aes_message", group: 1},
+  {transaction_id: 1000, cipher_text: "encrypted_aes_message", group_id: 1},
 ];
 
 var public_key_mock_db = [
-  {id: "nadav", key: "nnnnnnnnnnnnnnn"},
-  {id: "liran", key: "lllllllllllllll"},
-  {id: "yaron", key: "yyyyyyyyyyyyyyy"}
+  {user_id: "nadav", key: "nnnnnnnnnnnnnnn"},
+  {user_id: "liran", key: "lllllllllllllll"},
+  {user_id: "yaron", key: "yyyyyyyyyyyyyyy"}
 ];
 
 var transaction_to_share_db = [
@@ -67,6 +67,23 @@ var AuthenticateUser = function(req, user_id, password) {
 };
 
 /* Database Query Functions */
+var GetUsersPublicKeys = function(user_list) {
+    public_key_list = []
+    for (var i in user_list) {
+        public_key_list.push(GetPublicKeyForUser(user_list[i]));
+    }
+    return public_key_list;
+}
+
+var GetPublicKeyForUser = function(user_id) {
+    for (var i in public_key_mock_db) {
+        if (public_key_mock_db[i].user_id == user_id) {
+            return public_key_mock_db[i].key;
+        }
+    }
+    return null;
+}
+
 var GetTransactionSharesForUser = function(transaction_id, user_id) {
     for (var i in transaction_mock_db) {
         if (transaction_mock_db[i].transaction_id == transaction_id) {
@@ -117,6 +134,38 @@ app.get('/get_shares/:user_id', function(req, res) {
   else {
     res.json({success: false, message: "Transaction not found"});
   }
+});
+
+app.get('/get_public_keys/:transaction_id', function (req, res) {
+    var transaction_id = parseInt(req.params.transaction_id);
+    var group_id = -1;
+    /* Check for authenticated session */
+    if (isUserAuthenticated(req) == false) {
+        res.json({success: false, message: "Please log in first."});
+        return;
+    }
+    /* Find group id associated with transaction */
+    for (var i in transaction_mock_db) {
+        if (transaction_mock_db[i].transaction_id == transaction_id) {
+            group_id = transaction_mock_db[i].group_id;
+        }
+    }
+    /* If transaction not found, return failure */
+    if (group_id < 0) {
+        res.json({success: false, message: "Transaction not found."});
+    }
+    /* Else, find group associated with the transaction */
+    else {
+        for (var i in group_mock_db) {
+            if (group_mock_db[i].group_id == group_id) {
+                res.json({success: true, user_ids: group_mock_db[i].members, public_keys: GetUsersPublicKeys(group_mock_db[i].members)});
+                return;
+            }
+        }
+        res.json({success: false, message: "Group associated with transaction not found."});
+        return;
+    }
+
 });
 
 var server = app.listen(3000, function () {
