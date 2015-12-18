@@ -11,11 +11,12 @@
     "url": "git+https://github.com/liranbg/BetweenUs.git"
   },
   "dependencies": {
-    "node-rsa": "0.2.26",
-    "winston": "2.1.1",
-    "moment": "2.10.6",
+    "body-parser": "^1.14.2",
     "express": "4.13.3",
-    "express-session": "1.12.1"
+    "express-session": "1.12.1",
+    "moment": "2.10.6",
+    "node-rsa": "0.2.26",
+    "winston": "2.1.1"
   },
   "keywords": [
     "secret",
@@ -23,16 +24,22 @@
     "encryption"
   ],
   "author": [
-	{ "name": "Liran Ben Gida", "email": "liranbg@gmail.com" },
-	{ "name": "Nadav Luzzato"}
-	],
+    {
+      "name": "Liran Ben Gida",
+      "email": "liranbg@gmail.com"
+    },
+    {
+      "name": "Nadav Luzzato",
+      "email": "nadav2051@gmail.com"
+    }
+  ],
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/liranbg/BetweenUs/issues"
   },
   "homepage": "https://github.com/liranbg/BetweenUs#readme",
   "files": [
-  "betweenus.js",
-  "secrets.js"
+    "betweenus.js",
+    "secrets.js"
   ]
 }
