@@ -1,19 +1,23 @@
 const
     express = require('express'),
     session = require('express-session'),
-    body_parser = require('body-parser');
+    body_parser = require('body-parser'),
+    logger = require('morgan'),
+    database_interface = require('./cloudantdb');
 var app = express();
 
 /* Initialize Session */
+app.use(logger('dev'));
 app.use(session({secret: 'ArbitraryStringToUseAsSession', resave: true, saveUninitialized: true}));
 app.use(body_parser.urlencoded({extended: false}));
 app.use(body_parser.json());
 
+
 /* Mock Database */
 var user_login_db = [
-  {user_id: "nadav", password: "n123"},
-  {user_id: "liran", password: "l123"},
-  {user_id: "yaron", password: "y123"}
+    {user_id: "nadav", password: "n123"},
+    {user_id: "liran", password: "l123"},
+    {user_id: "yaron", password: "y123"}
 ];
 
 var group_mock_db = [
@@ -21,27 +25,27 @@ var group_mock_db = [
 ];
 
 var transaction_mock_db = [
-  {transaction_id: 1000, cipher_text: "encrypted_aes_message", group_id: 1},
+    {transaction_id: 1000, cipher_text: "encrypted_aes_message", group_id: 1},
 ];
 
 var public_key_mock_db = [
-  {user_id: "nadav", key: "nnnnnnnnnnnnnnn"},
-  {user_id: "liran", key: "lllllllllllllll"},
-  {user_id: "yaron", key: "yyyyyyyyyyyyyyy"}
+    {user_id: "nadav", key: "nnnnnnnnnnnnnnn"},
+    {user_id: "liran", key: "lllllllllllllll"},
+    {user_id: "yaron", key: "yyyyyyyyyyyyyyy"}
 ];
 
 var transaction_to_share_db = [
-  {transaction_id: 1000, user_id: "nadav", share_id:"nadav", share_data: "trans_1000_nadav_share_encrypted_with_nadav_public_key" },
-  {transaction_id: 1000, user_id: "nadav", share_id:"liran", share_data: null },
-  {transaction_id: 1000, user_id: "nadav", share_id:"yaron", share_data: null },
+    {transaction_id: 1000, user_id: "nadav", share_id:"nadav", share_data: "trans_1000_nadav_share_encrypted_with_nadav_public_key" },
+    {transaction_id: 1000, user_id: "nadav", share_id:"liran", share_data: null },
+    {transaction_id: 1000, user_id: "nadav", share_id:"yaron", share_data: null },
 
-  {transaction_id: 1000, user_id: "liran", share_id:"nadav", share_data: null},
-  {transaction_id: 1000, user_id: "liran", share_id:"liran", share_data: "trans_1000_liran_share_encrypted_with_liran_public_key" },
-  {transaction_id: 1000, user_id: "liran", share_id:"yaron", share_data: null },
+    {transaction_id: 1000, user_id: "liran", share_id:"nadav", share_data: null},
+    {transaction_id: 1000, user_id: "liran", share_id:"liran", share_data: "trans_1000_liran_share_encrypted_with_liran_public_key" },
+    {transaction_id: 1000, user_id: "liran", share_id:"yaron", share_data: null },
 
-  {transaction_id: 1000, user_id: "yaron", share_id:"nadav", share_data: null },
-  {transaction_id: 1000, user_id: "yaron", share_id:"liran", share_data: null },
-  {transaction_id: 1000, user_id: "yaron", share_id:"yaron", share_data: "trans_1000_yaron_share_encrypted_with_yaron_public_key" },
+    {transaction_id: 1000, user_id: "yaron", share_id:"nadav", share_data: null },
+    {transaction_id: 1000, user_id: "yaron", share_id:"liran", share_data: null },
+    {transaction_id: 1000, user_id: "yaron", share_id:"yaron", share_data: "trans_1000_yaron_share_encrypted_with_yaron_public_key" },
 ];
 /* End of Mock Database */
 
@@ -105,38 +109,48 @@ var GetTransactionSharesForUser = function(transaction_id, user_id) {
 
 /* Start of server */
 app.get('/', function (req, res) {
-  res.send('Server initialized');
+    res.send('Server initialized');
 });
 
 /* Server API */
 app.get('/login/:user_id', function (req, res) {
     var user_id = req.params.user_id;
-    var password = req.query.password;
-    if (AuthenticateUser(req, user_id, password)){
-        res.json({success: true, message: "Authenticated successfully."});
-    }
-    else {
-        res.json({success: false, message: "User name or password not found."});
-    }
+    var exists = false;
+    database_interface.GetUserDetailsByEmail(user_id, function(data) {
+        exists = true;
+        if ((data) && (data.username.length)) {
+            //User exists
+            var password = req.query.password;
+            if (data.password == password) {
+                res.json({success: true, message: "Authenticated successfully."});
+            }
+            else {
+                res.json({success: false, message: "Wrong password"});
+            }
+        }
+        else {
+            res.json({success: false, message: "Username does not exists"});
+        }
+    });
 });
 
 app.get('/get_shares/:user_id', function(req, res) {
-  /* Grab the data from the get request */
-  var user_id = req.params.user_id;
-  var transaction_id = parseInt(req.query.transaction_id);
+    /* Grab the data from the get request */
+    var user_id = req.params.user_id;
+    var transaction_id = parseInt(req.query.transaction_id);
     /* See if the user is logged in */
     if (isUserAuthenticated(req) == false) {
         res.json({success: false, message: "Please log in first."});
         return;
     }
-  /* Search for the transaction */
-  var share_data = GetTransactionSharesForUser(transaction_id, user_id);
-  if (share_data) {
-    res.json(share_data);
-  }
-  else {
-    res.json({success: false, message: "Transaction not found"});
-  }
+    /* Search for the transaction */
+    var share_data = GetTransactionSharesForUser(transaction_id, user_id);
+    if (share_data) {
+        res.json(share_data);
+    }
+    else {
+        res.json({success: false, message: "Transaction not found"});
+    }
 });
 
 app.get('/get_public_keys/:transaction_id', function (req, res) {
@@ -177,7 +191,8 @@ app.post('/submit_transaction', function (req, res) {
 });
 
 var server = app.listen(3000, function () {
-  var host = "localhost";
-  var port = server.address().port;
-  console.log('Example app listening at http://%s:%s', host, port);
+    var host = "localhost";
+    var port = server.address().port;
+    console.log('BetweenUs is up & listening at http://%s:%s', host, port);
+    database_interface.InitUsersDB();
 });
