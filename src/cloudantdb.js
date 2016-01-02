@@ -5,6 +5,7 @@ var CloudantDBModule = (function() {
 
     var db_module_config = {
         users_db_name: 'users',
+        groups_db_name: 'groups',
         cloudant_account : {
             account: "betweenus",
             password: "BetweenU%"
@@ -18,6 +19,13 @@ var CloudantDBModule = (function() {
         cld_db.db.create(db_module_config.users_db_name, function () {
             console.log(db_module_config.users_db_name," database is set");
         });
+    };
+
+    var InitGroupsDB = function() {
+        cld_db.db.create(db_module_config.groups_db_name, function () {
+            console.log(db_module_config.groups_db_name," database is set");
+        });
+
     };
 
     var InsertNewUser = function (username, email, public_key) {
@@ -34,6 +42,20 @@ var CloudantDBModule = (function() {
             });
     };
 
+    var CreateNewGroup = function (creator, user_list, group_name, callback_func) {
+        var groups_db = cld_db.db.use(db_module_config.groups_db_name);
+        groups_db.insert(
+            { creator: creator, user_list: user_list, group_name: group_name },                    // Document
+            function(err, body, header) {                                                          // Callback func
+                if (err) {
+                    callback_func(err, body);
+                    return console.log('Error encountered while trying to add user: ', err.message);
+                }
+                callback_func(body);
+                return console.log('Group created successfully.');
+            });
+    };
+
     var GetUserDetailsByEmail = function(email, callback_func) {
         var users_db = cld_db.db.use(db_module_config.users_db_name);
         users_db.get(email, function (err, data) {
@@ -47,7 +69,9 @@ var CloudantDBModule = (function() {
 
 
     exports.InitUsersDB = InitUsersDB;
+    exports.InitGroupsDB = InitGroupsDB;
     exports.InsertNewUser = InsertNewUser;
+    exports.CreateNewGroup = CreateNewGroup;
     exports.GetUserDetailsByEmail = GetUserDetailsByEmail;
 
-}(CloudantDBModule || {}));
+} (CloudantDBModule || {}));

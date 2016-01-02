@@ -185,6 +185,28 @@ app.get('/get_public_keys/:transaction_id', function (req, res) {
 
 });
 
+/* API Is testable with Windows PowerShell, Example:
+$ $data = @{  creator    = "nadav";
+$             user_list = "naaav, danav, nadav";
+$             group_name = "nn111n"; }
+$ curl -Uri http://localhost:3000/create_group  -UseBasicParsing -Method Post -Body $data
+ */
+app.post('/create_group', function (req, res) {
+    // TODO: Check authentication and equivalence of requestor of the request to creator of the group
+    // TODO: Check all users in user_list exist.
+    // TODO: For each user in the user list / creator, update document to include new group.
+    var creator = req.body.creator,
+        user_list = req.body.user_list,
+        group_name = req.body.group_name;
+    database_interface.CreateNewGroup(creator, user_list, group_name, function(data, err) {
+        if (err) {
+            res.json({success: false, message: "Error occured while creating a new group." + err.message })
+        }
+        var success_message = "Group created, ID: " + data.id;
+        res.json({success: true, message: success_message});
+    })
+});
+
 app.post('/submit_transaction', function (req, res) {
     console.log("Received new transaction request");
     console.log(req.body)
@@ -195,4 +217,5 @@ var server = app.listen(3000, function () {
     var port = server.address().port;
     console.log('BetweenUs is up & listening at http://%s:%s', host, port);
     database_interface.InitUsersDB();
+    database_interface.InitGroupsDB();
 });
