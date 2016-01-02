@@ -25,13 +25,13 @@ var CloudantDBModule = (function() {
         cld_db.db.create(db_module_config.groups_db_name, function () {
             console.log(db_module_config.groups_db_name," database is set");
         });
-
     };
 
-    var InsertNewUser = function (username, email, public_key) {
+    var InsertNewUser = function (username, password, email, public_key) {
+        // TODO: Add hashing and possibly a salt for the password [Discuss either here or on server prior to the request].
         var users_db = cld_db.db.use(db_module_config.users_db_name);
         users_db.insert(
-            { username: username, email: email, public_key: public_key }, // Document
+            { username: username, password: password, email: email, public_key: public_key }, // Document
             email,                                                        // Identifier
             function(err, body, header) {                                 // Callback func
                 if (err) {
@@ -43,6 +43,7 @@ var CloudantDBModule = (function() {
     };
 
     var CreateNewGroup = function (creator, user_list, group_name, callback_func) {
+        // TODO: Check that group name is complaint to some policy we'll set (max length, forbidden chars etc.) [Discuss either here or on server prior to the request].
         var groups_db = cld_db.db.use(db_module_config.groups_db_name);
         groups_db.insert(
             { creator: creator, user_list: user_list, group_name: group_name },                    // Document

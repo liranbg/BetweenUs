@@ -185,16 +185,16 @@ app.get('/get_public_keys/:transaction_id', function (req, res) {
 
 });
 
-/* API Is testable with Windows PowerShell, Example:
+/* POST API Is testable with Windows PowerShell, Example:
 $ $data = @{  creator    = "nadav";
 $             user_list = "naaav, danav, nadav";
 $             group_name = "nn111n"; }
 $ curl -Uri http://localhost:3000/create_group  -UseBasicParsing -Method Post -Body $data
  */
+
 app.post('/create_group', function (req, res) {
     // TODO: Check authentication and equivalence of requestor of the request to creator of the group
     // TODO: Check all users in user_list exist.
-    // TODO: For each user in the user list / creator, update document to include new group.
     var creator = req.body.creator,
         user_list = req.body.user_list,
         group_name = req.body.group_name;
@@ -204,7 +204,13 @@ app.post('/create_group', function (req, res) {
         }
         var success_message = "Group created, ID: " + data.id;
         res.json({success: true, message: success_message});
-    })
+    });
+    // TODO: For each user in the user list / creator, update document to include new group.
+});
+
+app.post('/register_user', function(req, res) {
+    // TODO: Check parameters are in compliance with some policy we'll set regarding username, password etc.
+    // TODO: Add an email authorization before actually inserting user into the database (Low priority).
 });
 
 app.post('/submit_transaction', function (req, res) {
