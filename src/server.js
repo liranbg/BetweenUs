@@ -62,20 +62,9 @@ var isUserAuthenticated = function(req) {
     }
 };
 
-var AuthenticateUser = function(req, user_id, password) {
-    _session = req.session;
-    for (var i in user_login_db) {
-        if (user_login_db[i].user_id == user_id && user_login_db[i].password == password) {
-            _session.user_id = user_id;
-            return true;
-        }
-    }
-    return false;
-};
-
 /* Database Query Functions */
 var GetUsersPublicKeys = function(user_list) {
-    public_key_list = []
+    public_key_list = [];
     for (var i in user_list) {
         public_key_list.push(GetPublicKeyForUser(user_list[i]));
     }
@@ -89,12 +78,12 @@ var GetPublicKeyForUser = function(user_id) {
         }
     }
     return null;
-}
+};
 
 var GetTransactionSharesForUser = function(transaction_id, user_id) {
     for (var i in transaction_mock_db) {
         if (transaction_mock_db[i].transaction_id == transaction_id) {
-            var return_share_data = []
+            var return_share_data = [];
             /* Get all the share information for the requesting user in the requested transaction */
             for (var i in transaction_to_share_db) {
                 if (transaction_to_share_db[i].transaction_id == transaction_id && user_id == transaction_to_share_db[i].user_id) {
@@ -122,6 +111,7 @@ app.get('/login/:user_id', function (req, res) {
             //User exists
             var password = req.query.password;
             if (data.password == password) {
+                req.session.user_id = user_id;
                 res.json({success: true, message: "Authenticated successfully."});
             }
             else {
@@ -186,10 +176,10 @@ app.get('/get_public_keys/:transaction_id', function (req, res) {
 });
 
 /* POST API Is testable with Windows PowerShell, Example:
-$ $data = @{  creator    = "nadav";
-$             user_list = "naaav, danav, nadav";
-$             group_name = "nn111n"; }
-$ curl -Uri http://localhost:3000/create_group  -UseBasicParsing -Method Post -Body $data
+ $ $data = @{  creator    = "nadav";
+ $             user_list = "naaav, danav, nadav";
+ $             group_name = "nn111n"; }
+ $ curl -Uri http://localhost:3000/create_group  -UseBasicParsing -Method Post -Body $data
  */
 
 app.post('/create_group', function (req, res) {
@@ -224,4 +214,7 @@ var server = app.listen(3000, function () {
     console.log('BetweenUs is up & listening at http://%s:%s', host, port);
     database_interface.InitUsersDB();
     database_interface.InitGroupsDB();
+    database_interface.GetUsersPublicKeys(["liranbg@gmail.com"], function(data) {
+        console.log(data);
+    })
 });

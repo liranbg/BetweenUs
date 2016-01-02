@@ -4,6 +4,9 @@ logs
 info.json
 npm-debug.log*
 
+# Do not track .env in the revision history
+src/.env
+
 # Runtime data
 pids
 *.pid

@@ -17,74 +17,74 @@ var RSA = require('node-rsa');
 var winston = require('winston');
 var moment = require('moment');
 var logger = new(winston.Logger)({
-  transports: [
-    new(winston.transports.File)({
-      // humanReadableUnhandledException: true,
-      // handleExceptions: true,
-      colorize: true,
-      json: false,
-      level: 'debug',
-      name: 'info-file',
-      filename: 'info.json',
-      timestamp: function() {
-        return moment(new Date()).format("YYYY-MM-dTHH:mm:ss:SSS");
-      },
-      formatter: function(options) {
-        // Return string will be passed to logger.
-        return options.timestamp() + ' ' + options.level.toUpperCase() + ' ' + (undefined !== options.message ? options.message : '') +
-          (options.meta && Object.keys(options.meta).length ? '\n\t' + JSON.stringify(options.meta) : '');
-      }
-    }),
-    new(winston.transports.Console)({
-      level: 'error',
-      timestamp: function() {
-        return moment(new Date()).format("YYYY-MM-dTHH:mm:ss:SSS");
-      },
-      formatter: function(options) {
-        // Return string will be passed to logger.
-        return options.timestamp() + ' ' + options.level.toUpperCase() + ' ' + (undefined !== options.message ? options.message : '') +
-          (options.meta && Object.keys(options.meta).length ? '\n\t' + JSON.stringify(options.meta) : '');
-      }
-    })
-  ]
+    transports: [
+        new(winston.transports.File)({
+            // humanReadableUnhandledException: true,
+            // handleExceptions: true,
+            colorize: true,
+            json: false,
+            level: 'debug',
+            name: 'info-file',
+            filename: 'info.json',
+            timestamp: function() {
+                return moment(new Date()).format("YYYY-MM-dTHH:mm:ss:SSS");
+            },
+            formatter: function(options) {
+                // Return string will be passed to logger.
+                return options.timestamp() + ' ' + options.level.toUpperCase() + ' ' + (undefined !== options.message ? options.message : '') +
+                    (options.meta && Object.keys(options.meta).length ? '\n\t' + JSON.stringify(options.meta) : '');
+            }
+        }),
+        new(winston.transports.Console)({
+            level: 'error',
+            timestamp: function() {
+                return moment(new Date()).format("YYYY-MM-dTHH:mm:ss:SSS");
+            },
+            formatter: function(options) {
+                // Return string will be passed to logger.
+                return options.timestamp() + ' ' + options.level.toUpperCase() + ' ' + (undefined !== options.message ? options.message : '') +
+                    (options.meta && Object.keys(options.meta).length ? '\n\t' + JSON.stringify(options.meta) : '');
+            }
+        })
+    ]
 });
 var rsa_bits = 1024;
 function encrypt_with_public_key(share, rsa_key) {
-  return rsa_key.encrypt(share, 'base64');
+    return rsa_key.encrypt(share, 'base64');
 }
 
 function decrypt_with_private_key(enc_share, rsa_key) {
-  return rsa_key.decrypt(enc_share, 'utf8');
+    return rsa_key.decrypt(enc_share, 'utf8');
 }
 var text_to_encrypt = "Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.";
 
 var client_1 = {
-  id: 'client1',
-  assymetric_key: {
-    rsa_key: new RSA({b: rsa_bits})
-  },
-  owned_share: null,
-  share_hold: []
+    id: 'client1',
+    assymetric_key: {
+        rsa_key: new RSA({b: rsa_bits})
+    },
+    owned_share: null,
+    share_hold: []
 };
 var client_2 = {
-  id: 'client2',
-  assymetric_key: {
-    rsa_key: new RSA({
-      b: rsa_bits
-    })
-  },
-  owned_share: null,
-  share_hold: []
+    id: 'client2',
+    assymetric_key: {
+        rsa_key: new RSA({
+            b: rsa_bits
+        })
+    },
+    owned_share: null,
+    share_hold: []
 };
 var client_3 = {
-  id: 'client3',
-  assymetric_key: {
-    rsa_key: new RSA({
-      b: rsa_bits
-    })
-  },
-  owned_share: null,
-  share_hold: []
+    id: 'client3',
+    assymetric_key: {
+        rsa_key: new RSA({
+            b: rsa_bits
+        })
+    },
+    owned_share: null,
+    share_hold: []
 };
 
 
@@ -110,33 +110,33 @@ logger.log('Done.');
 logger.log('Starting encryption with RSA');
 var assigned_shares = [];
 for (var i in shares) {
-  logger.log('ID: ' + clients_to_share_with[i].id + ', Share: ' + shares[i]);
-  var start = process.hrtime();
-  assigned_shares.push({
-    belong_to: clients_to_share_with[i].id,
-    share: encrypt_with_public_key(shares[i], clients_to_share_with[i].assymetric_key.rsa_key)
-  });
-  logger.log("Took %d seconds", (process.hrtime(start)[1]*1e-9).toFixed(5));
+    logger.log('ID: ' + clients_to_share_with[i].id + ', Share: ' + shares[i]);
+    var start = process.hrtime();
+    assigned_shares.push({
+        belong_to: clients_to_share_with[i].id,
+        share: encrypt_with_public_key(shares[i], clients_to_share_with[i].assymetric_key.rsa_key)
+    });
+    logger.log("Took %d seconds", (process.hrtime(start)[1]*1e-9).toFixed(5));
 }
 //SKIPPED: Server gets all shares and assign it to the relevant oarticipant
 
 //each client reveals his share by decrypt with private key
 logger.log('Starting decryption client\'s shares');
 for (var i in clients_to_share_with) {
-  for (var j in assigned_shares) {
-    if (assigned_shares[j].belong_to == clients_to_share_with[i].id) {
-      logger.log('ID: ' + clients_to_share_with[i].id + ', Encrypted Share: ' + assigned_shares[j].share);
-      var start = process.hrtime();
-      clients_to_share_with[i].owned_share = decrypt_with_private_key(assigned_shares[j].share, clients_to_share_with[i].assymetric_key.rsa_key);
-      logger.log("Took %d seconds", (process.hrtime(start)[1]*1e-9).toFixed(5));
+    for (var j in assigned_shares) {
+        if (assigned_shares[j].belong_to == clients_to_share_with[i].id) {
+            logger.log('ID: ' + clients_to_share_with[i].id + ', Encrypted Share: ' + assigned_shares[j].share);
+            var start = process.hrtime();
+            clients_to_share_with[i].owned_share = decrypt_with_private_key(assigned_shares[j].share, clients_to_share_with[i].assymetric_key.rsa_key);
+            logger.log("Took %d seconds", (process.hrtime(start)[1]*1e-9).toFixed(5));
+        }
     }
-  }
 }
 //Checking all clients has correct shares. if not prints client id
 for (var i in clients_to_share_with) {
-  if (shares.indexOf(clients_to_share_with[i].owned_share) == -1) {
-    logger.log(clients_to_share_with[i].id);
-  }
+    if (shares.indexOf(clients_to_share_with[i].owned_share) == -1) {
+        logger.log(clients_to_share_with[i].id);
+    }
 }
 
 //Restoring information from raw shares
