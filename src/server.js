@@ -14,25 +14,6 @@ app.use(body_parser.json());
 
 
 /* Mock Database */
-var user_login_db = [
-    {user_id: "nadav", password: "n123"},
-    {user_id: "liran", password: "l123"},
-    {user_id: "yaron", password: "y123"}
-];
-
-var group_mock_db = [
-    {group_id:1, members: ["nadav", "liran", "yaron"]}
-];
-
-var transaction_mock_db = [
-    {transaction_id: 1000, cipher_text: "encrypted_aes_message", group_id: 1},
-];
-
-var public_key_mock_db = [
-    {user_id: "nadav", key: "nnnnnnnnnnnnnnn"},
-    {user_id: "liran", key: "lllllllllllllll"},
-    {user_id: "yaron", key: "yyyyyyyyyyyyyyy"}
-];
 
 var transaction_to_share_db = [
     {transaction_id: 1000, user_id: "nadav", share_id:"nadav", share_data: "trans_1000_nadav_share_encrypted_with_nadav_public_key" },
@@ -45,7 +26,7 @@ var transaction_to_share_db = [
 
     {transaction_id: 1000, user_id: "yaron", share_id:"nadav", share_data: null },
     {transaction_id: 1000, user_id: "yaron", share_id:"liran", share_data: null },
-    {transaction_id: 1000, user_id: "yaron", share_id:"yaron", share_data: "trans_1000_yaron_share_encrypted_with_yaron_public_key" },
+    {transaction_id: 1000, user_id: "yaron", share_id:"yaron", share_data: "trans_1000_yaron_share_encrypted_with_yaron_public_key" }
 ];
 /* End of Mock Database */
 
@@ -54,12 +35,7 @@ var transaction_to_share_db = [
 /* Session Functions */
 var isUserAuthenticated = function(req) {
     _session = req.session;
-    if (_session.user_id) {
-        return true;
-    }
-    else {
-        return false;
-    }
+    return (_session.user_id);
 };
 
 /* Database Query Functions */
@@ -69,7 +45,7 @@ var GetUsersPublicKeys = function(user_list) {
         public_key_list.push(GetPublicKeyForUser(user_list[i]));
     }
     return public_key_list;
-}
+};
 
 var GetPublicKeyForUser = function(user_id) {
     for (var i in public_key_mock_db) {
@@ -177,7 +153,7 @@ app.get('/get_public_keys/:transaction_id', function (req, res) {
 
 /* POST API Is testable with Windows PowerShell, Example:
  $ $data = @{  creator    = "nadav";
- $             user_list = "naaav, danav, nadav";
+ $             user_list = "nadav@gmail.com, liranbg@gmail.com, yaron@gmail.com";
  $             group_name = "nn111n"; }
  $ curl -Uri http://localhost:3000/create_group  -UseBasicParsing -Method Post -Body $data
  */
@@ -188,13 +164,29 @@ app.post('/create_group', function (req, res) {
     var creator = req.body.creator,
         user_list = req.body.user_list,
         group_name = req.body.group_name;
-    database_interface.CreateNewGroup(creator, user_list, group_name, function(data, err) {
+    user_list = user_list.split(",");
+    var users = [];
+    for (var i = 0; i < user_list.length; ++i) {
+        users.push(user_list[i].trim());
+    }
+    database_interface.CreateNewGroup(creator, users, group_name, function(group_data, err) {
         if (err) {
-            res.json({success: false, message: "Error occured while creating a new group." + err.message })
+            res.json({success: false, message: "Error occurred while creating a new group." + err.message })
         }
-        var success_message = "Group created, ID: " + data.id;
-        res.json({success: true, message: success_message});
+        res.json({success: true, message: "Group created, Group details: " + group_data});
+        for (var i = 0; i < users.length; ++i) {
+            database_interface.GetUserByEmail(users[i], function(user_data, err) {
+                if (!err) {
+                    database_interface.AddGroupToUser(user_data, group_data, function(data, err) {
+                       if (!err) {
+                           console.log("Added group",group_data.id,"to user",user_data.email);
+                       }
+                    });
+                }
+            });
+        }
     });
+
     // TODO: For each user in the user list / creator, update document to include new group.
 });
 
@@ -214,7 +206,13 @@ var server = app.listen(3000, function () {
     console.log('BetweenUs is up & listening at http://%s:%s', host, port);
     database_interface.InitUsersDB();
     database_interface.InitGroupsDB();
-    database_interface.GetUsersPublicKeys(["liranbg@gmail.com"], function(data) {
-        console.log(data);
-    })
+    database_interface.InitTransactionsDB();
+    database_interface.InitSharesDB();
+
+    //database_interface.getGroupByNameAndCreator("groupname","nadav", function(data) {
+    //    console.log(data);
+    //});
+    //database_interface.GetUsersPublicKeys(["liranbg@gmail.com"], function(data) {
+    //    console.log(data);
+    //})
 });
