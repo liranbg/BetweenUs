@@ -207,12 +207,13 @@ var server = app.listen(3000, function () {
     database_interface.InitUsersDB();
     database_interface.InitGroupsDB();
     database_interface.InitTransactionsDB();
-    database_interface.InitSharesDB();
+    database_interface.InitSharesStashDB();
 
     //database_interface.getGroupByNameAndCreator("groupname","nadav", function(data) {
     //    console.log(data);
     //});
-    //database_interface.GetUsersPublicKeys(["liranbg@gmail.com"], function(data) {
-    //    console.log(data);
-    //})
+    var list_of_stash = [{user:"liranbg@gmail.com", stash:"bla1"},{user:"nadav@gmail.com", stash:"bla2"}];
+    database_interface.CreateTransaction("liranbg@gmail.com", "123123", list_of_stash, "groupidaaa1", function(data) {
+        console.log(data);
+    })
 });

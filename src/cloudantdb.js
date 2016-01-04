@@ -8,7 +8,7 @@ var CloudantDBModule = (function() {
         users_db_name: 'users',
         groups_db_name: 'groups',
         transactions_db_name: 'transactions',
-        shares_db_name: 'shares',
+        shares_db_name: 'shares_stash',
         cloudant_account : {
             account: process.env.cloudant_username,
             password: process.env.cloudant_password
@@ -45,7 +45,7 @@ var CloudantDBModule = (function() {
 
     };
 
-    var InitSharesDB = function() {
+    var InitSharesStashDB = function() {
         cld_db.db.create(db_module_config.shares_db_name, function () {
             console.log(db_module_config.shares_db_name," database is set");
         });
@@ -65,16 +65,38 @@ var CloudantDBModule = (function() {
             });
     };
 
-    var CreateTransaction = function(initiator, members, group_id, callback_func) {
+    var CreateTransaction = function(creator_userid, encrypted_data, user_stash_list, group_id, callback_func) {
+        //TODO: Store shares_stash before creating the transaction and then add it to the new transaction
+        //user_stash_list - [{user:"liranbg@gmail.com", share:"asdasdasdasd"},{},{},...]
+        var data_to_return;
         var transactions_db = cld_db.db.use(db_module_config.transactions_db_name);
+        var shares_stash_db = cld_db.db.use(db_module_config.shares_db_name);
         transactions_db.insert(
-            { initiator: initiator, members: members, group_id: group_id, shares: [] },
-            function(err, data, header) {
+            { initiator: creator_userid, encrypted_data: encrypted_data, group_id: group_id, shares: [] }, function(err, transaction_body, header) {
                 if (err) {
                     console.log('Error encountered while trying to add transaction: ', err.message);
                     return err;
                 }
-                callback_func(data);
+                var list_of_user_stash_to_insert = [];
+                for (var i in user_stash_list) {
+                    list_of_user_stash_to_insert.push({ group_id:group_id, stash_owner: user_stash_list[i].user, stashed_shares: [user_stash_list[i]]});
+                }
+                shares_stash_db.bulk({docs: list_of_user_stash_to_insert}, function(err, stash_share_body) {
+                    console.log(stash_share_body);
+                        var list_of_stash_shares_ids = [];
+                        for (var j = 0; j < stash_share_body.length; ++j) {
+                            list_of_stash_shares_ids.push(stash_share_body[j].id);
+                        }
+                        transactions_db.get(transaction_body.id, function(err, doc_to_update){
+                            transaction_body._rev = doc_to_update._rev;
+                            doc_to_update.shares = list_of_stash_shares_ids;
+                            transactions_db.insert(doc_to_update, transaction_body.id, function(err,body) {
+                                callback_func(body);
+                            })
+                        });
+                        //transaction_body.shares = list_of_stash_shares_ids;
+                    }
+                );
             });
     };
 
@@ -184,25 +206,24 @@ var CloudantDBModule = (function() {
     };
 
     var GetUsersPublicKeys = function(user_ids_list, callback_func) {
-        //TODO Figure how to get bulk of documents from server
+        //This function returns a list of objects contains for each email its public key
         var users_db = cld_db.db.use(db_module_config.users_db_name);
-        for (var i = 0; i < user_ids_list.length; ++i) {
-            var user = user_ids_list[i];
-            users_db.get(user, function (err, data) {
-                if (err)
-                {
-                    console.log("Error occured while fetching user email & public keys: ", err.message);
+        users_db.fetch({keys:user_ids_list}, function(err, data) {
+            if (!err) {
+                var list_of_public_keys = [];
+                for (var i = 0; i < data.rows.length; ++i) {
+                    var doc = data.rows[i].doc;
+                    list_of_public_keys.push({email:doc.email,public_key:doc.public_key});
                 }
-                callback_func(data);
-            });
-        }
-
+                callback_func(list_of_public_keys);
+            }
+        });
     };
 
     exports.InitUsersDB = InitUsersDB;
     exports.InitGroupsDB = InitGroupsDB;
     exports.InitTransactionsDB = InitTransactionsDB;
-    exports.InitSharesDB = InitSharesDB;
+    exports.InitSharesStashDB = InitSharesStashDB;
     exports.InsertNewUser = InsertNewUser;
     exports.CreateNewGroup = CreateNewGroup;
     exports.AddShareToTransaction = AddShareToTransaction;
