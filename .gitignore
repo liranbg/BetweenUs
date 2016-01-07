@@ -6,6 +6,8 @@ npm-debug.log*
 
 # Do not track .env in the revision history
 src/.env
+src/server_side/.env
+.idea/*
 
 # Runtime data
 pids
@@ -30,6 +32,7 @@ build/Release
 # Dependency directory
 # https://docs.npmjs.com/misc/faq#should-i-check-my-node-modules-folder-into-git
 src/node_modules
+src/server_side/node_modules
 
 # Optional npm cache directory
 .npm

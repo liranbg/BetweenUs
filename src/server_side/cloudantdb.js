@@ -2,7 +2,9 @@ var CloudantDBModule = (function() {
 
     // Load the Cloudant library.
     var Cloudant = require('cloudant');
-    require('dotenv').load(); //load all environments from .env file
+    var debug = require('debug')('betweenus_server:database');
+    var logger = require('winston');
+    require('dotenv').load({path: './.env'}); //load all environments from .env file
 
     var db_module_config = {
         users_db_name: 'users',
@@ -17,16 +19,28 @@ var CloudantDBModule = (function() {
 
     var cld_db = Cloudant(db_module_config.cloudant_account);
 
-
-    var InitUsersDB = function() {
-        cld_db.db.create(db_module_config.users_db_name, function () {
-            console.log(db_module_config.users_db_name," database is set");
-        });
+    var InitDataBases =  function() {
+        debug("Initializing UsersDB");
+        InitUsersDB();
+        debug("Initializing GroupsDB");
+        InitGroupsDB();
+        debug("Initializing SharesStashDB");
+        InitSharesStashDB();
+        debug("Initializing TransactionsDB");
+        InitTransactionsDB();
     };
 
-    var InitGroupsDB = function() {
+    //Private Method for initializing databases
+
+    function InitUsersDB() {
+        cld_db.db.create(db_module_config.users_db_name, function () {
+            debug(db_module_config.users_db_name + " database is set");
+        });
+    }
+
+    function InitGroupsDB() {
         cld_db.db.create(db_module_config.groups_db_name, function () {
-            console.log(db_module_config.groups_db_name," database is set");
+            debug(db_module_config.groups_db_name + " database is set");
         });
         //initialize index for querying db
         var group_db = cld_db.db.use(db_module_config.groups_db_name);
@@ -34,23 +48,25 @@ var CloudantDBModule = (function() {
             if (er) {
                 throw er;
             }
-            console.log('Index creation result: %s', response.result);
+            debug('Index creation result:' + response.result);
         });
-    };
+    }
 
-    var InitTransactionsDB = function() {
+    function InitTransactionsDB() {
         cld_db.db.create(db_module_config.transactions_db_name, function () {
-            console.log(db_module_config.transactions_db_name," database is set");
+            debug(db_module_config.transactions_db_name + " database is set");
         });
 
-    };
+    }
 
-    var InitSharesStashDB = function() {
+    function InitSharesStashDB() {
         cld_db.db.create(db_module_config.shares_db_name, function () {
-            console.log(db_module_config.shares_db_name," database is set");
+            debug(db_module_config.users_db_name + " database is set");
         });
 
-    };
+    }
+
+    //End Private Method for initializing databases
 
     var CreateShare = function(user_id, data, callback_func) {
         var shares_db = cld_db.db.use(db_module_config.shares_db_name);
@@ -82,7 +98,7 @@ var CloudantDBModule = (function() {
                     list_of_user_stash_to_insert.push({ group_id:group_id, stash_owner: user_stash_list[i].user, stashed_shares: [user_stash_list[i]]});
                 }
                 shares_stash_db.bulk({docs: list_of_user_stash_to_insert}, function(err, stash_share_body) {
-                    console.log(stash_share_body);
+                        console.log(stash_share_body);
                         var list_of_stash_shares_ids = [];
                         for (var j = 0; j < stash_share_body.length; ++j) {
                             list_of_stash_shares_ids.push(stash_share_body[j].id);
@@ -195,11 +211,14 @@ var CloudantDBModule = (function() {
     };
 
     var GetUserByEmail = function(email, callback_func) {
+
         var users_db = cld_db.db.use(db_module_config.users_db_name);
         users_db.get(email, function (err, data) {
             if (err)
             {
-                console.log("Error occured while fetching user email: ", err.message);
+                debug("Error while fetching user " + email + ", Reason:" + err.message);
+                callback_func(err);
+                return;
             }
             callback_func(data);
         });
@@ -220,11 +239,7 @@ var CloudantDBModule = (function() {
         });
     };
 
-    exports.InitUsersDB = InitUsersDB;
-    exports.InitGroupsDB = InitGroupsDB;
-    exports.InitTransactionsDB = InitTransactionsDB;
-    exports.InitSharesStashDB = InitSharesStashDB;
-    exports.InsertNewUser = InsertNewUser;
+    exports.InitDataBases = InitDataBases;
     exports.CreateNewGroup = CreateNewGroup;
     exports.AddShareToTransaction = AddShareToTransaction;
     exports.AddTransactionToGroup = AddTransactionToGroup;

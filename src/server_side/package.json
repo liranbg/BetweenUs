@@ -1,0 +1,42 @@
+{
+  "name": "betweenus",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Between Us Server Side",
+  "scripts": {
+    "start": "node ./bin/www"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/liranbg/BetweenUs.git"
+  },
+  "dependencies": {
+    "body-parser": "^1.14.2",
+    "cookie-parser": "~1.3.5",
+    "debug": "~2.2.0",
+    "express": "4.13.3",
+    "jade": "~1.11.0",
+    "morgan": "^1.6.1",
+    "serve-favicon": "~2.3.0",
+
+    "cloudant": "^1.4.0",
+    "dotenv": "^1.2.0",
+    "express-session": "1.12.1",
+    "node-rsa": "0.2.26"
+  },
+  "author": [
+    {
+      "name": "Liran Ben Gida",
+      "email": "liranbg@gmail.com"
+    },
+    {
+      "name": "Nadav Luzzato",
+      "email": "nadav2051@gmail.com"
+    }
+  ],
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/liranbg/BetweenUs/issues"
+  },
+  "homepage": "https://github.com/liranbg/BetweenUs#readme"
+}
