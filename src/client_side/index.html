@@ -1,0 +1,29 @@
+
+<!DOCTYPE html>
+<html lang="en" class=" is-copy-enabled is-u2f-enabled">
+<head>
+  <title>BetweenUs Test Client</title>
+  <link href='index.css' rel='stylesheet'>
+  <script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.11.3.min.js"></script>
+  <script type='text/javascript' src='index.js'></script>
+</head>
+<body>
+  <h1> Server API Tester </h1>
+</body>
+<div id="div_form_register" style="border=1px;">
+  <h2>Register New User</h2>
+
+  <form id="form_register_user" onsubmit="return false;">
+    Email:<br> <input type="text" id="form_register_email" name="form_register_email" value="fff"><br>
+    Password:  <br><input type="text" id="form_register_password" name="form_register_password"><br>
+    Public Key:<br> <input type="text" id="form_register_public_key" name="form_register_public_key"><br><br>
+    <input type="submit" value="Submit" onclick="RegisterFormOnClick(this.form)">
+  </form >
+  <br>
+  <br>
+  <h3>Output</h3>
+  <textarea id="textfield_register_user" rows="5", cols="24"></textarea>
+</div>
+
+
+</html>
