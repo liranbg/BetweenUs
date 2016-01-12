@@ -1,5 +1,14 @@
 var CloudantDBModule = (function() {
 
+var views = {
+  user_db: {
+    "views": {
+      "get_user_doc_by_email": {
+        "map": function(doc) { if (doc.email) { emit(doc.email, doc) } }
+      }
+    }
+  }
+}
     // Load the Cloudant library.
     var Cloudant = require('cloudant');
     var logger = require('winston');
@@ -34,6 +43,17 @@ var CloudantDBModule = (function() {
     function InitUsersDB() {
         cld_db.db.create(db_module_config.users_db_name, function () {
             console.log(db_module_config.users_db_name + " database is set");
+            var users_db = cld_db.db.use(db_module_config.users_db_name);
+            users_db.insert(views.user_db, '_design/api',function(error, response) {
+                if (error) {
+                  logger.info(error)
+                  logger.error(error);
+                }
+                else {
+                  logger.info("View created successfully: " + response);
+                }
+
+            });
         });
     }
 
