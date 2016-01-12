@@ -6,6 +6,8 @@ var router = express.Router();
 router.get('/get_user', function(req, res, next) {
     //http://localhost:3000/users/get_user?user_email=liranbg@gmail.com -> displays
     var user_email = req.query.user_email;
+    console.log(req.session);
+    req.session.check = true;
     database_interface.GetUserByEmail(user_email, function(err, data) {
         if (err) {
             res.status(400).json({success:false, error: err.message});
@@ -70,7 +72,6 @@ router.post('/login', function (req, res) {
             }
             else {
                 var doc = data.rows[0];
-                console.log(data);
                 if ((doc.value.email == email) && (doc.value.password == password)) {
                     res.status(201).send({success: true, message: "Authenticated successfully", data: doc});
                 }

@@ -20,3 +20,16 @@
     width: 600px;
     height: 400px;
 }
+
+#group_actions_div {
+    border-radius: 15px 50px 30px 5px;
+    background: gainsboro;
+    padding: 20px;
+    width: 50%;
+    height: 100%;
+}
+
+table, th, td {
+    border: 1px solid black;
+    border-collapse: collapse;
+}
