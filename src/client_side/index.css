@@ -5,3 +5,18 @@
     width: 200px;
     height: 100%;
 }
+#div_form_login {
+    border-radius: 15px 50px 30px 5px;
+    background: orange;
+    padding: 20px;
+    width: 200px;
+    height: 100%;
+}
+
+#register_login_parent_div {
+    border-radius: 15px 50px 30px 5px;
+    background: grey;
+    padding: 20px;
+    width: 600px;
+    height: 400px;
+}
