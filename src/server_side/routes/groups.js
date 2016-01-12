@@ -13,7 +13,7 @@ var router = express.Router();
 router.post('/create_group', function (req, res) {
     // TODO: Check authentication and equivalence of requestor of the request to creator of the group
     // TODO: Check all users in user_list exist.
-    var creator = req.body.creator,
+    var creator = session_util.GetUserEmail(req.session),
         user_list = req.body.user_list,
         group_name = req.body.group_name;
     user_list = user_list.split(",");

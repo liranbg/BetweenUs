@@ -8,7 +8,13 @@ var SessionUtilModule = (function() {
         return session_store.user_session.user_id;
     };
 
+    var GetUserEmail = function(session_store) {
+        return session_store.user_session.email;
+
+    };
+
     exports.InitUserSession = InitUserSession;
+    exports.GetUserEmail = GetUserEmail;
     exports.GetUserId = GetUserId;
 
 } (SessionUtilModule || {}));
