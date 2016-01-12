@@ -51,4 +51,30 @@ router.post('/register_user', function(req, res) {
 
 });
 
+router.post('/login', function (req, res) {
+    var email = req.body.email;
+    var password = req.body.password;
+    database_interface.GetUserByEmail(email, function(err, data) {
+        if (err) {
+            res.send({success: false, error: err});
+        }
+        else {
+            if (data.total_rows == 0) {
+                res.send({success: false,  message: "Username does not exists"});
+            }
+            else {
+                var doc = data.rows[0];
+                console.log(doc);
+                if ((doc.value.email == email) && (doc.value.password == password)) {
+                    req.session.user_id = doc.value.email;
+                    res.send({success: true, message: "Authenticated successfully", data: doc});
+                }
+                else {
+                    res.send({success: false, message: "Wrong password"});
+                }
+            }
+        }
+    });
+});
+
 module.exports = router;

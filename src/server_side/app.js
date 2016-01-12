@@ -7,7 +7,6 @@ const
     bodyParser = require('body-parser'),
     users = require('./routes/users'),
     groups = require('./routes/groups'),
-    cors = require('cors'),
     database_interface = require('./cloudantdb');
 
 
@@ -53,9 +52,6 @@ app.use(function(req, res, next) {
     next(err);
 });
 
-// CORS Middleware
-
-//app.use(cors({origin: 'http://localhost:63342'}));
 // error handlers
 
 // development error handler
@@ -63,9 +59,9 @@ app.use(function(req, res, next) {
 if (app.get('env') === 'development') {
     app.use(function(err, req, res, next) {
         res.status(err.status || 500);
-        res.render('error', {
-            message: err.message,
-            error: err
+        res.send({
+            success: false,
+            error: err.message
         });
     });
 }
@@ -74,9 +70,9 @@ if (app.get('env') === 'development') {
 // no stacktraces leaked to user
 app.use(function(err, req, res, next) {
     res.status(err.status || 500);
-    res.render('error', {
-        message: err.message,
-        error: {}
+    res.send({
+        success: false,
+        error: err.message
     });
 });
 
@@ -155,27 +151,7 @@ module.exports = app;
 ///* Start of server */
 //
 ///* Server API */
-//app.get('/login/:user_id', function (req, res) {
-//    var user_id = req.params.user_id;
-//    var exists = false;
-//    database_interface.GetUserDetailsByEmail(user_id, function(data) {
-//        exists = true;
-//        if ((data) && (data.username.length)) {
-//            //User exists
-//            var password = req.query.password;
-//            if (data.password == password) {
-//                req.session.user_id = user_id;
-//                res.json({success: true, message: "Authenticated successfully."});
-//            }
-//            else {
-//                res.json({success: false, message: "Wrong password"});
-//            }
-//        }
-//        else {
-//            res.json({success: false, message: "Username does not exists"});
-//        }
-//    });
-//});
+
 //
 //app.get('/get_shares/:user_id', function(req, res) {
 //    /* Grab the data from the get request */
