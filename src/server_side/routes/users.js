@@ -1,13 +1,12 @@
 var express = require('express');
 var database_interface = require('../cloudantdb');
+var session_util = require('../utils/session');
 var router = express.Router();
 
 /* GET users listing. */
 router.get('/get_user', function(req, res, next) {
     //http://localhost:3000/users/get_user?user_email=liranbg@gmail.com -> displays
     var user_email = req.query.user_email;
-    console.log(req.session);
-    req.session.check = true;
     database_interface.GetUserByEmail(user_email, function(err, data) {
         if (err) {
             res.status(400).json({success:false, error: err.message});
@@ -19,6 +18,18 @@ router.get('/get_user', function(req, res, next) {
             else {
                 res.status(200).json({success: true, user_data: data});
             }
+        }
+    });
+});
+
+router.get('/user_exists', function(req, res, next) {
+    var user_email = req.query.user_email;
+    database_interface.IsUserExists(user_email, function(err, data) {
+        if (err) {
+            res.status(400).json({success:false, error: err.message});
+        }
+        else {
+            res.status(200).json({success:true,response: data});
         }
     });
 });
@@ -73,6 +84,7 @@ router.post('/login', function (req, res) {
             else {
                 var doc = data.rows[0];
                 if ((doc.value.email == email) && (doc.value.password == password)) {
+                    session_util.InitUserSession(req.session, doc.value.email, doc.id);
                     res.status(201).send({success: true, message: "Authenticated successfully", data: doc});
                 }
                 else {

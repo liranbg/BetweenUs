@@ -207,7 +207,7 @@ var CloudantDBModule = (function() {
             });
     };
 
-    var GetGroupByNameAndCreator = function (name, creator, callback_func) {
+    var GetAllMyGroups = function (user_id, callback_func) {
         var group_db = cld_db.db.use(db_module_config.groups_db_name);
         group_db.find({selector:{name:name, creator:creator}}, function (err, data) {
             if (err) {
@@ -226,6 +226,29 @@ var CloudantDBModule = (function() {
                 logger.error("GetUserByEmail: %s", err.message);
             }
             callback_func(err, data);
+        });
+    };
+
+    var IsUserExists = function(email, callback_func) {
+        var users_db = cld_db.db.use(db_module_config.users_db.name);
+        var view_name = db_module_config.users_db.api.user_data_by_email.name;
+        var design_name = db_module_config.users_db.api.user_data_by_email.design_name;
+        users_db.view(design_name, view_name, { keys: [email] }, function (err, data) {
+            if (err) {
+                logger.error("GetUserByEmail: %s", err.message);
+                callback_func(err, data);
+            }
+            else {
+                if (data.rows.length == 0) {
+                    callback_func(null, false);
+
+                }
+                else {
+                    callback_func(err, true);
+                }
+
+            }
+
         });
     };
 
@@ -283,7 +306,8 @@ var CloudantDBModule = (function() {
     exports.AddUsersToGroup = AddUsersToGroup;
     exports.GetUsersPublicKeys = GetUsersPublicKeys;
     exports.GetUserByEmail = GetUserByEmail;
-    exports.GetGroupByNameAndCreator = GetGroupByNameAndCreator;
+    exports.IsUserExists = IsUserExists;
+    exports.GetAllMyGroups = GetAllMyGroups;
     exports.CreateTransaction = CreateTransaction;
     exports.CreateShare = CreateShare;
     exports.GetGroupIdByTransactionId = GetGroupIdByTransactionId;
