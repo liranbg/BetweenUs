@@ -19,13 +19,13 @@ var CloudantDBModule = (function() {
     var cld_db = Cloudant(db_module_config.cloudant_account);
 
     var InitDataBases =  function() {
-        console.log("Initializing UsersDB");
+        logger.info("Initializing UsersDB");
         InitUsersDB();
-        console.log("Initializing GroupsDB");
+        logger.info("Initializing GroupsDB");
         InitGroupsDB();
-        console.log("Initializing SharesStashDB");
+        logger.info("Initializing SharesStashDB");
         InitSharesStashDB();
-        console.log("Initializing TransactionsDB");
+        logger.info("Initializing TransactionsDB");
         InitTransactionsDB();
     };
 
@@ -33,34 +33,26 @@ var CloudantDBModule = (function() {
 
     function InitUsersDB() {
         cld_db.db.create(db_module_config.users_db_name, function () {
-            console.log(db_module_config.users_db_name + " database is set");
+            logger.info(db_module_config.users_db_name + " database is set");
         });
     }
 
     function InitGroupsDB() {
         cld_db.db.create(db_module_config.groups_db_name, function () {
-            console.log(db_module_config.groups_db_name + " database is set");
-        });
-        //initialize index for querying db
-        var group_db = cld_db.db.use(db_module_config.groups_db_name);
-        group_db.index({name:'name', type:'json', index:{fields:['name','creator']}}, function(er, response) {
-            if (er) {
-                throw er;
-            }
-            console.log('Index creation result:' + response.result);
+            logger.info(db_module_config.groups_db_name + " database is set");
         });
     }
 
     function InitTransactionsDB() {
         cld_db.db.create(db_module_config.transactions_db_name, function () {
-            console.log(db_module_config.transactions_db_name + " database is set");
+            logger.info(db_module_config.transactions_db_name + " database is set");
         });
 
     }
 
     function InitSharesStashDB() {
         cld_db.db.create(db_module_config.shares_db_name, function () {
-            console.log(db_module_config.users_db_name + " database is set");
+            logger.info(db_module_config.shares_db_name + " database is set");
         });
 
     }
@@ -71,47 +63,55 @@ var CloudantDBModule = (function() {
         var shares_db = cld_db.db.use(db_module_config.shares_db_name);
         shares_db.insert(
             { user_id: user_id, data: data },
-            function(err, data, header) {
+            function(err, data) {
                 if (err) {
-                    console.log('Error encountered while trying to add share: ', err.message);
-                    return err;
+                    logger.error("CreateShare: %s", err.message);
                 }
-                callback_func(data);
+                callback_func(err, data);
             });
     };
 
     var CreateTransaction = function(creator_userid, encrypted_data, user_stash_list, group_id, callback_func) {
         //TODO: Store shares_stash before creating the transaction and then add it to the new transaction
         //user_stash_list - [{user:"liranbg@gmail.com", share:"asdasdasdasd"},{},{},...]
-        var data_to_return;
         var transactions_db = cld_db.db.use(db_module_config.transactions_db_name);
         var shares_stash_db = cld_db.db.use(db_module_config.shares_db_name);
         transactions_db.insert(
-            { initiator: creator_userid, encrypted_data: encrypted_data, group_id: group_id, shares: [] }, function(err, transaction_body, header) {
+            { initiator: creator_userid, encrypted_data: encrypted_data, group_id: group_id, shares: [] }, function(err, transaction_body) {
                 if (err) {
-                    console.log('Error encountered while trying to add transaction: ', err.message);
-                    return err;
+                    logger.error("CreateTransaction: Insert - %s", err.message);
+                    callback_func(err, transaction_body);
                 }
-                var list_of_user_stash_to_insert = [];
-                for (var i in user_stash_list) {
-                    list_of_user_stash_to_insert.push({ group_id:group_id, stash_owner: user_stash_list[i].user, stashed_shares: [user_stash_list[i]]});
-                }
-                shares_stash_db.bulk({docs: list_of_user_stash_to_insert}, function(err, stash_share_body) {
-                        console.log(stash_share_body);
-                        var list_of_stash_shares_ids = [];
-                        for (var j = 0; j < stash_share_body.length; ++j) {
-                            list_of_stash_shares_ids.push(stash_share_body[j].id);
-                        }
-                        transactions_db.get(transaction_body.id, function(err, doc_to_update){
-                            transaction_body._rev = doc_to_update._rev;
-                            doc_to_update.shares = list_of_stash_shares_ids;
-                            transactions_db.insert(doc_to_update, transaction_body.id, function(err,body) {
-                                callback_func(body);
-                            })
-                        });
-                        //transaction_body.shares = list_of_stash_shares_ids;
+                else {
+                    var list_of_user_stash_to_insert = [];
+                    for (var i in user_stash_list) {
+                        list_of_user_stash_to_insert.push({ group_id:group_id, stash_owner: user_stash_list[i].user, stashed_shares: [user_stash_list[i]]});
                     }
-                );
+                    shares_stash_db.bulk({docs: list_of_user_stash_to_insert}, function(err, stash_share_body) {
+                            if (err) {
+                                logger.error("CreateTransaction: Bulk - %s", err.message);
+                                callback_func(err, stash_share_body);
+                            }
+                            else {
+                                var list_of_stash_shares_ids = [];
+                                for (var j = 0; j < stash_share_body.length; ++j) {
+                                    list_of_stash_shares_ids.push(stash_share_body[j].id);
+                                }
+                                transactions_db.get(transaction_body.id, function(err, doc_to_update){
+                                    transaction_body._rev = doc_to_update._rev;
+                                    doc_to_update.shares = list_of_stash_shares_ids;
+                                    transactions_db.insert(doc_to_update, transaction_body.id, function(err,body) {
+                                        if (err) {
+                                            logger.error("CreateTransaction: Update - %s", err.message);
+                                        }
+                                        callback_func(err, body);
+                                    })
+                                });
+                            }
+                        }
+                    );
+                }
+
             });
     };
 
@@ -121,10 +121,9 @@ var CloudantDBModule = (function() {
         updated_list.push(transaction.id);
         group_db.insert({_id:group.id, _rev: group.rev, transactions:updated_list}, function(err, data) {
             if (err) {
-                console.log('Error encountered while trying to add a transaction to a group: ', err.message);
-                return err;
+                logger.error("AddTransactionToGroup: %s", err.message);
             }
-            callback_func(data);
+            callback_func(err, data);
         });
 
     };
@@ -135,10 +134,9 @@ var CloudantDBModule = (function() {
         updated_list.push(share.id);
         transactions_db.insert({_id:transaction.id, _rev: transaction.rev, shares:updated_list}, function(err, data) {
             if (err) {
-                console.log('Error encountered while trying to add a share to a transaction: ', err.message);
-                return err;
+                logger.error("AddShareToTransaction: %s", err.message);
             }
-            callback_func(data);
+            callback_func(err, data);
         });
     };
 
@@ -148,10 +146,9 @@ var CloudantDBModule = (function() {
         user.in_groups.push(group.id);
         users_db.insert(user, user.email, function(err, data) {
             if (err) {
-                console.log('Error encountered while trying to add a group to a user: ', err.message);
-                return err;
+                logger.error("AddGroupToUser: %s", err.message);
             }
-            callback_func(data);
+            callback_func(err, data);
         });
 
     };
@@ -162,17 +159,11 @@ var CloudantDBModule = (function() {
         var users_db = cld_db.db.use(db_module_config.users_db_name);
         users_db.insert(
             { password: password, in_groups: [], email: email, public_key: public_key }, // Document
-            email,                                                        // Identifier
             function(err, data) {                                 // Callback func
                 if (err) {
-                    console.log('Error encountered while trying to add user: ', err.message);
-                    callback_func(err, data);
+                    logger.error("InsertNewUser: %s", err.message);
                 }
-                else {
-                    console.log('User inserted successfully.');
-                    callback_func(null, data);
-                }
-
+                callback_func(err, data);
             });
     };
 
@@ -180,50 +171,33 @@ var CloudantDBModule = (function() {
         // TODO: Check that group name is complaint to some policy we'll set (max length, forbidden chars etc.) [Discuss either here or on server prior to the request].
         var groups_db = cld_db.db.use(db_module_config.groups_db_name);
         groups_db.insert(
-            { creator: creator, members: user_list, name: group_name, transactions:[], cipher_text:123123 },                    // Document
-            function(err, data, header) {                                                          // Callback func
+            { creator: creator, members: user_list, name: group_name, transactions:[] },                    // Document
+            function(err, data) {                                                          // Callback func
                 if (err) {
-                    console.log('Error encountered while trying to add user: ', err.message);
+                    logger.error("CreateNewGroup: %s", err.message);
                 }
-                else {
-                    console.log('Group created successfully.', data);
-                }
-                callback_func(data);
+                callback_func(err, data);
             });
     };
 
     var GetGroupByNameAndCreator = function (name, creator, callback_func) {
         var group_db = cld_db.db.use(db_module_config.groups_db_name);
         group_db.find({selector:{name:name, creator:creator}}, function (err, data) {
-            if (err)
-            {
-                console.log("Error occurred while fetching group name: ", err.message);
+            if (err) {
+                logger.error("GetGroupByNameAndCreator: %s", err.message);
             }
-            callback_func(data);
-        });
-    };
-
-    var GetUserDetailsByEmail = function(email, callback_func) {
-        var users_db = cld_db.db.use(db_module_config.users_db_name);
-        users_db.get(email, function (err, data) {
-            if (err)
-            {
-                console.log("Error occurred while fetching user email: ", err.message);
-            }
-            callback_func(data);
+            callback_func(err, data);
         });
     };
 
     var GetUserByEmail = function(email, callback_func) {
+        //TODO query for user by email with views
         var users_db = cld_db.db.use(db_module_config.users_db_name);
         users_db.get(email, function (err, data) {
-            if (err)
-            {
-                console.log("Error while fetching user " + email + ", Reason:" + err.message);
-                callback_func(err);
-                return;
+            if (err) {
+                logger.error("GetUserByEmail: %s", err.message);
             }
-            callback_func(data);
+            callback_func(err, data);
         });
     };
 
@@ -231,19 +205,23 @@ var CloudantDBModule = (function() {
 
     };
 
-    var AddUsersToGroup = function(user_emails_list, group, callback_func) {
+    var AddUsersToGroup = function(user_ids_list, group, callback_func) {
         var users_db = cld_db.db.use(db_module_config.users_db_name);
-        users_db.fetch({keys:user_emails_list}, function(err, data) {
-            if (!err) {
+        users_db.fetch({keys:user_ids_list}, function(err, data) {
+            if (err) {
+                logger.error("AddUsersToGroup: fetch - %s", err.message);
+                callback_func(err, data);
+            }
+            else {
                 for (var i = 0; i < data.rows.length; ++i) {
                     var doc = data.rows[i].doc;
                     doc.in_groups.push(group.id);
                 }
-                users_db.bulk({docs: data.rows}, function(err, data) {
-                    if (!err) {
-                        callback_func(data);
+                users_db.bulk({docs: data.rows}, function(err, updated_data) {
+                    if (err) {
+                        logger.error("AddUsersToGroup: bulk - %s", err.message);
                     }
-
+                    callback_func(err, updated_data);
                 });
             }
         })
@@ -253,13 +231,16 @@ var CloudantDBModule = (function() {
         //This function returns a list of objects contains for each email its public key
         var users_db = cld_db.db.use(db_module_config.users_db_name);
         users_db.fetch({keys:user_ids_list}, function(err, data) {
-            if (!err) {
-                var list_of_public_keys = [];
+            var list_of_public_keys = [];
+            if (err) {
+                logger.error("GetUsersPublicKeys: fetch - %s", err.message);
+            }
+            else {
                 for (var i = 0; i < data.rows.length; ++i) {
                     var doc = data.rows[i].doc;
                     list_of_public_keys.push({email:doc.email,public_key:doc.public_key});
                 }
-                callback_func(list_of_public_keys);
+                callback_func(err, list_of_public_keys);
             }
         });
     };
@@ -272,7 +253,6 @@ var CloudantDBModule = (function() {
     exports.AddTransactionToGroup = AddTransactionToGroup;
     exports.AddGroupToUser = AddGroupToUser;
     exports.AddUsersToGroup = AddUsersToGroup;
-    exports.GetUserDetailsByEmail = GetUserDetailsByEmail;
     exports.GetUsersPublicKeys = GetUsersPublicKeys;
     exports.GetUserByEmail = GetUserByEmail;
     exports.GetGroupByNameAndCreator = GetGroupByNameAndCreator;

@@ -4,7 +4,7 @@ var router = express.Router();
 
 /* GET users listing. */
 router.get('/get_user', function(req, res, next) {
-        //http://localhost:3000/users/get_user?user_email=liranbg@gmail.com -> displays
+    //http://localhost:3000/users/get_user?user_email=liranbg@gmail.com -> displays
     var user_email = req.query.user_email;
     database_interface.GetUserByEmail(user_email, function(data) {
         res.send({"status": "ok", user_data: data});
@@ -20,16 +20,34 @@ router.post('/register_user', function(req, res) {
     // TODO: Add an email authorization before actually inserting user into the database (Low priority).
     //gets email,password, public_key
     var email = req.body.email;
-    var password = req.body.email;
+    var password = req.body.password;
     var public_key = req.body.public_key;
-    database_interface.InsertNewUser(password, email, public_key, function(err, data) {
-        if (err) {
-            res.send({success: false, error: err});
-        }
-        else {
-            res.send({success: true, message: data});
-        }
-    })
+    if ((!email) || (!password) || (!public_key)) {
+        res.send({success: false, error: "Input Error"});
+    }
+    else {
+        database_interface.GetUserByEmail(email, function(err, data) {
+            if (!err) {
+                res.send({success: false, message: "Email is already exists"    });
+            }
+            else {
+                if (err.message == "missing") {
+                    database_interface.InsertNewUser(password, email, public_key, function (err, data) {
+                        if (err) {
+                            res.send({success: false, error: err});
+                        }
+                        else {
+                            res.send({success: true, message: data});
+                        }
+                    });
+                }
+                else {
+                    res.send({success: false, error: err});
+                }
+            }
+        });
+    }
+
 });
 
 module.exports = router;
