@@ -34,7 +34,16 @@ router.post('/create_group', function (req, res) {
 });
 
 
-router.get('/get_public_keys/:transaction_id', function (req, res) {
+router.get('/get_groups', function (req, res) {
+    var creator = req.body.creator,
+        user_list = req.body.user_list,
+        group_name = req.body.group_name;
+    res.json({success:true, data: "123"});
+});
+
+
+
+router.get('/get_members_public_keys/:transaction_id', function (req, res) {
     var transaction_id = req.params.transaction_id;
     /* TODO Check for authenticated session */
     /* Find group id associated with transaction */

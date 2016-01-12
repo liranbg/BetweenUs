@@ -1,6 +1,5 @@
 const
     express = require('express'),
-    session = require('express-session'),
     body_parser = require('body-parser'),
     logger = require('morgan'),
     cookieParser = require('cookie-parser'),
@@ -22,7 +21,7 @@ var allowCrossDomain = function(req, res, next) {
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
 
     // Request headers you wish to allow
-    res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, *');
 
     // Set to true if you need the website to include cookies in the requests sent
     // to the API (e.g. in case you use sessions)
@@ -35,7 +34,7 @@ var allowCrossDomain = function(req, res, next) {
 app.use(allowCrossDomain);
 
 // Initialize Session */
-app.use(session({secret: 'ArbitraryStringToUseAsSession', resave: true, saveUninitialized: true}));
+
 
 app.use(body_parser.json());
 app.use(body_parser.urlencoded({extended: false}));
@@ -58,8 +57,7 @@ app.use(function(req, res, next) {
 // will print stacktrace
 if (app.get('env') === 'development') {
     app.use(function(err, req, res, next) {
-        res.status(err.status || 500);
-        res.send({
+        res.status(err.status || 500).json({
             success: false,
             error: err.message
         });
@@ -69,8 +67,7 @@ if (app.get('env') === 'development') {
 // production error handler
 // no stacktraces leaked to user
 app.use(function(err, req, res, next) {
-    res.status(err.status || 500);
-    res.send({
+    res.status(err.status || 500).json({
         success: false,
         error: err.message
     });

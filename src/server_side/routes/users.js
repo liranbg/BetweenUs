@@ -8,12 +8,15 @@ router.get('/get_user', function(req, res, next) {
     var user_email = req.query.user_email;
     database_interface.GetUserByEmail(user_email, function(err, data) {
         if (err) {
-            res.status(500);
-            res.json({success:false, error: err.message});
+            res.status(400).json({success:false, error: err.message});
         }
         else {
-            res.status(200);
-            res.json({success: true, user_data: data});
+            if (data.rows.length == 0) {
+                res.status(204).json({success: false, error: "No such email"}); //no content. actually does not return the obj
+            }
+            else {
+                res.status(200).json({success: true, user_data: data});
+            }
         }
     });
 });
@@ -31,23 +34,22 @@ router.post('/register_user', function(req, res) {
     else {
         database_interface.GetUserByEmail(email, function(err, data) {
             if (err) {
-                res.json({success: false, error: err});
+                res.status(400).json({success: false, error: err});
             }
             else {
                 if (data.rows.length == 0) {
                     //No such user. we can insert it to db
                     database_interface.InsertNewUser(password, email, public_key, function (err, data) {
                         if (err) {
-                            res.json({success: false, error: err});
+                            res.status(400).json({success: false, error: err});
                         }
                         else {
-                            res.status(201);
-                            res.json({success: true, message: data});
+                            res.status(201).json({success: true, message: data});
                         }
                     });
                 }
                 else {
-                    res.json({success: false, message: "Email already exists" , data: data});
+                    res.status(200).json({success: false, message: "Email already exists" , data: data});
                 }
             }
         });
@@ -60,20 +62,20 @@ router.post('/login', function (req, res) {
     var password = req.body.password;
     database_interface.GetUserByEmail(email, function(err, data) {
         if (err) {
-            res.json({success: false, error: err});
+            res.status(400).send({success: false, error: err});
         }
         else {
-            if (data.total_rows == 0) {
-                res.json({success: false,  message: "Username does not exists"});
+            if (data.rows.length == 0) {
+                res.status(500).send({success: false,  message: "Username does not exists"});
             }
             else {
                 var doc = data.rows[0];
+                console.log(data);
                 if ((doc.value.email == email) && (doc.value.password == password)) {
-                    req.session.user_id = doc.value.email;
-                    res.json({success: true, message: "Authenticated successfully", data: doc});
+                    res.status(201).send({success: true, message: "Authenticated successfully", data: doc});
                 }
                 else {
-                    res.json({success: false, message: "Wrong password"});
+                    res.status(200).send({success: false, message: "Wrong password"});
                 }
             }
         }
