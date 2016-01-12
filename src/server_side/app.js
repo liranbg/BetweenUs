@@ -1,27 +1,39 @@
 const
     express = require('express'),
-    path = require('path'),
     session = require('express-session'),
     body_parser = require('body-parser'),
     logger = require('morgan'),
-    favicon = require('serve-favicon'),
     cookieParser = require('cookie-parser'),
     bodyParser = require('body-parser'),
-    routes = require('./routes/index'),
     users = require('./routes/users'),
+    groups = require('./routes/groups'),
+    cors = require('cors'),
     database_interface = require('./cloudantdb');
 
 
 var app = express();
 
-// view engine setup
 app.use(logger('dev'));
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'jade');
 
+var allowCrossDomain = function(req, res, next) {
+    // Website you wish to allow to connect
+    res.setHeader('Access-Control-Allow-Origin', "*");
 
-// uncomment after placing your favicon in /public
-//app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
+    // Request methods you wish to allow
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+
+    // Request headers you wish to allow
+    res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
+
+    // Set to true if you need the website to include cookies in the requests sent
+    // to the API (e.g. in case you use sessions)
+    res.setHeader('Access-Control-Allow-Credentials', true);
+
+    // Pass to next layer of middleware
+    next();
+};
+
+app.use(allowCrossDomain);
 
 // Initialize Session */
 app.use(session({secret: 'ArbitraryStringToUseAsSession', resave: true, saveUninitialized: true}));
@@ -30,10 +42,9 @@ app.use(body_parser.json());
 app.use(body_parser.urlencoded({extended: false}));
 
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/', routes);
 app.use('/users', users);
+app.use('/groups', groups);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -42,6 +53,9 @@ app.use(function(req, res, next) {
     next(err);
 });
 
+// CORS Middleware
+
+//app.use(cors({origin: 'http://localhost:63342'}));
 // error handlers
 
 // development error handler
@@ -66,6 +80,14 @@ app.use(function(err, req, res, next) {
     });
 });
 
+var server = app.listen(3000, function () {
+    var host = "localhost";
+    var port = server.address().port;
+    console.log('BetweenUs is up & listening at http://%s:%s', host, port);
+    console.log("Initializing Database");
+    database_interface.InitDataBases();
+
+});
 
 module.exports = app;
 
@@ -131,9 +153,6 @@ module.exports = app;
 //};
 //
 ///* Start of server */
-//app.get('/', function (req, res) {
-//    res.send('Server initialized');
-//});
 //
 ///* Server API */
 //app.get('/login/:user_id', function (req, res) {
@@ -177,106 +196,13 @@ module.exports = app;
 //    }
 //});
 //
-//app.get('/get_public_keys/:transaction_id', function (req, res) {
-//    var transaction_id = parseInt(req.params.transaction_id);
-//    var group_id = -1;
-//    /* Check for authenticated session */
-//    if (isUserAuthenticated(req) == false) {
-//        res.json({success: false, message: "Please log in first."});
-//        return;
-//    }
-//    /* Find group id associated with transaction */
-//    for (var i in transaction_mock_db) {
-//        if (transaction_mock_db[i].transaction_id == transaction_id) {
-//            group_id = transaction_mock_db[i].group_id;
-//        }
-//    }
-//    /* If transaction not found, return failure */
-//    if (group_id < 0) {
-//        res.json({success: false, message: "Transaction not found."});
-//    }
-//    /* Else, find group associated with the transaction */
-//    else {
-//        for (var i in group_mock_db) {
-//            if (group_mock_db[i].group_id == group_id) {
-//                res.json({success: true, user_ids: group_mock_db[i].members, public_keys: GetUsersPublicKeys(group_mock_db[i].members)});
-//                return;
-//            }
-//        }
-//        res.json({success: false, message: "Group associated with transaction not found."});
-//        return;
-//    }
 //
-//});
-//
-///* POST API Is testable with Windows PowerShell, Example:
-// $ $data = @{  creator    = "nadav";
-// $             user_list = "nadav@gmail.com, liranbg@gmail.com, yaron@gmail.com";
-// $             group_name = "nn111n"; }
-// $ curl -Uri http://localhost:3000/create_group  -UseBasicParsing -Method Post -Body $data
-// */
-//
-//app.post('/create_group', function (req, res) {
-//    // TODO: Check authentication and equivalence of requestor of the request to creator of the group
-//    // TODO: Check all users in user_list exist.
-//    var creator = req.body.creator,
-//        user_list = req.body.user_list,
-//        group_name = req.body.group_name;
-//    user_list = user_list.split(",");
-//    var users = [];
-//    for (var i = 0; i < user_list.length; ++i) {
-//        users.push(user_list[i].trim());
-//    }
-//    database_interface.CreateNewGroup(creator, users, group_name, function(group_data, err) {
-//        if (err) {
-//            res.json({success: false, message: "Error occurred while creating a new group." + err.message })
-//        }
-//        res.json({success: true, message: "Group created, Group details: " + group_data});
-//        for (var i = 0; i < users.length; ++i) {
-//            database_interface.GetUserByEmail(users[i], function(user_data, err) {
-//                if (!err) {
-//                    database_interface.AddGroupToUser(user_data, group_data, function(data, err) {
-//                       if (!err) {
-//                           console.log("Added group",group_data.id,"to user",user_data.email);
-//                       }
-//                    });
-//                }
-//            });
-//        }
-//    });
-//
-//    // TODO: For each user in the user list / creator, update document to include new group.
-//});
-//
-//app.post('/register_user', function(req, res) {
-//    // TODO: Check parameters are in compliance with some policy we'll set regarding username, password etc.
-//    // TODO: Add an email authorization before actually inserting user into the database (Low priority).
-//});
+
+
 //
 //app.post('/submit_transaction', function (req, res) {
 //    console.log("Received new transaction request");
 //    console.log(req.body)
 //});
 //
-//var server = app.listen(3000, function () {
-//    var host = "localhost";
-//    var port = server.address().port;
-//    console.log('BetweenUs is up & listening at http://%s:%s', host, port);
-//    console.log("Initializing UsersUB");
-//    database_interface.InitUsersDB();
-//    console.log("Initializing GroupsDB");
-//    database_interface.InitGroupsDB();
-//    console.log("Initializing TransactionsDB");
-//    database_interface.InitTransactionsDB();
-//    console.log("Initializing SharesStashDB");
-//    database_interface.InitSharesStashDB();
-//    console.log("Done initializing databases");
-//
-//    //database_interface.getGroupByNameAndCreator("groupname","nadav", function(data) {
-//    //    console.log(data);
-//    //});
-//    var list_of_stash = [{user:"liranbg@gmail.com", stash:"bla1"},{user:"nadav@gmail.com", stash:"bla2"}];
-//    database_interface.CreateTransaction("liranbg@gmail.com", "123123", list_of_stash, "groupidaaa1", function(data) {
-//        console.log(data);
-//    })
-//});
+

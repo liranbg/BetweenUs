@@ -2,7 +2,6 @@ var CloudantDBModule = (function() {
 
     // Load the Cloudant library.
     var Cloudant = require('cloudant');
-    var debug = require('debug')('betweenus_server:database');
     var logger = require('winston');
     require('dotenv').load({path: './.env'}); //load all environments from .env file
 
@@ -20,13 +19,13 @@ var CloudantDBModule = (function() {
     var cld_db = Cloudant(db_module_config.cloudant_account);
 
     var InitDataBases =  function() {
-        debug("Initializing UsersDB");
+        console.log("Initializing UsersDB");
         InitUsersDB();
-        debug("Initializing GroupsDB");
+        console.log("Initializing GroupsDB");
         InitGroupsDB();
-        debug("Initializing SharesStashDB");
+        console.log("Initializing SharesStashDB");
         InitSharesStashDB();
-        debug("Initializing TransactionsDB");
+        console.log("Initializing TransactionsDB");
         InitTransactionsDB();
     };
 
@@ -34,13 +33,13 @@ var CloudantDBModule = (function() {
 
     function InitUsersDB() {
         cld_db.db.create(db_module_config.users_db_name, function () {
-            debug(db_module_config.users_db_name + " database is set");
+            console.log(db_module_config.users_db_name + " database is set");
         });
     }
 
     function InitGroupsDB() {
         cld_db.db.create(db_module_config.groups_db_name, function () {
-            debug(db_module_config.groups_db_name + " database is set");
+            console.log(db_module_config.groups_db_name + " database is set");
         });
         //initialize index for querying db
         var group_db = cld_db.db.use(db_module_config.groups_db_name);
@@ -48,20 +47,20 @@ var CloudantDBModule = (function() {
             if (er) {
                 throw er;
             }
-            debug('Index creation result:' + response.result);
+            console.log('Index creation result:' + response.result);
         });
     }
 
     function InitTransactionsDB() {
         cld_db.db.create(db_module_config.transactions_db_name, function () {
-            debug(db_module_config.transactions_db_name + " database is set");
+            console.log(db_module_config.transactions_db_name + " database is set");
         });
 
     }
 
     function InitSharesStashDB() {
         cld_db.db.create(db_module_config.shares_db_name, function () {
-            debug(db_module_config.users_db_name + " database is set");
+            console.log(db_module_config.users_db_name + " database is set");
         });
 
     }
@@ -157,18 +156,23 @@ var CloudantDBModule = (function() {
 
     };
 
-    var InsertNewUser = function (username, password, email, public_key) {
+    var InsertNewUser = function (password, email, public_key, callback_func) {
         // TODO: Add hashing and possibly a salt for the password [Discuss either here or on server prior to the request].
+        //TODO: check why we can add duplicated users
         var users_db = cld_db.db.use(db_module_config.users_db_name);
         users_db.insert(
             { password: password, in_groups: [], email: email, public_key: public_key }, // Document
             email,                                                        // Identifier
-            function(err, data, header) {                                 // Callback func
+            function(err, data) {                                 // Callback func
                 if (err) {
-                    return console.log('Error encountered while trying to add user: ', err.message);
+                    console.log('Error encountered while trying to add user: ', err.message);
+                    callback_func(err, data);
                 }
-                console.log('User inserted successfully.');
-                console.log(data);
+                else {
+                    console.log('User inserted successfully.');
+                    callback_func(null, data);
+                }
+
             });
     };
 
@@ -211,17 +215,38 @@ var CloudantDBModule = (function() {
     };
 
     var GetUserByEmail = function(email, callback_func) {
-
         var users_db = cld_db.db.use(db_module_config.users_db_name);
         users_db.get(email, function (err, data) {
             if (err)
             {
-                debug("Error while fetching user " + email + ", Reason:" + err.message);
+                console.log("Error while fetching user " + email + ", Reason:" + err.message);
                 callback_func(err);
                 return;
             }
             callback_func(data);
         });
+    };
+
+    var GetGroupIdByTransactionId = function(transaction_id, callback_func) {
+
+    };
+
+    var AddUsersToGroup = function(user_emails_list, group, callback_func) {
+        var users_db = cld_db.db.use(db_module_config.users_db_name);
+        users_db.fetch({keys:user_emails_list}, function(err, data) {
+            if (!err) {
+                for (var i = 0; i < data.rows.length; ++i) {
+                    var doc = data.rows[i].doc;
+                    doc.in_groups.push(group.id);
+                }
+                users_db.bulk({docs: data.rows}, function(err, data) {
+                    if (!err) {
+                        callback_func(data);
+                    }
+
+                });
+            }
+        })
     };
 
     var GetUsersPublicKeys = function(user_ids_list, callback_func) {
@@ -240,15 +265,19 @@ var CloudantDBModule = (function() {
     };
 
     exports.InitDataBases = InitDataBases;
+
+    exports.InsertNewUser =InsertNewUser;
     exports.CreateNewGroup = CreateNewGroup;
     exports.AddShareToTransaction = AddShareToTransaction;
     exports.AddTransactionToGroup = AddTransactionToGroup;
     exports.AddGroupToUser = AddGroupToUser;
+    exports.AddUsersToGroup = AddUsersToGroup;
     exports.GetUserDetailsByEmail = GetUserDetailsByEmail;
     exports.GetUsersPublicKeys = GetUsersPublicKeys;
     exports.GetUserByEmail = GetUserByEmail;
     exports.GetGroupByNameAndCreator = GetGroupByNameAndCreator;
     exports.CreateTransaction = CreateTransaction;
     exports.CreateShare = CreateShare;
+    exports.GetGroupIdByTransactionId = GetGroupIdByTransactionId;
 
 } (CloudantDBModule || {}));
