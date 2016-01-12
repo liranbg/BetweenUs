@@ -29,7 +29,11 @@ router.get('/user_exists', function(req, res, next) {
             res.status(400).json({success:false, error: err.message});
         }
         else {
-            res.status(200).json({success:true,response: data});
+            var http_code = 200;
+            if (!data) {
+                http_code = 500;
+            }
+            res.status(http_code).json({success:true,response: data});
         }
     });
 });

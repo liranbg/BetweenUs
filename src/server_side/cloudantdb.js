@@ -4,7 +4,11 @@ var CloudantDBModule = (function() {
         user_db: {
             "views": {
                 "get_user_doc_by_email": {
-                    "map": function(doc) { if (doc.email) { emit(doc.email, doc) } }
+                    "map": function (doc) {
+                        if (doc.email) {
+                            emit(doc.email, doc)
+                        }
+                    }
                 }
             }
         }
@@ -171,7 +175,7 @@ var CloudantDBModule = (function() {
         var users_db = cld_db.db.use(db_module_config.users_db.name);
         //updating user's group list
         user.in_groups.push(group.id);
-        users_db.insert(user, user.email, function(err, data) {
+        users_db.insert(user, user.id, function(err, data) {
             if (err) {
                 logger.error("AddGroupToUser: %s", err.message);
             }
@@ -182,7 +186,6 @@ var CloudantDBModule = (function() {
 
     var InsertNewUser = function (password, email, public_key, callback_func) {
         // TODO: Add hashing and possibly a salt for the password [Discuss either here or on server prior to the request].
-        //TODO: check why we can add duplicated users
         var users_db = cld_db.db.use(db_module_config.users_db.name);
         users_db.insert(
             { password: password, in_groups: [], email: email, public_key: public_key }, // Document
@@ -256,26 +259,33 @@ var CloudantDBModule = (function() {
 
     };
 
-    var AddUsersToGroup = function(user_ids_list, group, callback_func) {
+    var AddUsersToGroup = function(user_emails_list, group, callback_func) {
         var users_db = cld_db.db.use(db_module_config.users_db.name);
-        users_db.fetch({keys:user_ids_list}, function(err, data) {
+        var view_name = db_module_config.users_db.api.user_data_by_email.name;
+        var design_name = db_module_config.users_db.api.user_data_by_email.design_name;
+        users_db.view(design_name, view_name, { keys: user_emails_list }, function (err, data) {
             if (err) {
                 logger.error("AddUsersToGroup: fetch - %s", err.message);
                 callback_func(err, data);
             }
             else {
-                for (var i = 0; i < data.rows.length; ++i) {
-                    var doc = data.rows[i].doc;
-                    doc.in_groups.push(group.id);
+                if (data.rows.length == 0) {
+                    callback_func(err, false);
                 }
-                users_db.bulk({docs: data.rows}, function(err, updated_data) {
-                    if (err) {
-                        logger.error("AddUsersToGroup: bulk - %s", err.message);
+                else {
+                    for (var i = 0; i < data.rows.length; ++i) {
+                        var doc = data.rows[i].doc;
+                        doc.in_groups.push(group.id);
                     }
-                    callback_func(err, updated_data);
-                });
+                    users_db.bulk({docs: data.rows}, function(err, updated_data) {
+                        if (err) {
+                            logger.error("AddUsersToGroup: bulk - %s", err.message);
+                        }
+                        callback_func(err, updated_data);
+                    });
+                }
             }
-        })
+        });
     };
 
     var GetUsersPublicKeys = function(user_ids_list, callback_func) {
