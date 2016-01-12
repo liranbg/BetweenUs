@@ -15,7 +15,10 @@ var CloudantDBModule = (function() {
     require('dotenv').load({path: './.env'}); //load all environments from .env file
 
     var db_module_config = {
-        users_db_name: 'users',
+        users_db: {
+            name: 'users',
+            api: { user_data_by_email: '_design/api/get_user_doc_by_email'}
+        },
         groups_db_name: 'groups',
         transactions_db_name: 'transactions',
         shares_db_name: 'shares_stash',
@@ -41,15 +44,15 @@ var CloudantDBModule = (function() {
     //Private Method for initializing databases
 
     function InitUsersDB() {
-        cld_db.db.create(db_module_config.users_db_name, function () {
-            logger.info(db_module_config.users_db_name + " database is set");
-            var users_db = cld_db.db.use(db_module_config.users_db_name);
-            users_db.insert(views.user_db, '_design/api',function(error, response) {
-                if (error) {
-                    logger.error(error);
+        cld_db.db.create(db_module_config.users_db.name, function () {
+            logger.info(db_module_config.users_db.name + " database is set");
+            var users_db = cld_db.db.use(db_module_config.users_db.name);
+            users_db.insert(views.user_db, '_design/api',function(err, data) {
+                if (err) {
+                    logger.error("InitUsersDB: %s", err);
                 }
                 else {
-                    logger.info("View created successfully: " + response);
+                    logger.info("InitUsersDB: %s" + data);
                 }
 
             });
@@ -160,7 +163,7 @@ var CloudantDBModule = (function() {
     };
 
     var AddGroupToUser = function(user, group, callback_func) {
-        var users_db = cld_db.db.use(db_module_config.users_db_name);
+        var users_db = cld_db.db.use(db_module_config.users_db.name);
         //updating user's group list
         user.in_groups.push(group.id);
         users_db.insert(user, user.email, function(err, data) {
@@ -175,7 +178,7 @@ var CloudantDBModule = (function() {
     var InsertNewUser = function (password, email, public_key, callback_func) {
         // TODO: Add hashing and possibly a salt for the password [Discuss either here or on server prior to the request].
         //TODO: check why we can add duplicated users
-        var users_db = cld_db.db.use(db_module_config.users_db_name);
+        var users_db = cld_db.db.use(db_module_config.users_db.name);
         users_db.insert(
             { password: password, in_groups: [], email: email, public_key: public_key }, // Document
             function(err, data) {                                 // Callback func
@@ -211,8 +214,8 @@ var CloudantDBModule = (function() {
 
     var GetUserByEmail = function(email, callback_func) {
         //TODO query for user by email with views
-        var users_db = cld_db.db.use(db_module_config.users_db_name);
-        users_db.get(email, function (err, data) {
+        var users_db = cld_db.db.use(db_module_config.users_db.name);
+        users_db.view('api',"get_user_doc_by_email", { keys: [email] }, function (err, data) {
             if (err) {
                 logger.error("GetUserByEmail: %s", err.message);
             }
@@ -225,7 +228,7 @@ var CloudantDBModule = (function() {
     };
 
     var AddUsersToGroup = function(user_ids_list, group, callback_func) {
-        var users_db = cld_db.db.use(db_module_config.users_db_name);
+        var users_db = cld_db.db.use(db_module_config.users_db.name);
         users_db.fetch({keys:user_ids_list}, function(err, data) {
             if (err) {
                 logger.error("AddUsersToGroup: fetch - %s", err.message);
@@ -248,7 +251,7 @@ var CloudantDBModule = (function() {
 
     var GetUsersPublicKeys = function(user_ids_list, callback_func) {
         //This function returns a list of objects contains for each email its public key
-        var users_db = cld_db.db.use(db_module_config.users_db_name);
+        var users_db = cld_db.db.use(db_module_config.users_db.name);
         users_db.fetch({keys:user_ids_list}, function(err, data) {
             var list_of_public_keys = [];
             if (err) {

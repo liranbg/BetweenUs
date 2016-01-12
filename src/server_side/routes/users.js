@@ -27,11 +27,12 @@ router.post('/register_user', function(req, res) {
     }
     else {
         database_interface.GetUserByEmail(email, function(err, data) {
-            if (!err) {
-                res.send({success: false, message: "Email is already exists"    });
+            if (err) {
+                res.send({success: false, error: err});
             }
             else {
-                if (err.message == "missing") {
+                if (data.total_rows == 0) {
+                    //No such user. we can insert it to db
                     database_interface.InsertNewUser(password, email, public_key, function (err, data) {
                         if (err) {
                             res.send({success: false, error: err});
@@ -42,7 +43,7 @@ router.post('/register_user', function(req, res) {
                     });
                 }
                 else {
-                    res.send({success: false, error: err});
+                    res.send({success: false, message: "Email already exists" , data: data});
                 }
             }
         });
