@@ -7,7 +7,6 @@ const
     bodyParser = require('body-parser'),
     users = require('./routes/users'),
     groups = require('./routes/groups'),
-    cors = require('cors'),
     database_interface = require('./cloudantdb');
 
 
@@ -205,4 +204,3 @@ module.exports = app;
 //    console.log(req.body)
 //});
 //
-
