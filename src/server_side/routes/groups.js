@@ -12,26 +12,43 @@ var router = express.Router();
 //
 router.post('/create_group', function (req, res) {
     // TODO: Check authentication and equivalence of requestor of the request to creator of the group
-    // TODO: Check all users in user_list exist.
-    var creator = session_util.GetUserEmail(req.session),
-        user_list = req.body.user_list,
+    var creator = session_util.GetUserId(req.session),
+        users_email_list = req.body['member_list[]'],
         group_name = req.body.group_name;
-    user_list = user_list.split(",");
-    var users = [];
-    for (var i = 0; i < user_list.length; ++i) {
-        users.push(user_list[i].trim());
+    if (!Array.isArray(users_email_list)) {
+        users_email_list = [users_email_list];
     }
-    console.log(user_list);
-    //database_interface.CreateNewGroup(creator, users, group_name, function(group_data, err) {
-    //    if (err) {
-    //        res.json({success: false, message: "Error occurred while creating a new group." + err.message })
-    //    }
-    //    database_interface.AddUsersToGroup(users, group_data, function(data, err) {
-    //        console.log("Added group",group_data.id,"to user",user_data.email);
-    //    });
-    //    res.json({success: true, message: "Group created, Group details: " + group_data});
-    //});
-
+    database_interface.GetUsersByEmailList(users_email_list, function(err, users_doc){
+        if (err) {
+            res.status(400).json({success: false, error: err.message })
+        }
+        else {
+            if (users_doc.rows.length != users_email_list.length) {
+                res.json({success:false, error: "Invalid Input"});
+            }
+            else {
+                var list_of_users_ids = [];
+                for (var i =0; i< users_doc.rows.length; ++i) {
+                    list_of_users_ids.push(users_doc.rows[i].id);
+                }
+                database_interface.CreateNewGroup(creator, list_of_users_ids, group_name, function(err, group_data) {
+                    if (err) {
+                        res.status(400).json({success: false, error: err.message })
+                    }
+                    else {
+                        database_interface.AddUsersToGroup(users_doc, group_data, function(err, user_data) {
+                            if (err) {
+                                res.status(400).json({success: false, error: err.message })
+                            }
+                            else {
+                                res.status(201).json({success: true, message: group_data })
+                            }
+                        });
+                    }
+                });
+            }
+        }
+    });
     // TODO: For each user in the user list / creator, update document to include new group.
 });
 
@@ -47,16 +64,11 @@ router.get('/get_groups', function (req, res) {
                 res.json({success: false, error: err.message});
             }
             else {
-                res.json({success: true, data: data});
+                res.json({success: true, data: data.rows});
             }
 
         });
     }
-
-    var creator = req.body.creator,
-        user_list = req.body.user_list,
-        group_name = req.body.group_name;
-    res.json({success:true, data: "123"});
 });
 
 

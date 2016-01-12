@@ -89,10 +89,10 @@ function CreateGroupOnClick() {
         }
        member_list.push(table.rows[i].cells[0].firstChild.value);
     }
-    json_object = { group_name: group_name, member_list: member_list};
+    var json_object = { group_name: group_name, member_list: member_list};
     $.ajax({
         type: "POST",
-        url: server + "groups/create_group",
+        url: server + "/groups/create_group",
         dataType:'json',
         data: json_object,
         xhrFields: {withCredentials: true},
