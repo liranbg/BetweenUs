@@ -7,7 +7,7 @@ function RegisterFormOnClick () {
     $.ajax({
         type: "POST",
         url: server + "/users/register_user",
-        data: JSON.stringify(json_data),
+        data: json_data,
         dataType:'json',
         success: function(data, status, xhr) {
             document.getElementById("textfield_register_user").value = xhr.responseText;
