@@ -7,7 +7,22 @@ var CloudantDBModule = (function() {
                     "map": function(doc) { if (doc.email) { emit(doc.email, doc) } }
                 }
             }
+        },
+        group_db: {
+            "views": {
+                "get_groups_by_user": {
+                    "map": function(doc) {
+                        if(doc.user_list) {
+                            for (var i in user_list) {
+                                emit(user_list[i], [doc._id, doc.name]);
+                            }}
+                        if (doc.creator) {
+                            emit(doc.creator, [doc._id, doc.name]);
+                        }}
+                }
+            }
         }
+        // { creator: creator, members: user_list, name: group_name, transactions:[] },
     };
     // Load the Cloudant library.
     var Cloudant = require('cloudant');
@@ -24,7 +39,15 @@ var CloudantDBModule = (function() {
                 }
             }
         },
-        groups_db_name: 'groups',
+        groups_db: {
+            name: 'groups',
+            api: {
+                user_data_by_email: {
+                    name: "get_groups_by_user",
+                    design_name: "api"
+                }
+            }
+        },
         transactions_db_name: 'transactions',
         shares_db_name: 'shares_stash',
         cloudant_account : {
@@ -67,6 +90,15 @@ var CloudantDBModule = (function() {
     function InitGroupsDB() {
         cld_db.db.create(db_module_config.groups_db_name, function () {
             logger.info(db_module_config.groups_db_name + " database is set");
+            var groups_db = cld_db.db.use(db_module_config.groups_db.name);
+            groups_db.insert(views.group_db, '_design/api',function(err, data) {
+                if (err) {
+                    logger.error("InitGroupDB: %s", err);
+                }
+                else {
+                    logger.info("InitGroupDB: %s", data);
+                }
+            });
         });
     }
 
