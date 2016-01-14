@@ -44,15 +44,27 @@ function GetGroupsOnClick() {
         type: "GET",
         url: server + "/groups/get_groups",
         dataType:'json',
+        xhrFields: {withCredentials: true},
         success: function(data, status, xhr) {
             console.log(xhr.responseText);
+            json_dict = JSON.parse(xhr.responseText);
+            for (var i in json_dict.data) {
+                var transaction_amt = json_dict.data[i].value.transactions_length;
+                var member_amt, group_name, group_id;
+                member_amt = json_dict.data[i].value.members.length; // Members 
+                group_name = json_dict.data[i].value.name;
+                group_id = json_dict.data[i].value._id;
+                console.log(json_dict.data[i].value);
+                $('#table_groups tr:last').after('<tr><td>' + group_id +'</td><td>' + group_name + '</td><td>' + member_amt + '</td><td>' + transaction_amt + '</td></tr>');
+            }
+            //{"success":true,"data":[{"id":"d4b33cbab42543cf915cb14a1ac80f99","key":"513fd51e2e3c9f4f9a58c8881ff9af9f","value":{"_id":"d4b33cbab42543cf915cb14a1ac80f99","_rev":"1-6c5da4061e4fc607723ebf50b6473927","creator":"115ff250812c6ccbb3887a2dd591d503","members":["513fd51e2e3c9f4f9a58c8881ff9af9f","c143fba02b0dfd7752497296e5ac1780"],"name":"the chevre2","transactions":[]}},{"id":"eaa841a81a4f9f23ebb0d5baff7f7525","key":"513fd51e2e3c9f4f9a58c8881ff9af9f","value":{"_id":"eaa841a81a4f9f23ebb0d5baff7f7525","_rev":"2-f8b671893aee28e7d012a6d878aaa391","creator":"115ff250812c6ccbb3887a2dd591d503","members":["513fd51e2e3c9f4f9a58c8881ff9af9f","c143fba02b0dfd7752497296e5ac1780"],"name":"the chevre","transactions":[]}},{"id":"fd7a202b4e23241f4a8a944785144484","key":"513fd51e2e3c9f4f9a58c8881ff9af9f","value":{"_id":"fd7a202b4e23241f4a8a944785144484","_rev":"1-6c5da4061e4fc607723ebf50b6473927","creator":"115ff250812c6ccbb3887a2dd591d503","members":["513fd51e2e3c9f4f9a58c8881ff9af9f","c143fba02b0dfd7752497296e5ac1780"],"name":"the chevre2","transactions":[]}}]
         },
         error: function(xhr, status, error) {
             console.log(xhr.responseTest);
             alert("Error");
         }
     });
-    $('#table_groups tr:last').after('<tr><td>' + bla +'</td><td>' + bla + '</td><td>' + bla + '</td><td>' + bla + '</td></tr>');
+    //
 }
 
 function AddUserOnClick(row) {
@@ -60,11 +72,11 @@ function AddUserOnClick(row) {
     var row_count = document.getElementById('table_add_members').rows.length;
     old_row = document.getElementById('table_add_members').rows[row+1];
     email = document.getElementById('table_add_members').rows[row+1].cells[0].firstChild.value;
-    console.log( server + "/users/user_exists?user_email=" + email);
     $.ajax({
         type: "GET",
         url: server + "/users/user_exists?user_email=" + email,
         dataType:'json',
+        xhrFields: {withCredentials: true},
         success: function(data, status, xhr) {
             old_row.cells[1].innerHTML = ""; // Remove old add button
             old_row.cells[0].firstChild.readOnly = true;
