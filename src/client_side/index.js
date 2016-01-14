@@ -30,7 +30,9 @@ function LoginFormOnClick () {
         xhrFields: {withCredentials: true},
         success: function(data, status, xhr) {
             document.getElementById("textfield_login_user").value = xhr.responseText;
+            window.location.href = "group.html";
         },
+
         error: function(xhr, status, error) {
             document.getElementById("textfield_login_user").value = JSON.parse(xhr.responseText).error;
         }
@@ -55,6 +57,7 @@ function GetGroupsOnClick() {
                 group_id = data.groups[i].value.group_id;
                 // Append row to the table.
                 $('#table_groups tr:last').after('<tr><td>' + group_id +'</td><td>' + group_name + '</td><td>' + member_amt + '</td><td>' + transaction_amt + '</td></tr>');
+
             }
         },
         error: function(xhr, status, error) {
