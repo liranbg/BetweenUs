@@ -18,7 +18,6 @@ function RegisterFormOnClick () {
     });
 }
 
-
 function LoginFormOnClick () {
     var email = document.getElementById("form_login_email").value;
     var password =  document.getElementById("form_login_password").value;
@@ -46,18 +45,18 @@ function GetGroupsOnClick() {
         dataType:'json',
         xhrFields: {withCredentials: true},
         success: function(data, status, xhr) {
-            console.log(xhr.responseText);
-            json_dict = JSON.parse(xhr.responseText);
+            // Remove all lines beside the header
+            $("#table_groups tr:not(:first)").remove();
+            json_dict = data;
             for (var i in json_dict.data) {
                 var transaction_amt = json_dict.data[i].value.transactions_length;
                 var member_amt, group_name, group_id;
-                member_amt = json_dict.data[i].value.members.length; // Members 
-                group_name = json_dict.data[i].value.name;
-                group_id = json_dict.data[i].value._id;
-                console.log(json_dict.data[i].value);
+                member_amt = json_dict.groups[i].value.members_length; // Members
+                group_name = json_dict.groups[i].value.name;
+                group_id = json_dict.groups[i].value.group_id;
+                // Append row to the table.
                 $('#table_groups tr:last').after('<tr><td>' + group_id +'</td><td>' + group_name + '</td><td>' + member_amt + '</td><td>' + transaction_amt + '</td></tr>');
             }
-            //{"success":true,"data":[{"id":"d4b33cbab42543cf915cb14a1ac80f99","key":"513fd51e2e3c9f4f9a58c8881ff9af9f","value":{"_id":"d4b33cbab42543cf915cb14a1ac80f99","_rev":"1-6c5da4061e4fc607723ebf50b6473927","creator":"115ff250812c6ccbb3887a2dd591d503","members":["513fd51e2e3c9f4f9a58c8881ff9af9f","c143fba02b0dfd7752497296e5ac1780"],"name":"the chevre2","transactions":[]}},{"id":"eaa841a81a4f9f23ebb0d5baff7f7525","key":"513fd51e2e3c9f4f9a58c8881ff9af9f","value":{"_id":"eaa841a81a4f9f23ebb0d5baff7f7525","_rev":"2-f8b671893aee28e7d012a6d878aaa391","creator":"115ff250812c6ccbb3887a2dd591d503","members":["513fd51e2e3c9f4f9a58c8881ff9af9f","c143fba02b0dfd7752497296e5ac1780"],"name":"the chevre","transactions":[]}},{"id":"fd7a202b4e23241f4a8a944785144484","key":"513fd51e2e3c9f4f9a58c8881ff9af9f","value":{"_id":"fd7a202b4e23241f4a8a944785144484","_rev":"1-6c5da4061e4fc607723ebf50b6473927","creator":"115ff250812c6ccbb3887a2dd591d503","members":["513fd51e2e3c9f4f9a58c8881ff9af9f","c143fba02b0dfd7752497296e5ac1780"],"name":"the chevre2","transactions":[]}}]
         },
         error: function(xhr, status, error) {
             console.log(xhr.responseTest);
@@ -70,7 +69,7 @@ function GetGroupsOnClick() {
 function AddUserOnClick(row) {
     var table = document.getElementById('table_add_members');
     var row_count = document.getElementById('table_add_members').rows.length;
-    old_row = document.getElementById('table_add_members').rows[row+1];
+    var old_row = document.getElementById('table_add_members').rows[row+1];
     email = document.getElementById('table_add_members').rows[row+1].cells[0].firstChild.value;
     $.ajax({
         type: "GET",
@@ -115,5 +114,34 @@ function CreateGroupOnClick() {
             alert("Error creating group");
         }
     });
+}
 
+function FetchGroupDataOnClick() {
+    group_id = document.getElementById("input_group_id").value;
+
+    $.ajax({
+        type: "GET",
+        url: server + "/groups/get_group_info?group_id=" + group_id,
+        dataType:'json',
+        xhrFields: {withCredentials: true},
+        // On success, fill in transaction data.
+        success: function(data, status, xhr) {
+            // Fill in Member List table.
+            $("#member_list_table tr:not(:first)").remove(); // Remove all lines beside the header
+            var creator_name = data.creator;
+            $('#member_list_table tr:last').after('<tr><td>' + creator_name +'</td><td>' + "Creator" + '</td>');
+
+            for (var i in data.members) {
+                $('#member_list_table tr:last').after('<tr><td>' + data.members[i] +'</td><td>' + "Creator" + '</td>');
+            }
+            // Fill in Transaction List table.
+            $("#transaction_list_table tr:not(:first)").remove(); // Remove all lines beside the header
+            for (var i in data.transactions) {
+                $('#transaction_list_table tr:last').after('<tr><td>' + data.transactions[i].trans_id +'</td><td>' + data.transactions[i].trans_name + '</td>');
+            }
+        },
+        error: function(xhr, status, error) {
+            alert("Error fetching transactions group");
+        }
+    });
 }
