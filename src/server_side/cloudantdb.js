@@ -17,11 +17,26 @@ var CloudantDBModule = (function() {
                 "get_groups_by_user": {
                     "map": function (doc) {
                         for (var i = 0; i < doc.members.length ;i++) {
-                            emit(doc.members[i], {group_id: doc._id, group_name: doc.name});
+                            emit(doc.members[i], doc);
                         }
 
                         if (doc.creator) {
-                            emit(doc.creator, {group_id: doc._id, group_name: doc.name});
+                            emit(doc.creator, doc);
+                        }
+                    }
+                },
+                "get_groups_metadata_by_user": {
+                    "map": function(doc) {
+                        for (var i = 0; i < doc.members.length ;i++) {
+                            emit(doc.members[i], {
+                                group_id: doc._id, name: doc.name, transactions_length: doc.transactions.length, members_length: doc.members.length +1 //+1 for creator
+                            });
+                        }
+
+                        if (doc.creator) {
+                            emit(doc.creator, {
+                                group_id: doc._id, name: doc.name, transactions_length: doc.transactions.length, members_length: doc.members.length +1 //+1 for creator
+                            });
                         }
                     }
                 }
@@ -34,11 +49,13 @@ var CloudantDBModule = (function() {
     var logger = require('winston');
     require('dotenv').load({path: './.env'}); //load all environments from .env file
 
+    //Extensions to Cloudant Module
+
     var db_module_config = {
         users_db: {
             name: 'users',
             api: {
-                user_data_by_email: {
+                get_user_doc_by_email: {
                     name: "get_user_doc_by_email",
                     design_name: "api"
                 }
@@ -47,8 +64,12 @@ var CloudantDBModule = (function() {
         groups_db: {
             name: 'groups',
             api: {
-                user_data_by_email: {
+                get_groups_by_user: {
                     name: "get_groups_by_user",
+                    design_name: "api"
+                },
+                get_groups_metadata_by_user: {
+                    name: "get_groups_metadata_by_user",
                     design_name: "api"
                 }
             }
@@ -62,6 +83,15 @@ var CloudantDBModule = (function() {
     };
 
     var cld_db = Cloudant(db_module_config.cloudant_account);
+
+    //cld_db.db.use.update = function(obj, key, callback) {
+    //    var db = this;
+    //    db.get(key, function (error, existing) {
+    //        if(!error) obj._rev = existing._rev;
+    //        db.insert(obj, key, callback);
+    //    });
+    //};
+    //console.log(cld_db.db.use);
 
     var InitDataBases =  function() {
         logger.info("Initializing UsersDB");
@@ -96,6 +126,7 @@ var CloudantDBModule = (function() {
         cld_db.db.create(db_module_config.groups_db.name, function () {
             logger.info(db_module_config.groups_db.name + " database is set");
             var groups_db = cld_db.db.use(db_module_config.groups_db.name);
+            console.log(groups_db);
             groups_db.insert(views.group_db, '_design/api',function(err, data) {
                 if (err) {
                     logger.error("InitGroupDB: %s", err);
@@ -245,20 +276,21 @@ var CloudantDBModule = (function() {
 
     var GetAllMyGroups = function (user_id, callback_func) {
         var group_db = cld_db.db.use(db_module_config.groups_db.name);
-        var view_name = db_module_config.groups_db.api.user_data_by_email.name;
-        var design_name = db_module_config.groups_db.api.user_data_by_email.design_name;
+        var view_name = db_module_config.groups_db.api.get_groups_metadata_by_user.name;
+        var design_name = db_module_config.groups_db.api.get_groups_metadata_by_user.design_name;
         group_db.view(design_name, view_name, { keys: [user_id] }, function (err, data) {
             if (err) {
                 logger.error("GetAllMyGroups: %s", err.message);
             }
             callback_func(err, data);
+
         });
     };
 
     var GetUserByEmail = function(email, callback_func) {
         var users_db = cld_db.db.use(db_module_config.users_db.name);
-        var view_name = db_module_config.users_db.api.user_data_by_email.name;
-        var design_name = db_module_config.users_db.api.user_data_by_email.design_name;
+        var view_name = db_module_config.users_db.api.get_user_doc_by_email.name;
+        var design_name = db_module_config.users_db.api.get_user_doc_by_email.design_name;
         users_db.view(design_name, view_name, { keys: [email] }, function (err, data) {
             if (err) {
                 logger.error("GetUserByEmail: %s", err.message);
@@ -269,9 +301,19 @@ var CloudantDBModule = (function() {
 
     var GetUsersByEmailList = function(email_list, callback_func) {
         var users_db = cld_db.db.use(db_module_config.users_db.name);
-        var view_name = db_module_config.users_db.api.user_data_by_email.name;
-        var design_name = db_module_config.users_db.api.user_data_by_email.design_name;
+        var view_name = db_module_config.users_db.api.get_user_doc_by_email.name;
+        var design_name = db_module_config.users_db.api.get_user_doc_by_email.design_name;
         users_db.view(design_name, view_name, { keys: email_list }, function (err, data) {
+            if (err) {
+                logger.error("GetUserByEmail: %s", err.message);
+            }
+            callback_func(err, data);
+        });
+    };
+
+    var GetUsersByIdsList = function(ids_list, callback_func) {
+        var users_db = cld_db.db.use(db_module_config.users_db.name);
+        users_db.fetch({ keys: ids_list }, function (err, data) {
             if (err) {
                 logger.error("GetUserByEmail: %s", err.message);
             }
@@ -281,8 +323,8 @@ var CloudantDBModule = (function() {
 
     var IsUserExists = function(email, callback_func) {
         var users_db = cld_db.db.use(db_module_config.users_db.name);
-        var view_name = db_module_config.users_db.api.user_data_by_email.name;
-        var design_name = db_module_config.users_db.api.user_data_by_email.design_name;
+        var view_name = db_module_config.users_db.api.get_user_doc_by_email.name;
+        var design_name = db_module_config.users_db.api.get_user_doc_by_email.design_name;
         users_db.view(design_name, view_name, { keys: [email] }, function (err, data) {
             if (err) {
                 logger.error("GetUserByEmail: %s", err.message);
@@ -300,6 +342,45 @@ var CloudantDBModule = (function() {
             }
 
         });
+    };
+    var GetGroupDataByGroupId = function(group_id, callback_func) {
+        var groups_db = cld_db.db.use(db_module_config.groups_db.name);
+        groups_db.get(group_id, function (err, data) {
+            if (err) {
+                logger.error("GetGroupDataByGroupId: %s", err.message);
+                callback_func(err, data);
+            }
+            else {
+                var group_data = {};
+                group_data.group_name = data.name;
+                group_data.id = data._id;
+                group_data.members = [];
+
+                var users_ids = data.members;
+                users_ids.push(data.creator);
+                var transactions_ids = data.transactions;
+                GetUsersByIdsList(users_ids, function(err, users_data) {
+                    if (err) {
+                        logger.error("GetGroupDataByGroupId: GetUsersByIdsList: %s", err.message);
+                    }
+                    else {
+                        for (var i = 0; i < users_data.rows.length; ++i) {
+                            var doc = users_data.rows[i].doc;
+                            if (doc._id == data.creator) {
+                                group_data.creator = doc.email;
+                            }
+                            else {
+                                group_data.members.push(doc.email);
+                            }
+                        }
+                        group_data.transactions = data.transactions;
+                        callback_func(err, group_data);
+                    }
+                });
+            }
+
+        });
+
     };
 
     var GetGroupIdByTransactionId = function(transaction_id, callback_func) {
@@ -348,10 +429,12 @@ var CloudantDBModule = (function() {
     exports.GetUsersPublicKeys = GetUsersPublicKeys;
     exports.GetUserByEmail = GetUserByEmail;
     exports.GetUsersByEmailList = GetUsersByEmailList;
+    exports.GetUsersByIdsList = GetUsersByIdsList;
     exports.IsUserExists = IsUserExists;
     exports.GetAllMyGroups = GetAllMyGroups;
     exports.CreateTransaction = CreateTransaction;
     exports.CreateShare = CreateShare;
     exports.GetGroupIdByTransactionId = GetGroupIdByTransactionId;
+    exports.GetGroupDataByGroupId = GetGroupDataByGroupId;
 
 } (CloudantDBModule || {}));

@@ -47,13 +47,12 @@ function GetGroupsOnClick() {
         success: function(data, status, xhr) {
             // Remove all lines beside the header
             $("#table_groups tr:not(:first)").remove();
-            json_dict = data;
-            for (var i in json_dict.data) {
-                var transaction_amt = json_dict.data[i].value.transactions_length;
+            for (var i in data.groups) {
+                var transaction_amt = data.groups[i].value.transactions_length;
                 var member_amt, group_name, group_id;
-                member_amt = json_dict.groups[i].value.members_length; // Members
-                group_name = json_dict.groups[i].value.name;
-                group_id = json_dict.groups[i].value.group_id;
+                member_amt = data.groups[i].value.members_length; // Members
+                group_name = data.groups[i].value.name;
+                group_id = data.groups[i].value.group_id;
                 // Append row to the table.
                 $('#table_groups tr:last').after('<tr><td>' + group_id +'</td><td>' + group_name + '</td><td>' + member_amt + '</td><td>' + transaction_amt + '</td></tr>');
             }
@@ -127,12 +126,13 @@ function FetchGroupDataOnClick() {
         // On success, fill in transaction data.
         success: function(data, status, xhr) {
             // Fill in Member List table.
+            data = data.data;
             $("#member_list_table tr:not(:first)").remove(); // Remove all lines beside the header
             var creator_name = data.creator;
             $('#member_list_table tr:last').after('<tr><td>' + creator_name +'</td><td>' + "Creator" + '</td>');
 
             for (var i in data.members) {
-                $('#member_list_table tr:last').after('<tr><td>' + data.members[i] +'</td><td>' + "Creator" + '</td>');
+                $('#member_list_table tr:last').after('<tr><td>' + data.members[i] +'</td><td>' + "Participant" + '</td>');
             }
             // Fill in Transaction List table.
             $("#transaction_list_table tr:not(:first)").remove(); // Remove all lines beside the header

@@ -64,7 +64,27 @@ router.get('/get_groups', function (req, res) {
                 res.json({success: false, error: err.message});
             }
             else {
-                res.json({success: true, data: data.rows});
+                res.json({success: true, groups: data.rows});
+            }
+
+        });
+    }
+});
+
+router.get('/get_group_info', function (req, res) {
+    var user_id = session_util.GetUserId(req.session);
+    if (!user_id) {
+        res.json({success:false})
+    }
+
+    else {
+        var group_id = req.query.group_id;
+        database_interface.GetGroupDataByGroupId(group_id, function(err, data) {
+            if (err) {
+                res.json({success: false, error: err.message});
+            }
+            else {
+                res.json({success: true, data: data});
             }
 
         });
