@@ -18,6 +18,7 @@ router.post('/create_group', function (req, res) {
     if (!Array.isArray(users_email_list)) {
         users_email_list = [users_email_list];
     }
+    users_email_list.push(session_util.GetUserEmail(req.session)); //add the creator
     database_interface.GetUsersByEmailList(users_email_list, function(err, users_doc){
         if (err) {
             res.status(400).json({success: false, error: err.message })
@@ -29,9 +30,10 @@ router.post('/create_group', function (req, res) {
             else {
                 var list_of_users_ids = [];
                 for (var i =0; i< users_doc.rows.length; ++i) {
-                    list_of_users_ids.push(users_doc.rows[i].id);
+                    if (users_doc.rows[i].id != creator)
+                        list_of_users_ids.push(users_doc.rows[i].id);
                 }
-                database_interface.CreateNewGroup(creator, list_of_users_ids, group_name, function(err, group_data) {
+                database_interface.CreateGroup(creator, list_of_users_ids, group_name, function(err, group_data) {
                     if (err) {
                         res.status(400).json({success: false, error: err.message })
                     }
