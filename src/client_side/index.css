@@ -33,3 +33,11 @@ table, th, td {
     border: 1px solid black;
     border-collapse: collapse;
 }
+
+#group_information_div {
+    border-radius: 15px 50px 30px 5px;
+    background: gainsboro;
+    padding: 20px;
+    width: 50%;
+    height: 100%;
+}
