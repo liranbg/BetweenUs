@@ -188,7 +188,7 @@ var BetweenUsModule = (function() {
         _type_assert(shares, _types.obj);
         var decompressed_list = [];
         for (var share in shares) {
-            var share_component = shares[share];
+            var share_component = JSON.parse(shares[share]);
             share_component.data = _secrets.str2hex(share_component.data);
             decompressed_list.push(_secrets.constructPublicShareString(share_component.bits,share_component.id,share_component.data));
         }

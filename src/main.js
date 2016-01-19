@@ -144,7 +144,7 @@ for (var i in clients_to_share_with) {
 }
 
 //Restoring information from raw shares
-var shares_to_decrypt = [JSON.parse(clients_to_share_with[0].owned_share), JSON.parse(clients_to_share_with[1].owned_share)];
+var shares_to_decrypt = [clients_to_share_with[0].owned_share, clients_to_share_with[1].owned_share];
 var from_shares_symmetric_key_dictionary = BetweenUsModule.CombineShares(shares_to_decrypt);
 var decrypted_buffer = BetweenUsModule.SymmetricDecrypt(encrypted_buffer, from_shares_symmetric_key_dictionary);
 
