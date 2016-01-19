@@ -349,7 +349,7 @@ function SubmitNewTransactionOnClick(share_table_id, sym_key_field_id, member_ta
         type: "POST",
         url: server + "/transactions/create_transaction",
         dataType:'json',
-        data: JSON.stringify(json_data), // Must stringify due to encryption including wierd chars
+        data: {json_data : JSON.stringify(json_data) }, // Must stringify due to encryption including wierd chars
         xhrFields: {withCredentials: true},
         success: function(data, status, xhr) {
             alert("SUCCESS!");
@@ -366,6 +366,26 @@ function SubmitNewTransactionOnClick(share_table_id, sym_key_field_id, member_ta
  * @param shares stringified shares
  * @param users_key_info a list of {user: , public_key: } dictionaries.
  * @return a list of {user_id: , share:}
+ *
+ *
+ * /*** Flow for applying SSS on the Symmetric Key:
+ * PREFACE:
+ * - Symmetric Key is represented in a serialized string that contains passphrase and IV.
+ * - Encrypted data string representation contains non standard characters that cannot be
+ *   relayed in .ajax calls.
+ * - Each share returned is a stringified JSON object with the following properties:
+ *      * bit - int
+ *      * id - int
+ *      * data - string containing non-standard characters.
+ * - The flow following describe the solution to the issues mentioned above.
+ * FLOW:
+ * 1. Use Shamir's Secret Sharing on the serialized symmetric key string.
+ * 2. Unpack the share objects using JSON.parse().
+ * 3. Apply the following actions on the .data field for each share:
+ *      3.1. Take the public key of the designated user for this share.
+ *      3.2. Encrypt the .data field using this RSA key.
+ *      3.3. The output for the encryption function is a hex-string ex. 'ff0aba123'
+ * 4. Use JSON.stringify() on all the modified shares.
  */
 function EncryptSharesForUsers(shares, users_key_info) {
     if (shares.length != users_key_info.length) {
@@ -382,7 +402,7 @@ function EncryptSharesForUsers(shares, users_key_info) {
 }
 
 function MockRSAPublicKeyEncrypt(data, key) {
-    return data;
+    return betweenus.AsymmetricEncrypt(data, key);
 }
 
 /* Javascript Utility Functions */

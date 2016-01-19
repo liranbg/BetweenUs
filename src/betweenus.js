@@ -188,17 +188,31 @@ var BetweenUsModule = (function() {
         _type_assert(shares, _types.obj);
         var decompressed_list = [];
         for (var share in shares) {
-            var share_component = JSON.parse(shares[share]);
-            share_component.data = _secrets.str2hex(share_component.data);
-            decompressed_list.push(_secrets.constructPublicShareString(share_component.bits,share_component.id,share_component.data));
+            decompressed_list.push(_secrets.constructPublicShareString(shares[share].bits,shares[share].id,shares[share].data));
         }
         var hex_string = _secrets.combine(decompressed_list);
         return _secrets.hex2str(hex_string);
     };
 
+    var AsymmetricEncrypt = function(share_plain, rsa_key) {
+        var data_to_encrypt = JSON.parse(share_plain);
+        //TODO encrypt data before str2hex
+        data_to_encrypt.data = _secrets.str2hex(data_to_encrypt.data);
+
+        return (data_to_encrypt);
+    };
+
+    var AsymmetricDecrypt = function(encrypted_share, rsa_key) {
+        return encrypted_share;
+    };
+
     /**
      * BetweenUs Module API
      */
+    exports.AsymmetricEncrypt = AsymmetricEncrypt;
+    exports.AsymmetricDecrypt = AsymmetricDecrypt;
+    exports.str2hex = _secrets.str2hex;
+    exports.hex2str = _secrets.hex2str;
     exports.MakeShares = MakeShares;
     exports.CombineShares = CombineShares;
     exports.GenerateSymmetricKeyDictionary = GenerateSymmetricKeyDictionary;

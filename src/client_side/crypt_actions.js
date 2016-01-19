@@ -1,1198 +1,4 @@
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.betweenus = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-(function (Buffer){
-var BetweenUsModule = (function() {
-
-    /* Symmetric Encryption Algorithms data */
-    /**
-     * Contains the data to be used when symmetric encryption is set to AES 256 bits.
-     * @type {Object}
-     */
-    var aes_256 = {
-        algorithm_name: 'aes-256-ctr',
-        passphrase_byte_size: 32,
-        init_vector_byte_size: 16
-    };
-
-    /**
-     * Contains the data to be used when symmetric encryption is set to AES 128 bits.
-     * @type {Object}
-     */
-    var aes_128 = {
-        algorithm_name: 'aes-128-ctr',
-        passphrase_byte_size: 16,
-        init_vector_byte_size: 16
-    };
-
-    /* Defaults */
-    /**
-     * Contains the default data to be used throughout the module.
-     * @type {Object}
-     */
-    var defaults = {
-        max_bit: 8, // Determines the maximum amount of shares possible - maximum shares is calculated this way: (2^max_bits - 1).
-        symmetric_algorithm: aes_256
-    };
-
-    var _crypto = require("crypto");
-    var _secrets = require("./secrets.js");
-
-    _secrets.init(defaults.max_bit);
-
-    /**
-     * Check type and expected type. throws an error if types isn't matching.
-     * @param  {variable} type          [Variable to check for type.]
-     * @param  {string}   expected_type [String describing the expected type.]
-     * @return {None}                   [Return true if types match, throws an error otherwise.]
-     */
-    var _type_assert = function(type, expected_type) {
-        /* Check special case: buffer */
-        if (Buffer.isBuffer(expected_type)) {
-            if (!Buffer.isBuffer(type)) {
-                throw new Error('Type Error. Expected: Buffer, Received: ' + typeof type + '.');
-            } else {
-                return true;
-            }
-        } else if (typeof type != typeof expected_type) {
-            throw new Error('Type Error. Expected: ' + typeof expected_type + ', Received: ' + typeof type + '.');
-        }
-    };
-
-    var _types = {
-        dictionary: {},
-        number: 1,
-        string: "s",
-        buffer: Buffer("s"),
-        obj: {}
-    };
-
-    /**
-     * Receives dictionary with symmetric key encryption data, serializes it into
-     * a string.
-     * @param  {dictionary} sym_key_dict  [Encryption data, passphrase and IV.]
-     * @return {string}                   [The symmetric key encrypted data
-     *                                    concatenated. 'passphrase:iv'.]
-     */
-    var _SymmetricKeyDataDictionaryToString = function(sym_key_dict) {
-        _type_assert(sym_key_dict, _types.dictionary);
-        var output_string = sym_key_dict.key.toString('hex') + ":" +
-            sym_key_dict.iv.toString('hex');
-        return output_string;
-    };
-
-    /**
-     * Receives a string, deserializes it into a dictionary with the symmetric key
-     * encryption data.
-     * @param  {string} sym_string [String with the encryption data, 'passphrase:iv'.]
-     * @return {dictionary}        [Dictionary with the encryption data]
-     */
-    var _StringToKeyDataDictionary = function(sym_string) {
-        _type_assert(sym_string, _types.string);
-        var key = sym_string.split(':')[0];
-        var iv = sym_string.split(':')[1];
-        return ({
-            key: Buffer(key, 'hex'),
-            iv: Buffer(iv, 'hex')
-        });
-    };
-
-    /**
-     * This function generates two random byte buffers, that act as the symmetric key passphrase and IV.
-     * Then the function seralizes into a string that will later be used for the purpose of decrypting the
-     * cipher text.
-     * @return {string} [Return a serialized dictionary that contains the AES init data.]
-     */
-    var GenerateSymmetricKeyDictionary = function() {
-        var symmetric_key = _crypto.randomBytes(defaults.symmetric_algorithm.passphrase_byte_size);
-        var initialization_vector = _crypto.randomBytes(defaults.symmetric_algorithm.init_vector_byte_size);
-        _type_assert(symmetric_key, _types.buffer);
-        _type_assert(initialization_vector, _types.buffer);
-        return _SymmetricKeyDataDictionaryToString({
-            key: symmetric_key,
-            iv: initialization_vector
-        });
-    };
-
-    /**
-     *	Symmetric Encryption Section
-     */
-    /**
-     * Encrypts a message with the symmetric key data dictionary.
-     * @param  {string}     message                  [Plain text to be encrypted.]
-     * @param  {string }    symmetric_key_dictionary [Dictionary containing the data needed for encrypting the plain text.]
-     * @return {Buffer}                              [Buffer containing the output data - the cipher text.]
-     */
-    var SymmetricEncrypt = function(message, symmetric_key_dictionary) {
-        _type_assert(message, _types.string);
-        var key_object = _StringToKeyDataDictionary(symmetric_key_dictionary);
-        var cipher = _crypto.createCipheriv(defaults.symmetric_algorithm.algorithm_name,
-            key_object.key, key_object.iv);
-        var crypted = Buffer.concat([cipher.update(message), cipher.final()]);
-        _type_assert(crypted, _types.buffer);
-        return crypted;
-    };
-
-    /**
-     * Receives an hex Buffer, and the dictionary containing the symmetric key data, and decrypts it.
-     * @param  {Buffer} encrypted_message           [Encryped message, in the form of a Buffer object.]
-     * @param  {string} symmetric_key_dictionary    [Serialized dictionary containing the symmetric key data.]
-     * @return {Buffer}                             [Buffer containing the decrypted cipher text.]
-     */
-
-    var SymmetricDecrypt = function(encrypted_message, symmetric_key_dictionary) {
-        if (typeof(encrypted_message) == 'object') {
-            encrypted_message = new Buffer( new Uint8Array(encrypted_message) );
-        }
-        _type_assert(encrypted_message, _types.buffer);
-        _type_assert(symmetric_key_dictionary, _types.string);
-        var key_object = _StringToKeyDataDictionary(symmetric_key_dictionary);
-        var decipher = _crypto.createDecipheriv(defaults.symmetric_algorithm.algorithm_name, key_object.key, key_object.iv);
-        var dec = Buffer.concat([decipher.update(encrypted_message), decipher.final()]);
-        _type_assert(dec, _types.buffer);
-        return dec;
-    };
-
-    /**
-     *  Shamir Secret Sharing Section
-     */
-    /**
-     * Receives a serialized dictionary that contains the Symmetric encryption data
-     * and uses Shamir's Secret Sharing algorithm to divide it into N shares, with
-     * a threshold of K.
-     * @param  {string} serialized_dictionary [Serialized dicionary that contains the encryption information]
-     * @param  {number} shares                [Numbers of shares to produce with SSS algo. out of the original text.]
-     * @param  {number} threshold             [Threshold of shares needed to restore the original text.]
-     * @param  {number} zeropadding           [Padding.]
-     * @return {Object}                       [Object that contains the list of the actual shares in hex string forms.]
-     */
-    var MakeShares = function(serialized_dictionary, shares, threshold, zeropadding) {
-        _type_assert(serialized_dictionary, _types.string);
-        _type_assert(shares, _types.number);
-        _type_assert(threshold, _types.number);
-        _type_assert(zeropadding, _types.number);
-        var share_list = _secrets.share(_secrets.str2hex(serialized_dictionary), shares, threshold, zeropadding);
-        for (var share in share_list) {
-            var share_component = _secrets.extractShareComponents(share_list[share]);
-            share_list[share] = JSON.stringify({
-                bits:share_component.bits,
-                id:share_component.id,
-                data:_secrets.hex2str(share_component.data)
-            });
-        }
-        return share_list;
-    };
-
-    /**
-     * Receives a list of shares, and reconstruct the original text with them.
-     * @param  {Object} shares [A list of shares, each share should be an hex string.]
-     * @return {string}        [Resolve the shares into the serialized dictionary that contains the encryption data.]
-     */
-    var CombineShares = function(shares) {
-        _type_assert(shares, _types.obj);
-        var decompressed_list = [];
-        for (var share in shares) {
-            var share_component = JSON.parse(shares[share]);
-            share_component.data = _secrets.str2hex(share_component.data);
-            decompressed_list.push(_secrets.constructPublicShareString(share_component.bits,share_component.id,share_component.data));
-        }
-        var hex_string = _secrets.combine(decompressed_list);
-        return _secrets.hex2str(hex_string);
-    };
-
-    /**
-     * BetweenUs Module API
-     */
-    exports.MakeShares = MakeShares;
-    exports.CombineShares = CombineShares;
-    exports.GenerateSymmetricKeyDictionary = GenerateSymmetricKeyDictionary;
-    exports.SymmetricEncrypt = SymmetricEncrypt;
-    exports.SymmetricDecrypt = SymmetricDecrypt;
-
-}(BetweenUsModule || {}));
-
-}).call(this,require("buffer").Buffer)
-},{"./secrets.js":2,"buffer":46,"crypto":55}],2:[function(require,module,exports){
-// @preserve author Alexander Stetsyuk
-// @preserve author Glenn Rempe <glenn@rempe.us>
-//  https://raw.githubusercontent.com/grempe/secrets.js/master/secrets.js
-//  BetweenUs: Added: Exposed constructPublicShareString to public
-// @license MIT
-
-/*jslint passfail: false, bitwise: true, nomen: true, plusplus: true, todo: false, maxerr: 1000 */
-/*global define, require, module, exports, window, Uint32Array, sjcl */
-
-// eslint : http://eslint.org/docs/configuring/
-/*eslint-env node, browser, jasmine, sjcl */
-/*eslint no-underscore-dangle:0 */
-
-// UMD (Universal Module Definition)
-// Uses Node, AMD or browser globals to create a module. This module creates
-// a global even when AMD is used. This is useful if you have some scripts
-// that are loaded by an AMD loader, but they still want access to globals.
-// See : https://github.com/umdjs/umd
-// See : https://github.com/umdjs/umd/blob/master/returnExportsGlobal.js
-//
-(function (root, factory) {
-    "use strict";
-
-    if (typeof define === "function" && define.amd) {
-        // AMD. Register as an anonymous module.
-        define([], function () {
-            /*eslint-disable no-return-assign */
-            return (root.secrets = factory());
-            /*eslint-enable no-return-assign */
-        });
-    } else if (typeof exports === "object") {
-        // Node. Does not work with strict CommonJS, but
-        // only CommonJS-like environments that support module.exports,
-        // like Node.
-        module.exports = factory(require("crypto"));
-    } else {
-        // Browser globals (root is window)
-        root.secrets = factory(root.crypto);
-    }
-}(this, function (crypto) {
-    "use strict";
-
-    var defaults,
-        config,
-        preGenPadding,
-        runCSPRNGTest,
-        sjclParanoia,
-        CSPRNGTypes;
-
-    function reset() {
-        defaults = {
-            bits: 8, // default number of bits
-            radix: 16, // work with HEX by default
-            minBits: 3,
-            maxBits: 20, // this permits 1,048,575 shares, though going this high is NOT recommended in JS!
-            bytesPerChar: 2,
-            maxBytesPerChar: 6, // Math.pow(256,7) > Math.pow(2,53)
-
-            // Primitive polynomials (in decimal form) for Galois Fields GF(2^n), for 2 <= n <= 30
-            // The index of each term in the array corresponds to the n for that polynomial
-            // i.e. to get the polynomial for n=16, use primitivePolynomials[16]
-            primitivePolynomials: [null, null, 1, 3, 3, 5, 3, 3, 29, 17, 9, 5, 83, 27, 43, 3, 45, 9, 39, 39, 9, 5, 3, 33, 27, 9, 71, 39, 9, 5, 83]
-        };
-        config = {};
-        preGenPadding = new Array(1024).join("0"); // Pre-generate a string of 1024 0's for use by padLeft().
-        runCSPRNGTest = true;
-        sjclParanoia = 10;
-
-        // WARNING : Never use 'testRandom' except for testing.
-        CSPRNGTypes = ["nodeCryptoRandomBytes", "browserCryptoGetRandomValues", "browserSJCLRandom", "testRandom"];
-    }
-
-    function isSetRNG() {
-        if (config && config.rng && typeof config.rng === "function") {
-            return true;
-        }
-
-        return false;
-    }
-
-    // Pads a string `str` with zeros on the left so that its length is a multiple of `bits`
-    function padLeft(str, multipleOfBits) {
-        var missing;
-
-        if (multipleOfBits === 0 || multipleOfBits === 1) {
-            return str;
-        }
-
-        if (multipleOfBits && multipleOfBits > 1024) {
-            throw new Error("Padding must be multiples of no larger than 1024 bits.");
-        }
-
-        multipleOfBits = multipleOfBits || config.bits;
-
-        if (str) {
-            missing = str.length % multipleOfBits;
-        }
-
-        if (missing) {
-            return (preGenPadding + str).slice(-(multipleOfBits - missing + str.length));
-        }
-
-        return str;
-    }
-
-    function hex2bin(str) {
-        var bin = "",
-            num,
-            i;
-
-        for (i = str.length - 1; i >= 0; i--) {
-            num = parseInt(str[i], 16);
-
-            if (isNaN(num)) {
-                throw new Error("Invalid hex character.");
-            }
-
-            bin = padLeft(num.toString(2), 4) + bin;
-        }
-        return bin;
-    }
-
-    function bin2hex(str) {
-        var hex = "",
-            num,
-            i;
-
-        str = padLeft(str, 4);
-
-        for (i = str.length; i >= 4; i -= 4) {
-            num = parseInt(str.slice(i - 4, i), 2);
-            if (isNaN(num)) {
-                throw new Error("Invalid binary character.");
-            }
-            hex = num.toString(16) + hex;
-        }
-
-        return hex;
-    }
-
-    // Browser supports crypto.getRandomValues()
-    function hasCryptoGetRandomValues() {
-        if (crypto &&
-            typeof crypto === "object" &&
-            (typeof crypto.getRandomValues === "function" || typeof crypto.getRandomValues === "object") &&
-            (typeof Uint32Array === "function" || typeof Uint32Array === "object")) {
-            return true;
-        }
-
-        return false;
-    }
-
-    // Node.js support for crypto.randomBytes()
-    function hasCryptoRandomBytes() {
-        if (typeof crypto === "object" &&
-            typeof crypto.randomBytes === "function") {
-            return true;
-        }
-
-        return false;
-    }
-
-    // Stanford Javascript Crypto Library Support
-    function hasSJCL() {
-        if (typeof sjcl === "object" &&
-            typeof sjcl.random === "object") {
-            return true;
-        }
-
-        return false;
-    }
-
-    // Returns a pseudo-random number generator of the form function(bits){}
-    // which should output a random string of 1's and 0's of length `bits`.
-    // `type` (Optional) : A string representing the CSPRNG that you want to
-    // force to be loaded, overriding feature detection. Can be one of:
-    //    "nodeCryptoRandomBytes"
-    //    "browserCryptoGetRandomValues"
-    //    "browserSJCLRandom"
-    //
-    function getRNG(type) {
-
-        function construct(bits, arr, radix, size) {
-            var i = 0,
-                len,
-                str = "",
-                parsedInt;
-
-            if (arr) {
-                len = arr.length - 1;
-            }
-
-            while (i < len || (str.length < bits)) {
-                // convert any negative nums to positive with Math.abs()
-                parsedInt = Math.abs(parseInt(arr[i], radix));
-                str = str + padLeft(parsedInt.toString(2), size);
-                i++;
-            }
-
-            str = str.substr(-bits);
-
-            // return null so this result can be re-processed if the result is all 0's.
-            if ((str.match(/0/g) || []).length === str.length) {
-                return null;
-            }
-
-            return str;
-        }
-
-        // Node.js : crypto.randomBytes()
-        // Note : Node.js and crypto.randomBytes() uses the OpenSSL RAND_bytes() function for its CSPRNG.
-        //        Node.js will need to have been compiled with OpenSSL for this to work.
-        // See : https://github.com/joyent/node/blob/d8baf8a2a4481940bfed0196308ae6189ca18eee/src/node_crypto.cc#L4696
-        // See : https://www.openssl.org/docs/crypto/rand.html
-        function nodeCryptoRandomBytes(bits) {
-            var buf,
-                bytes,
-                radix,
-                size,
-                str = null;
-
-            radix = 16;
-            size = 4;
-            bytes = Math.ceil(bits / 8);
-
-            while (str === null) {
-                buf = crypto.randomBytes(bytes);
-                str = construct(bits, buf.toString("hex"), radix, size);
-            }
-
-            return str;
-        }
-
-        // Browser : crypto.getRandomValues()
-        // See : https://dvcs.w3.org/hg/webcrypto-api/raw-file/tip/spec/Overview.html#dfn-Crypto
-        // See : https://developer.mozilla.org/en-US/docs/Web/API/RandomSource/getRandomValues
-        // Supported Browsers : http://caniuse.com/#search=crypto.getRandomValues
-        function browserCryptoGetRandomValues(bits) {
-            var elems,
-                radix,
-                size,
-                str = null;
-
-            radix = 10;
-            size = 32;
-            elems = Math.ceil(bits / 32);
-            while (str === null) {
-                str = construct(bits, crypto.getRandomValues(new Uint32Array(elems)), radix, size);
-            }
-
-            return str;
-        }
-
-        // Browser SJCL : If the Stanford Javascript Crypto Library (SJCL) is loaded in the browser
-        // then use it as a fallback CSPRNG when crypto.getRandomValues() is not available.
-        // It may require some time and mouse movements to be fully seeded. Uses a modified version
-        // of the Fortuna RNG.
-        // See : https://bitwiseshiftleft.github.io/sjcl/
-        function browserSJCLRandom(bits) {
-            var elems,
-                radix,
-                size,
-                str = null;
-
-            radix = 10;
-            size = 32;
-            elems = Math.ceil(bits / 32);
-
-            if(sjcl.random.isReady(sjclParanoia)) {
-                str = construct(bits, sjcl.random.randomWords(elems, sjclParanoia), radix, size);
-            } else {
-                throw new Error("SJCL isn't finished seeding the RNG yet.");
-            }
-
-            return str;
-        }
-
-        // /////////////////////////////////////////////////////////////
-        // WARNING : DO NOT USE. For testing purposes only.
-        // /////////////////////////////////////////////////////////////
-        // This function will return repeatable non-random test bits. Can be used
-        // for testing only. Node.js does not return proper random bytes
-        // when run within a PhantomJS container.
-        function testRandom(bits) {
-            var arr,
-                elems,
-                int,
-                radix,
-                size,
-                str = null;
-
-            radix = 10;
-            size = 32;
-            elems = Math.ceil(bits / 32);
-            int = 123456789;
-            arr = new Uint32Array(elems);
-
-            // Fill every element of the Uint32Array with the same int.
-            for (var i = 0; i < arr.length; i++) {
-                arr[i] = int;
-            }
-
-            while (str === null) {
-                str = construct(bits, arr, radix, size);
-            }
-
-            return str;
-        }
-
-        // Return a random generator function for browsers that support HTML5
-        // crypto.getRandomValues(), Node.js compiled with OpenSSL support.
-        // or the Stanford Javascript Crypto Library Fortuna RNG.
-        // WARNING : NEVER use testRandom outside of a testing context. Totally non-random!
-        if (type && type === "testRandom") {
-            config.typeCSPRNG = type;
-            return testRandom;
-        } else if (type && type === "nodeCryptoRandomBytes") {
-            config.typeCSPRNG = type;
-            return nodeCryptoRandomBytes;
-        } else if (type && type === "browserCryptoGetRandomValues") {
-            config.typeCSPRNG = type;
-            return browserCryptoGetRandomValues;
-        } else if (type && type === "browserSJCLRandom") {
-            runCSPRNGTest = false;
-            config.typeCSPRNG = type;
-            return browserSJCLRandom;
-        } else if (hasCryptoRandomBytes()) {
-            config.typeCSPRNG = "nodeCryptoRandomBytes";
-            return nodeCryptoRandomBytes;
-        } else if (hasCryptoGetRandomValues()) {
-            config.typeCSPRNG = "browserCryptoGetRandomValues";
-            return browserCryptoGetRandomValues;
-        } else if (hasSJCL()) {
-            runCSPRNGTest = false;
-            config.typeCSPRNG = "browserSJCLRandom";
-            return browserSJCLRandom;
-        }
-
-    }
-
-    // Splits a number string `bits`-length segments, after first
-    // optionally zero-padding it to a length that is a multiple of `padLength.
-    // Returns array of integers (each less than 2^bits-1), with each element
-    // representing a `bits`-length segment of the input string from right to left,
-    // i.e. parts[0] represents the right-most `bits`-length segment of the input string.
-    function splitNumStringToIntArray(str, padLength) {
-        var parts = [],
-            i;
-
-        if (padLength) {
-            str = padLeft(str, padLength);
-        }
-
-        for (i = str.length; i > config.bits; i -= config.bits) {
-            parts.push(parseInt(str.slice(i - config.bits, i), 2));
-        }
-
-        parts.push(parseInt(str.slice(0, i), 2));
-
-        return parts;
-    }
-
-    // Polynomial evaluation at `x` using Horner's Method
-    // NOTE: fx=fx * x + coeff[i] ->  exp(log(fx) + log(x)) + coeff[i],
-    //       so if fx===0, just set fx to coeff[i] because
-    //       using the exp/log form will result in incorrect value
-    function horner(x, coeffs) {
-        var logx = config.logs[x],
-            fx = 0,
-            i;
-
-        for (i = coeffs.length - 1; i >= 0; i--) {
-            if (fx !== 0) {
-                fx = config.exps[(logx + config.logs[fx]) % config.maxShares] ^ coeffs[i];
-            } else {
-                fx = coeffs[i];
-            }
-        }
-
-        return fx;
-    }
-
-    // Evaluate the Lagrange interpolation polynomial at x = `at`
-    // using x and y Arrays that are of the same length, with
-    // corresponding elements constituting points on the polynomial.
-    function lagrange(at, x, y) {
-        var sum = 0,
-            len,
-            product,
-            i,
-            j;
-
-        for (i = 0, len = x.length; i < len; i++) {
-            if (y[i]) {
-
-                product = config.logs[y[i]];
-
-                for (j = 0; j < len; j++) {
-                    if (i !== j) {
-                        if (at === x[j]) { // happens when computing a share that is in the list of shares used to compute it
-                            product = -1; // fix for a zero product term, after which the sum should be sum^0 = sum, not sum^1
-                            break;
-                        }
-                        product = (product + config.logs[at ^ x[j]] - config.logs[x[i] ^ x[j]] + config.maxShares) % config.maxShares; // to make sure it's not negative
-                    }
-                }
-
-                // though exps[-1] === undefined and undefined ^ anything = anything in
-                // chrome, this behavior may not hold everywhere, so do the check
-                sum = product === -1 ? sum : sum ^ config.exps[product];
-            }
-
-        }
-
-        return sum;
-    }
-
-    // This is the basic polynomial generation and evaluation function
-    // for a `config.bits`-length secret (NOT an arbitrary length)
-    // Note: no error-checking at this stage! If `secret` is NOT
-    // a NUMBER less than 2^bits-1, the output will be incorrect!
-    function getShares(secret, numShares, threshold) {
-        var shares = [],
-            coeffs = [secret],
-            i,
-            len;
-
-        for (i = 1; i < threshold; i++) {
-            coeffs[i] = parseInt(config.rng(config.bits), 2);
-        }
-
-        for (i = 1, len = numShares + 1; i < len; i++) {
-            shares[i - 1] = {
-                x: i,
-                y: horner(i, coeffs)
-            };
-        }
-
-        return shares;
-    }
-
-    function constructPublicShareString(bits, id, data) {
-        var bitsBase36,
-            idHex,
-            idMax,
-            idPaddingLen,
-            newShareString;
-
-        id = parseInt(id, config.radix);
-        bits = parseInt(bits, 10) || config.bits;
-        bitsBase36 = bits.toString(36).toUpperCase();
-        idMax = Math.pow(2, bits) - 1;
-        idPaddingLen = idMax.toString(config.radix).length;
-        idHex = padLeft(id.toString(config.radix), idPaddingLen);
-
-        if (typeof id !== "number" || id % 1 !== 0 || id < 1 || id > idMax) {
-            throw new Error("Share id must be an integer between 1 and " + idMax + ", inclusive.");
-        }
-
-        newShareString = bitsBase36 + idHex + data;
-
-        return newShareString;
-    }
-
-    // EXPORTED FUNCTIONS
-    // //////////////////
-
-    var secrets = {
-
-        init: function (bits, rngType) {
-            var logs = [],
-                exps = [],
-                x = 1,
-                primitive,
-                i;
-
-            // reset all config back to initial state
-            reset();
-
-            if (bits && (typeof bits !== "number" || bits % 1 !== 0 || bits < defaults.minBits || bits > defaults.maxBits)) {
-                throw new Error("Number of bits must be an integer between " + defaults.minBits + " and " + defaults.maxBits + ", inclusive.");
-            }
-
-            if (rngType && CSPRNGTypes.indexOf(rngType) === -1) {
-                throw new Error("Invalid RNG type argument : '" + rngType + "'");
-            }
-
-            config.radix = defaults.radix;
-            config.bits = bits || defaults.bits;
-            config.size = Math.pow(2, config.bits);
-            config.maxShares = config.size - 1;
-
-            // Construct the exp and log tables for multiplication.
-            primitive = defaults.primitivePolynomials[config.bits];
-
-            for (i = 0; i < config.size; i++) {
-                exps[i] = x;
-                logs[x] = i;
-                x = x << 1;              // Left shift assignment
-                if (x >= config.size) {
-                    x = x ^ primitive;   // Bitwise XOR assignment
-                    x = x & config.maxShares;  // Bitwise AND assignment
-                }
-            }
-
-            config.logs = logs;
-            config.exps = exps;
-
-            if (rngType) {
-                this.setRNG(rngType);
-            }
-
-            if (!isSetRNG()) {
-                this.setRNG();
-            }
-
-            // Setup SJCL and start collecting entropy from mouse movements
-            if (hasSJCL() && config.typeCSPRNG === "browserSJCLRandom") {
-                /*eslint-disable new-cap */
-                sjcl.random = new sjcl.prng(sjclParanoia);
-                /*eslint-enable new-cap */
-
-                // In a Browser
-                if (hasCryptoGetRandomValues()) {
-                    // Collects entropy from browser mouse movement
-                    // which obviously won't work in Node.js.
-                    sjcl.random.startCollectors();
-                }
-
-                // see SJCL with browser or Node.js RNG if available.
-                this.seedRNG();
-            }
-
-            if (!isSetRNG() || !config.bits || !config.size || !config.maxShares || !config.logs || !config.exps || config.logs.length !== config.size || config.exps.length !== config.size) {
-                throw new Error("Initialization failed.");
-            }
-
-        },
-
-        // Pass in additional secure entropy, and an estimate of the bits of entropy
-        // provided, and a source name, and it will be used to seed the SJCL PRNG. This is
-        // useful since SJCL may take a while to be seeded since it depends on mouse
-        // movement and this can kickstart the generator almost immediately. SJCL will
-        // also continue to collect entropy from mouse movements after seeding.
-        //
-        // e.g. from random data sources like:
-        // https://api.random.org/json-rpc/1/
-        // https://entropy.ubuntu.com/?challenge=123
-        // https://qrng.anu.edu.au/API/api-demo.php
-        //
-        // See `examples/example_js_global.html` for sample usage with an
-        // external source of entropy.
-        seedRNG: function (data, estimatedEntropy, source) {
-
-            var bytes, rand;
-
-            estimatedEntropy = parseInt(estimatedEntropy, 10);
-            source = source || "seedRNG";
-
-            // Seed with browser RNG
-            if (hasSJCL() && hasCryptoGetRandomValues()) {
-                bytes = new Uint32Array(256);
-                rand = crypto.getRandomValues(bytes);
-                //console.log(rand);
-                sjcl.random.addEntropy(rand, 2048, "cryptoGetRandomValues");
-            }
-
-            // See with Node.js RNG (Async)
-            if (hasSJCL() && hasCryptoRandomBytes()) {
-                crypto.randomBytes(256, function(ex, buf) {
-                    if (ex) { throw ex; }
-                    //console.log("Have %d bytes of random data containing %s", buf.length, buf.toString('hex'));
-                    sjcl.random.addEntropy(buf.toString("hex"), 2048, "cryptoRandomBytes");
-                });
-            }
-
-            if (hasSJCL() && data && estimatedEntropy && source && config.typeCSPRNG === "browserSJCLRandom") {
-                sjcl.random.addEntropy(data, estimatedEntropy, source);
-            }
-        },
-
-        // Evaluates the Lagrange interpolation polynomial at x=`at` for
-        // individual config.bits-length segments of each share in the `shares`
-        // Array. Each share is expressed in base `inputRadix`. The output
-        // is expressed in base `outputRadix'.
-        combine: function (shares, at) {
-            var i,
-                j,
-                len,
-                len2,
-                result = "",
-                setBits,
-                share,
-                splitShare,
-                x = [],
-                y = [];
-
-            at = at || 0;
-
-            for (i = 0, len = shares.length; i < len; i++) {
-                share = this.extractShareComponents(shares[i]);
-
-                // All shares must have the same bits settings.
-                if (setBits === undefined) {
-                    setBits = share.bits;
-                } else if (share.bits !== setBits) {
-                    throw new Error("Mismatched shares: Different bit settings.");
-                }
-
-                // Reset everything to the bit settings of the shares.
-                if (config.bits !== setBits) {
-                    this.init(setBits);
-                }
-
-                // Proceed if this share.id is not already in the Array 'x' and
-                // then split each share's hex data into an Array of Integers,
-                // then 'rotate' those arrays where the first element of each row is converted to
-                // its own array, the second element of each to its own Array, and so on for all of the rest.
-                // Essentially zipping all of the shares together.
-                //
-                // e.g.
-                //   [ 193, 186, 29, 150, 5, 120, 44, 46, 49, 59, 6, 1, 102, 98, 177, 196 ]
-                //   [ 53, 105, 139, 49, 187, 240, 91, 92, 98, 118, 12, 2, 204, 196, 127, 149 ]
-                //   [ 146, 211, 249, 167, 209, 136, 118, 114, 83, 77, 10, 3, 170, 166, 206, 81 ]
-                //
-                // becomes:
-                //
-                // [ [ 193, 53, 146 ],
-                //   [ 186, 105, 211 ],
-                //   [ 29, 139, 249 ],
-                //   [ 150, 49, 167 ],
-                //   [ 5, 187, 209 ],
-                //   [ 120, 240, 136 ],
-                //   [ 44, 91, 118 ],
-                //   [ 46, 92, 114 ],
-                //   [ 49, 98, 83 ],
-                //   [ 59, 118, 77 ],
-                //   [ 6, 12, 10 ],
-                //   [ 1, 2, 3 ],
-                //   [ 102, 204, 170 ],
-                //   [ 98, 196, 166 ],
-                //   [ 177, 127, 206 ],
-                //   [ 196, 149, 81 ] ]
-                //
-                if (x.indexOf(share.id) === -1) {
-                    x.push(share.id);
-                    splitShare = splitNumStringToIntArray(hex2bin(share.data));
-                    for (j = 0, len2 = splitShare.length; j < len2; j++) {
-                        y[j] = y[j] || [];
-                        y[j][x.length - 1] = splitShare[j];
-                    }
-                }
-
-            }
-
-            // Extract the secret from the 'rotated' share data and return a
-            // string of Binary digits which represent the secret directly. or in the
-            // case of a newShare() return the binary string representing just that
-            // new share.
-            for (i = 0, len = y.length; i < len; i++) {
-                result = padLeft(lagrange(at, x, y[i]).toString(2)) + result;
-            }
-
-            // If 'at' is non-zero combine() was called from newShare(). In this
-            // case return the result (the new share data) directly.
-            //
-            // Otherwise find the first '1' which was added in the share() function as a padding marker
-            // and return only the data after the padding and the marker. Convert this Binary string
-            // to hex, which represents the final secret result (which can be converted from hex back
-            // to the original string in user space using `hex2str()`).
-            return bin2hex(at >= 1 ? result : result.slice(result.indexOf("1") + 1));
-        },
-
-        getConfig: function () {
-            var obj = {};
-            obj.radix = config.radix;
-            obj.bits = config.bits;
-            obj.maxShares = config.maxShares;
-            obj.hasCSPRNG = isSetRNG();
-            obj.typeCSPRNG = config.typeCSPRNG;
-            return obj;
-        },
-
-        // Given a public share, extract the bits (Integer), share ID (Integer), and share data (Hex)
-        // and return an Object containing those components.
-        extractShareComponents: function (share) {
-            var bits,
-                id,
-                idLen,
-                max,
-                obj = {},
-                regexStr,
-                shareComponents;
-
-            // Extract the first char which represents the bits in Base 36
-            bits = parseInt(share.substr(0, 1), 36);
-
-            if (bits && (typeof bits !== "number" || bits % 1 !== 0 || bits < defaults.minBits || bits > defaults.maxBits)) {
-                throw new Error("Invalid share : Number of bits must be an integer between " + defaults.minBits + " and " + defaults.maxBits + ", inclusive.");
-            }
-
-            // calc the max shares allowed for given bits
-            max = Math.pow(2, bits) - 1;
-
-            // Determine the ID length which is variable and based on the bit count.
-            idLen = (Math.pow(2, bits) - 1).toString(config.radix).length;
-
-            // Extract all the parts now that the segment sizes are known.
-            regexStr = "^([a-kA-K3-9]{1})([a-fA-F0-9]{" + idLen + "})([a-fA-F0-9]+)$";
-            shareComponents = new RegExp(regexStr).exec(share);
-
-            // The ID is a Hex number and needs to be converted to an Integer
-            if (shareComponents) {
-                id = parseInt(shareComponents[2], config.radix);
-            }
-
-            if (typeof id !== "number" || id % 1 !== 0 || id < 1 || id > max) {
-                throw new Error("Invalid share : Share id must be an integer between 1 and " + config.maxShares + ", inclusive.");
-            }
-
-            if (shareComponents && shareComponents[3]) {
-                obj.bits = bits;
-                obj.id = id;
-                obj.data = shareComponents[3];
-                return obj;
-            }
-
-            throw new Error("The share data provided is invalid : " + share);
-
-        },
-
-        // Set the PRNG to use. If no RNG function is supplied, pick a default using getRNG()
-        setRNG: function (rng) {
-
-            var errPrefix = "Random number generator is invalid ",
-                errSuffix = " Supply an CSPRNG of the form function(bits){} that returns a string containing 'bits' number of random 1's and 0's.";
-
-            if (rng && typeof rng === "string" && CSPRNGTypes.indexOf(rng) === -1) {
-                throw new Error("Invalid RNG type argument : '" + rng + "'");
-            }
-
-            // If RNG was not specified at all,
-            // try to pick one appropriate for this env.
-            if (!rng) {
-                rng = getRNG();
-            }
-
-            // If `rng` is a string, try to forcibly
-            // set the RNG to the type specified.
-            if (rng && typeof rng === "string") {
-                rng = getRNG(rng);
-            }
-
-            if (runCSPRNGTest) {
-
-                if (rng && typeof rng !== "function") {
-                    throw new Error(errPrefix + "(Not a function)." + errSuffix);
-                }
-
-                if (rng && typeof rng(config.bits) !== "string") {
-                    throw new Error(errPrefix + "(Output is not a string)." + errSuffix);
-                }
-
-                if (rng && !parseInt(rng(config.bits), 2)) {
-                    throw new Error(errPrefix + "(Binary string output not parseable to an Integer)." + errSuffix);
-                }
-
-                if (rng && rng(config.bits).length > config.bits) {
-                    throw new Error(errPrefix + "(Output length is greater than config.bits)." + errSuffix);
-                }
-
-                if (rng && rng(config.bits).length < config.bits) {
-                    throw new Error(errPrefix + "(Output length is less than config.bits)." + errSuffix);
-                }
-
-            }
-
-            config.rng = rng;
-
-            return true;
-        },
-
-        // Converts a given UTF16 character string to the HEX representation.
-        // Each character of the input string is represented by
-        // `bytesPerChar` bytes in the output string which defaults to 2.
-        str2hex: function (str, bytesPerChar) {
-            var hexChars,
-                max,
-                out = "",
-                neededBytes,
-                num,
-                i,
-                len;
-
-            if (typeof str !== "string") {
-                throw new Error("Input must be a character string.");
-            }
-
-            if (!bytesPerChar) {
-                bytesPerChar = defaults.bytesPerChar;
-            }
-
-            if (typeof bytesPerChar !== "number" || bytesPerChar < 1 || bytesPerChar > defaults.maxBytesPerChar || bytesPerChar % 1 !== 0) {
-                throw new Error("Bytes per character must be an integer between 1 and " + defaults.maxBytesPerChar + ", inclusive.");
-            }
-
-            hexChars = 2 * bytesPerChar;
-            max = Math.pow(16, hexChars) - 1;
-
-            for (i = 0, len = str.length; i < len; i++) {
-                num = str[i].charCodeAt();
-
-                if (isNaN(num)) {
-                    throw new Error("Invalid character: " + str[i]);
-                }
-
-                if (num > max) {
-                    neededBytes = Math.ceil(Math.log(num + 1) / Math.log(256));
-                    throw new Error("Invalid character code (" + num + "). Maximum allowable is 256^bytes-1 (" + max + "). To convert this character, use at least " + neededBytes + " bytes.");
-                }
-
-                out = padLeft(num.toString(16), hexChars) + out;
-            }
-            return out;
-        },
-
-        // Converts a given HEX number string to a UTF16 character string.
-        hex2str: function (str, bytesPerChar) {
-            var hexChars,
-                out = "",
-                i,
-                len;
-
-            if (typeof str !== "string") {
-                throw new Error("Input must be a hexadecimal string.");
-            }
-            bytesPerChar = bytesPerChar || defaults.bytesPerChar;
-
-            if (typeof bytesPerChar !== "number" || bytesPerChar % 1 !== 0 || bytesPerChar < 1 || bytesPerChar > defaults.maxBytesPerChar) {
-                throw new Error("Bytes per character must be an integer between 1 and " + defaults.maxBytesPerChar + ", inclusive.");
-            }
-
-            hexChars = 2 * bytesPerChar;
-
-            str = padLeft(str, hexChars);
-
-            for (i = 0, len = str.length; i < len; i += hexChars) {
-                out = String.fromCharCode(parseInt(str.slice(i, i + hexChars), 16)) + out;
-            }
-
-            return out;
-        },
-
-        // Generates a random bits-length number string using the PRNG
-        random: function (bits) {
-
-            if (typeof bits !== "number" || bits % 1 !== 0 || bits < 2 || bits > 65536) {
-                throw new Error("Number of bits must be an Integer between 1 and 65536.");
-            }
-
-            if (config.typeCSPRNG === "browserSJCLRandom" && sjcl.random.isReady(sjclParanoia) < 1) {
-                throw new Error("SJCL isn't finished seeding the RNG yet. Needs new entropy added or more mouse movement.");
-            }
-
-            return bin2hex(config.rng(bits));
-        },
-
-        // Divides a `secret` number String str expressed in radix `inputRadix` (optional, default 16)
-        // into `numShares` shares, each expressed in radix `outputRadix` (optional, default to `inputRadix`),
-        // requiring `threshold` number of shares to reconstruct the secret.
-        // Optionally, zero-pads the secret to a length that is a multiple of padLength before sharing.
-        share: function (secret, numShares, threshold, padLength) {
-            var neededBits,
-                subShares,
-                x = new Array(numShares),
-                y = new Array(numShares),
-                i,
-                j,
-                len;
-
-            // Security:
-            // For additional security, pad in multiples of 128 bits by default.
-            // A small trade-off in larger share size to help prevent leakage of information
-            // about small-ish secrets and increase the difficulty of attacking them.
-            padLength = padLength || 128;
-
-            if (typeof secret !== "string") {
-                throw new Error("Secret must be a string.");
-            }
-
-            if (typeof numShares !== "number" || numShares % 1 !== 0 || numShares < 2) {
-                throw new Error("Number of shares must be an integer between 2 and 2^bits-1 (" + config.maxShares + "), inclusive.");
-            }
-
-            if (numShares > config.maxShares) {
-                neededBits = Math.ceil(Math.log(numShares + 1) / Math.LN2);
-                throw new Error("Number of shares must be an integer between 2 and 2^bits-1 (" + config.maxShares + "), inclusive. To create " + numShares + " shares, use at least " + neededBits + " bits.");
-            }
-
-            if (typeof threshold !== "number" || threshold % 1 !== 0 || threshold < 2) {
-                throw new Error("Threshold number of shares must be an integer between 2 and 2^bits-1 (" + config.maxShares + "), inclusive.");
-            }
-
-            if (threshold > config.maxShares) {
-                neededBits = Math.ceil(Math.log(threshold + 1) / Math.LN2);
-                throw new Error("Threshold number of shares must be an integer between 2 and 2^bits-1 (" + config.maxShares + "), inclusive.  To use a threshold of " + threshold + ", use at least " + neededBits + " bits.");
-            }
-
-            if (threshold > numShares) {
-                throw new Error("Threshold number of shares was " + threshold + " but must be less than or equal to the " + numShares + " shares specified as the total to generate.");
-            }
-
-            if (typeof padLength !== "number" || padLength % 1 !== 0 || padLength < 0 || padLength > 1024) {
-                throw new Error("Zero-pad length must be an integer between 0 and 1024 inclusive.");
-            }
-
-            secret = "1" + hex2bin(secret); // append a 1 as a marker so that we can preserve the correct number of leading zeros in our secret
-            secret = splitNumStringToIntArray(secret, padLength);
-
-            for (i = 0, len = secret.length; i < len; i++) {
-                subShares = getShares(secret[i], numShares, threshold);
-                for (j = 0; j < numShares; j++) {
-                    x[j] = x[j] || subShares[j].x.toString(config.radix);
-                    y[j] = padLeft(subShares[j].y.toString(2)) + (y[j] || "");
-                }
-            }
-
-            for (i = 0; i < numShares; i++) {
-                x[i] = constructPublicShareString(config.bits, x[i], bin2hex(y[i]));
-            }
-
-            return x;
-        },
-
-        //Exposed to public
-        constructPublicShareString: constructPublicShareString,
-
-        // Generate a new share with id `id` (a number between 1 and 2^bits-1)
-        // `id` can be a Number or a String in the default radix (16)
-        newShare: function (id, shares) {
-            var share;
-
-            if (id && typeof id === "string") {
-                id = parseInt(id, config.radix);
-            }
-
-            if (id && shares && shares[0]) {
-                share = this.extractShareComponents(shares[0]);
-                return constructPublicShareString(share.bits, id, this.combine(shares, id));
-            }
-
-            throw new Error("Invalid 'id' or 'shares' Array argument to newShare().");
-        },
-
-        /* test-code */
-        // export private functions so they can be unit tested directly.
-
-        _reset: reset,
-        _padLeft: padLeft,
-        _hex2bin: hex2bin,
-        _bin2hex: bin2hex,
-        _hasCryptoGetRandomValues: hasCryptoGetRandomValues,
-        _hasCryptoRandomBytes: hasCryptoRandomBytes,
-        _hasSJCL: hasSJCL,
-        _getRNG: getRNG,
-        _isSetRNG: isSetRNG,
-        _splitNumStringToIntArray: splitNumStringToIntArray,
-        _horner: horner,
-        _lagrange: lagrange,
-        _getShares: getShares,
-        _constructPublicShareString: constructPublicShareString
-        /* end-test-code */
-
-    };
-
-    // Always initialize secrets with default settings.
-    secrets.init();
-
-    return secrets;
-
-}));
-},{"crypto":55}],3:[function(require,module,exports){
 var asn1 = exports;
 
 asn1.bignum = require('bn.js');
@@ -1203,7 +9,7 @@ asn1.constants = require('./asn1/constants');
 asn1.decoders = require('./asn1/decoders');
 asn1.encoders = require('./asn1/encoders');
 
-},{"./asn1/api":4,"./asn1/base":6,"./asn1/constants":10,"./asn1/decoders":12,"./asn1/encoders":15,"bn.js":18}],4:[function(require,module,exports){
+},{"./asn1/api":2,"./asn1/base":4,"./asn1/constants":8,"./asn1/decoders":10,"./asn1/encoders":13,"bn.js":16}],2:[function(require,module,exports){
 var asn1 = require('../asn1');
 var inherits = require('inherits');
 
@@ -1264,7 +70,7 @@ Entity.prototype.encode = function encode(data, enc, /* internal */ reporter) {
   return this._getEncoder(enc).encode(data, reporter);
 };
 
-},{"../asn1":3,"inherits":93,"vm":134}],5:[function(require,module,exports){
+},{"../asn1":1,"inherits":91,"vm":132}],3:[function(require,module,exports){
 var inherits = require('inherits');
 var Reporter = require('../base').Reporter;
 var Buffer = require('buffer').Buffer;
@@ -1382,7 +188,7 @@ EncoderBuffer.prototype.join = function join(out, offset) {
   return out;
 };
 
-},{"../base":6,"buffer":46,"inherits":93}],6:[function(require,module,exports){
+},{"../base":4,"buffer":44,"inherits":91}],4:[function(require,module,exports){
 var base = exports;
 
 base.Reporter = require('./reporter').Reporter;
@@ -1390,7 +196,7 @@ base.DecoderBuffer = require('./buffer').DecoderBuffer;
 base.EncoderBuffer = require('./buffer').EncoderBuffer;
 base.Node = require('./node');
 
-},{"./buffer":5,"./node":7,"./reporter":8}],7:[function(require,module,exports){
+},{"./buffer":3,"./node":5,"./reporter":6}],5:[function(require,module,exports){
 var Reporter = require('../base').Reporter;
 var EncoderBuffer = require('../base').EncoderBuffer;
 var assert = require('minimalistic-assert');
@@ -2002,7 +808,7 @@ Node.prototype._isNumstr = function isNumstr(str) {
 Node.prototype._isPrintstr = function isPrintstr(str) {
   return /^[A-Za-z0-9 '\(\)\+,\-\.\/:=\?]*$/.test(str);
 };
-},{"../base":6,"minimalistic-assert":97}],8:[function(require,module,exports){
+},{"../base":4,"minimalistic-assert":95}],6:[function(require,module,exports){
 var inherits = require('inherits');
 
 function Reporter(options) {
@@ -2106,7 +912,7 @@ ReporterError.prototype.rethrow = function rethrow(msg) {
   return this;
 };
 
-},{"inherits":93}],9:[function(require,module,exports){
+},{"inherits":91}],7:[function(require,module,exports){
 var constants = require('../constants');
 
 exports.tagClass = {
@@ -2150,7 +956,7 @@ exports.tag = {
 };
 exports.tagByName = constants._reverse(exports.tag);
 
-},{"../constants":10}],10:[function(require,module,exports){
+},{"../constants":8}],8:[function(require,module,exports){
 var constants = exports;
 
 // Helper
@@ -2171,7 +977,7 @@ constants._reverse = function reverse(map) {
 
 constants.der = require('./der');
 
-},{"./der":9}],11:[function(require,module,exports){
+},{"./der":7}],9:[function(require,module,exports){
 var inherits = require('inherits');
 
 var asn1 = require('../../asn1');
@@ -2495,13 +1301,13 @@ function derDecodeLen(buf, primitive, fail) {
   return len;
 }
 
-},{"../../asn1":3,"inherits":93}],12:[function(require,module,exports){
+},{"../../asn1":1,"inherits":91}],10:[function(require,module,exports){
 var decoders = exports;
 
 decoders.der = require('./der');
 decoders.pem = require('./pem');
 
-},{"./der":11,"./pem":13}],13:[function(require,module,exports){
+},{"./der":9,"./pem":11}],11:[function(require,module,exports){
 var inherits = require('inherits');
 var Buffer = require('buffer').Buffer;
 
@@ -2553,7 +1359,7 @@ PEMDecoder.prototype.decode = function decode(data, options) {
   return DERDecoder.prototype.decode.call(this, input, options);
 };
 
-},{"../../asn1":3,"./der":11,"buffer":46,"inherits":93}],14:[function(require,module,exports){
+},{"../../asn1":1,"./der":9,"buffer":44,"inherits":91}],12:[function(require,module,exports){
 var inherits = require('inherits');
 var Buffer = require('buffer').Buffer;
 
@@ -2853,13 +1659,13 @@ function encodeTag(tag, primitive, cls, reporter) {
   return res;
 }
 
-},{"../../asn1":3,"buffer":46,"inherits":93}],15:[function(require,module,exports){
+},{"../../asn1":1,"buffer":44,"inherits":91}],13:[function(require,module,exports){
 var encoders = exports;
 
 encoders.der = require('./der');
 encoders.pem = require('./pem');
 
-},{"./der":14,"./pem":16}],16:[function(require,module,exports){
+},{"./der":12,"./pem":14}],14:[function(require,module,exports){
 var inherits = require('inherits');
 var Buffer = require('buffer').Buffer;
 
@@ -2884,7 +1690,7 @@ PEMEncoder.prototype.encode = function encode(data, options) {
   return out.join('\n');
 };
 
-},{"../../asn1":3,"./der":14,"buffer":46,"inherits":93}],17:[function(require,module,exports){
+},{"../../asn1":1,"./der":12,"buffer":44,"inherits":91}],15:[function(require,module,exports){
 ;(function (exports) {
   'use strict'
 
@@ -3004,7 +1810,7 @@ PEMEncoder.prototype.encode = function encode(data, options) {
   exports.fromByteArray = uint8ToBase64
 }(typeof exports === 'undefined' ? (this.base64js = {}) : exports))
 
-},{}],18:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 (function (module, exports) {
   'use strict';
 
@@ -6325,7 +5131,7 @@ PEMEncoder.prototype.encode = function encode(data, options) {
   };
 })(typeof module === 'undefined' || module, this);
 
-},{}],19:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 var r;
 
 module.exports = function rand(len) {
@@ -6384,9 +5190,9 @@ if (typeof window === 'object') {
   }
 }
 
-},{}],20:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 
-},{}],21:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 (function (Buffer){
 // based on the aes implimentation in triple sec
 // https://github.com/keybase/triplesec
@@ -6567,7 +5373,7 @@ AES.prototype._doCryptBlock = function (M, keySchedule, SUB_MIX, SBOX) {
 exports.AES = AES
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":46}],22:[function(require,module,exports){
+},{"buffer":44}],20:[function(require,module,exports){
 (function (Buffer){
 var aes = require('./aes')
 var Transform = require('cipher-base')
@@ -6668,7 +5474,7 @@ function xorTest (a, b) {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"./aes":21,"./ghash":26,"buffer":46,"buffer-xor":45,"cipher-base":48,"inherits":93}],23:[function(require,module,exports){
+},{"./aes":19,"./ghash":24,"buffer":44,"buffer-xor":43,"cipher-base":46,"inherits":91}],21:[function(require,module,exports){
 var ciphers = require('./encrypter')
 exports.createCipher = exports.Cipher = ciphers.createCipher
 exports.createCipheriv = exports.Cipheriv = ciphers.createCipheriv
@@ -6681,7 +5487,7 @@ function getCiphers () {
 }
 exports.listCiphers = exports.getCiphers = getCiphers
 
-},{"./decrypter":24,"./encrypter":25,"./modes":27}],24:[function(require,module,exports){
+},{"./decrypter":22,"./encrypter":23,"./modes":25}],22:[function(require,module,exports){
 (function (Buffer){
 var aes = require('./aes')
 var Transform = require('cipher-base')
@@ -6821,7 +5627,7 @@ exports.createDecipher = createDecipher
 exports.createDecipheriv = createDecipheriv
 
 }).call(this,require("buffer").Buffer)
-},{"./aes":21,"./authCipher":22,"./modes":27,"./modes/cbc":28,"./modes/cfb":29,"./modes/cfb1":30,"./modes/cfb8":31,"./modes/ctr":32,"./modes/ecb":33,"./modes/ofb":34,"./streamCipher":35,"buffer":46,"cipher-base":48,"evp_bytestokey":84,"inherits":93}],25:[function(require,module,exports){
+},{"./aes":19,"./authCipher":20,"./modes":25,"./modes/cbc":26,"./modes/cfb":27,"./modes/cfb1":28,"./modes/cfb8":29,"./modes/ctr":30,"./modes/ecb":31,"./modes/ofb":32,"./streamCipher":33,"buffer":44,"cipher-base":46,"evp_bytestokey":82,"inherits":91}],23:[function(require,module,exports){
 (function (Buffer){
 var aes = require('./aes')
 var Transform = require('cipher-base')
@@ -6946,7 +5752,7 @@ exports.createCipheriv = createCipheriv
 exports.createCipher = createCipher
 
 }).call(this,require("buffer").Buffer)
-},{"./aes":21,"./authCipher":22,"./modes":27,"./modes/cbc":28,"./modes/cfb":29,"./modes/cfb1":30,"./modes/cfb8":31,"./modes/ctr":32,"./modes/ecb":33,"./modes/ofb":34,"./streamCipher":35,"buffer":46,"cipher-base":48,"evp_bytestokey":84,"inherits":93}],26:[function(require,module,exports){
+},{"./aes":19,"./authCipher":20,"./modes":25,"./modes/cbc":26,"./modes/cfb":27,"./modes/cfb1":28,"./modes/cfb8":29,"./modes/ctr":30,"./modes/ecb":31,"./modes/ofb":32,"./streamCipher":33,"buffer":44,"cipher-base":46,"evp_bytestokey":82,"inherits":91}],24:[function(require,module,exports){
 (function (Buffer){
 var zeros = new Buffer(16)
 zeros.fill(0)
@@ -7048,7 +5854,7 @@ function xor (a, b) {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":46}],27:[function(require,module,exports){
+},{"buffer":44}],25:[function(require,module,exports){
 exports['aes-128-ecb'] = {
   cipher: 'AES',
   key: 128,
@@ -7221,7 +6027,7 @@ exports['aes-256-gcm'] = {
   type: 'auth'
 }
 
-},{}],28:[function(require,module,exports){
+},{}],26:[function(require,module,exports){
 var xor = require('buffer-xor')
 
 exports.encrypt = function (self, block) {
@@ -7240,7 +6046,7 @@ exports.decrypt = function (self, block) {
   return xor(out, pad)
 }
 
-},{"buffer-xor":45}],29:[function(require,module,exports){
+},{"buffer-xor":43}],27:[function(require,module,exports){
 (function (Buffer){
 var xor = require('buffer-xor')
 
@@ -7275,7 +6081,7 @@ function encryptStart (self, data, decrypt) {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":46,"buffer-xor":45}],30:[function(require,module,exports){
+},{"buffer":44,"buffer-xor":43}],28:[function(require,module,exports){
 (function (Buffer){
 function encryptByte (self, byteParam, decrypt) {
   var pad
@@ -7313,7 +6119,7 @@ function shiftIn (buffer, value) {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":46}],31:[function(require,module,exports){
+},{"buffer":44}],29:[function(require,module,exports){
 (function (Buffer){
 function encryptByte (self, byteParam, decrypt) {
   var pad = self._cipher.encryptBlock(self._prev)
@@ -7332,7 +6138,7 @@ exports.encrypt = function (self, chunk, decrypt) {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":46}],32:[function(require,module,exports){
+},{"buffer":44}],30:[function(require,module,exports){
 (function (Buffer){
 var xor = require('buffer-xor')
 
@@ -7367,7 +6173,7 @@ exports.encrypt = function (self, chunk) {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":46,"buffer-xor":45}],33:[function(require,module,exports){
+},{"buffer":44,"buffer-xor":43}],31:[function(require,module,exports){
 exports.encrypt = function (self, block) {
   return self._cipher.encryptBlock(block)
 }
@@ -7375,7 +6181,7 @@ exports.decrypt = function (self, block) {
   return self._cipher.decryptBlock(block)
 }
 
-},{}],34:[function(require,module,exports){
+},{}],32:[function(require,module,exports){
 (function (Buffer){
 var xor = require('buffer-xor')
 
@@ -7395,7 +6201,7 @@ exports.encrypt = function (self, chunk) {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":46,"buffer-xor":45}],35:[function(require,module,exports){
+},{"buffer":44,"buffer-xor":43}],33:[function(require,module,exports){
 (function (Buffer){
 var aes = require('./aes')
 var Transform = require('cipher-base')
@@ -7424,7 +6230,7 @@ StreamCipher.prototype._final = function () {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"./aes":21,"buffer":46,"cipher-base":48,"inherits":93}],36:[function(require,module,exports){
+},{"./aes":19,"buffer":44,"cipher-base":46,"inherits":91}],34:[function(require,module,exports){
 var ebtk = require('evp_bytestokey')
 var aes = require('browserify-aes/browser')
 var DES = require('browserify-des')
@@ -7499,7 +6305,7 @@ function getCiphers () {
 }
 exports.listCiphers = exports.getCiphers = getCiphers
 
-},{"browserify-aes/browser":23,"browserify-aes/modes":27,"browserify-des":37,"browserify-des/modes":38,"evp_bytestokey":84}],37:[function(require,module,exports){
+},{"browserify-aes/browser":21,"browserify-aes/modes":25,"browserify-des":35,"browserify-des/modes":36,"evp_bytestokey":82}],35:[function(require,module,exports){
 (function (Buffer){
 var CipherBase = require('cipher-base')
 var des = require('des.js')
@@ -7546,7 +6352,7 @@ DES.prototype._final = function () {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":46,"cipher-base":48,"des.js":56,"inherits":93}],38:[function(require,module,exports){
+},{"buffer":44,"cipher-base":46,"des.js":54,"inherits":91}],36:[function(require,module,exports){
 exports['des-ecb'] = {
   key: 8,
   iv: 0
@@ -7572,7 +6378,7 @@ exports['des-ede'] = {
   iv: 0
 }
 
-},{}],39:[function(require,module,exports){
+},{}],37:[function(require,module,exports){
 (function (Buffer){
 var bn = require('bn.js');
 var randomBytes = require('randombytes');
@@ -7616,7 +6422,7 @@ function getr(priv) {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"bn.js":18,"buffer":46,"randombytes":111}],40:[function(require,module,exports){
+},{"bn.js":16,"buffer":44,"randombytes":109}],38:[function(require,module,exports){
 (function (Buffer){
 'use strict'
 exports['RSA-SHA224'] = exports.sha224WithRSAEncryption = {
@@ -7692,7 +6498,7 @@ exports['RSA-MD5'] = exports.md5WithRSAEncryption = {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":46}],41:[function(require,module,exports){
+},{"buffer":44}],39:[function(require,module,exports){
 (function (Buffer){
 var _algos = require('./algos')
 var createHash = require('create-hash')
@@ -7799,7 +6605,7 @@ module.exports = {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"./algos":40,"./sign":43,"./verify":44,"buffer":46,"create-hash":51,"inherits":93,"stream":131}],42:[function(require,module,exports){
+},{"./algos":38,"./sign":41,"./verify":42,"buffer":44,"create-hash":49,"inherits":91,"stream":129}],40:[function(require,module,exports){
 'use strict'
 exports['1.3.132.0.10'] = 'secp256k1'
 
@@ -7813,7 +6619,7 @@ exports['1.3.132.0.34'] = 'p384'
 
 exports['1.3.132.0.35'] = 'p521'
 
-},{}],43:[function(require,module,exports){
+},{}],41:[function(require,module,exports){
 (function (Buffer){
 // much of this based on https://github.com/indutny/self-signed/blob/gh-pages/lib/rsa.js
 var createHmac = require('create-hmac')
@@ -8002,7 +6808,7 @@ module.exports.getKey = getKey
 module.exports.makeKey = makeKey
 
 }).call(this,require("buffer").Buffer)
-},{"./curves":42,"bn.js":18,"browserify-rsa":39,"buffer":46,"create-hmac":54,"elliptic":66,"parse-asn1":101}],44:[function(require,module,exports){
+},{"./curves":40,"bn.js":16,"browserify-rsa":37,"buffer":44,"create-hmac":52,"elliptic":64,"parse-asn1":99}],42:[function(require,module,exports){
 (function (Buffer){
 // much of this based on https://github.com/indutny/self-signed/blob/gh-pages/lib/rsa.js
 var curves = require('./curves')
@@ -8109,7 +6915,7 @@ function checkValue (b, q) {
 module.exports = verify
 
 }).call(this,require("buffer").Buffer)
-},{"./curves":42,"bn.js":18,"buffer":46,"elliptic":66,"parse-asn1":101}],45:[function(require,module,exports){
+},{"./curves":40,"bn.js":16,"buffer":44,"elliptic":64,"parse-asn1":99}],43:[function(require,module,exports){
 (function (Buffer){
 module.exports = function xor (a, b) {
   var length = Math.min(a.length, b.length)
@@ -8123,7 +6929,7 @@ module.exports = function xor (a, b) {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":46}],46:[function(require,module,exports){
+},{"buffer":44}],44:[function(require,module,exports){
 (function (global){
 /*!
  * The buffer module from node.js, for the browser.
@@ -9579,14 +8385,14 @@ function blitBuffer (src, dst, offset, length) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"base64-js":17,"ieee754":91,"isarray":47}],47:[function(require,module,exports){
+},{"base64-js":15,"ieee754":89,"isarray":45}],45:[function(require,module,exports){
 var toString = {}.toString;
 
 module.exports = Array.isArray || function (arr) {
   return toString.call(arr) == '[object Array]';
 };
 
-},{}],48:[function(require,module,exports){
+},{}],46:[function(require,module,exports){
 (function (Buffer){
 var Transform = require('stream').Transform
 var inherits = require('inherits')
@@ -9680,7 +8486,7 @@ CipherBase.prototype._toString = function (value, enc, final) {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":46,"inherits":93,"stream":131,"string_decoder":132}],49:[function(require,module,exports){
+},{"buffer":44,"inherits":91,"stream":129,"string_decoder":130}],47:[function(require,module,exports){
 (function (Buffer){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -9791,7 +8597,7 @@ function objectToString(o) {
 }
 
 }).call(this,{"isBuffer":require("../../is-buffer/index.js")})
-},{"../../is-buffer/index.js":94}],50:[function(require,module,exports){
+},{"../../is-buffer/index.js":92}],48:[function(require,module,exports){
 (function (Buffer){
 var elliptic = require('elliptic');
 var BN = require('bn.js');
@@ -9917,7 +8723,7 @@ function formatReturnValue(bn, enc, len) {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"bn.js":18,"buffer":46,"elliptic":66}],51:[function(require,module,exports){
+},{"bn.js":16,"buffer":44,"elliptic":64}],49:[function(require,module,exports){
 (function (Buffer){
 'use strict';
 var inherits = require('inherits')
@@ -9973,7 +8779,7 @@ module.exports = function createHash (alg) {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"./md5":53,"buffer":46,"cipher-base":48,"inherits":93,"ripemd160":122,"sha.js":124}],52:[function(require,module,exports){
+},{"./md5":51,"buffer":44,"cipher-base":46,"inherits":91,"ripemd160":120,"sha.js":122}],50:[function(require,module,exports){
 (function (Buffer){
 'use strict';
 var intSize = 4;
@@ -10010,7 +8816,7 @@ function hash(buf, fn, hashSize, bigEndian) {
 }
 exports.hash = hash;
 }).call(this,require("buffer").Buffer)
-},{"buffer":46}],53:[function(require,module,exports){
+},{"buffer":44}],51:[function(require,module,exports){
 'use strict';
 /*
  * A JavaScript implementation of the RSA Data Security, Inc. MD5 Message
@@ -10167,7 +8973,7 @@ function bit_rol(num, cnt)
 module.exports = function md5(buf) {
   return helpers.hash(buf, core_md5, 16);
 };
-},{"./helpers":52}],54:[function(require,module,exports){
+},{"./helpers":50}],52:[function(require,module,exports){
 (function (Buffer){
 'use strict';
 var createHash = require('create-hash/browser');
@@ -10239,7 +9045,7 @@ module.exports = function createHmac(alg, key) {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":46,"create-hash/browser":51,"inherits":93,"stream":131}],55:[function(require,module,exports){
+},{"buffer":44,"create-hash/browser":49,"inherits":91,"stream":129}],53:[function(require,module,exports){
 'use strict'
 
 exports.randomBytes = exports.rng = exports.pseudoRandomBytes = exports.prng = require('randombytes')
@@ -10318,7 +9124,7 @@ var publicEncrypt = require('public-encrypt')
   }
 })
 
-},{"browserify-cipher":36,"browserify-sign":41,"browserify-sign/algos":40,"create-ecdh":50,"create-hash":51,"create-hmac":54,"diffie-hellman":62,"pbkdf2":102,"public-encrypt":105,"randombytes":111}],56:[function(require,module,exports){
+},{"browserify-cipher":34,"browserify-sign":39,"browserify-sign/algos":38,"create-ecdh":48,"create-hash":49,"create-hmac":52,"diffie-hellman":60,"pbkdf2":100,"public-encrypt":103,"randombytes":109}],54:[function(require,module,exports){
 'use strict';
 
 exports.utils = require('./des/utils');
@@ -10327,7 +9133,7 @@ exports.DES = require('./des/des');
 exports.CBC = require('./des/cbc');
 exports.EDE = require('./des/ede');
 
-},{"./des/cbc":57,"./des/cipher":58,"./des/des":59,"./des/ede":60,"./des/utils":61}],57:[function(require,module,exports){
+},{"./des/cbc":55,"./des/cipher":56,"./des/des":57,"./des/ede":58,"./des/utils":59}],55:[function(require,module,exports){
 'use strict';
 
 var assert = require('minimalistic-assert');
@@ -10394,7 +9200,7 @@ proto._update = function _update(inp, inOff, out, outOff) {
   }
 };
 
-},{"inherits":93,"minimalistic-assert":97}],58:[function(require,module,exports){
+},{"inherits":91,"minimalistic-assert":95}],56:[function(require,module,exports){
 'use strict';
 
 var assert = require('minimalistic-assert');
@@ -10537,7 +9343,7 @@ Cipher.prototype._finalDecrypt = function _finalDecrypt() {
   return this._unpad(out);
 };
 
-},{"minimalistic-assert":97}],59:[function(require,module,exports){
+},{"minimalistic-assert":95}],57:[function(require,module,exports){
 'use strict';
 
 var assert = require('minimalistic-assert');
@@ -10682,7 +9488,7 @@ DES.prototype._decrypt = function _decrypt(state, lStart, rStart, out, off) {
   utils.rip(l, r, out, off);
 };
 
-},{"../des":56,"inherits":93,"minimalistic-assert":97}],60:[function(require,module,exports){
+},{"../des":54,"inherits":91,"minimalistic-assert":95}],58:[function(require,module,exports){
 'use strict';
 
 var assert = require('minimalistic-assert');
@@ -10739,7 +9545,7 @@ EDE.prototype._update = function _update(inp, inOff, out, outOff) {
 EDE.prototype._pad = DES.prototype._pad;
 EDE.prototype._unpad = DES.prototype._unpad;
 
-},{"../des":56,"inherits":93,"minimalistic-assert":97}],61:[function(require,module,exports){
+},{"../des":54,"inherits":91,"minimalistic-assert":95}],59:[function(require,module,exports){
 'use strict';
 
 exports.readUInt32BE = function readUInt32BE(bytes, off) {
@@ -10997,7 +9803,7 @@ exports.padSplit = function padSplit(num, size, group) {
   return out.join(' ');
 };
 
-},{}],62:[function(require,module,exports){
+},{}],60:[function(require,module,exports){
 (function (Buffer){
 var generatePrime = require('./lib/generatePrime')
 var primes = require('./lib/primes')
@@ -11043,7 +9849,7 @@ exports.DiffieHellmanGroup = exports.createDiffieHellmanGroup = exports.getDiffi
 exports.createDiffieHellman = exports.DiffieHellman = createDiffieHellman
 
 }).call(this,require("buffer").Buffer)
-},{"./lib/dh":63,"./lib/generatePrime":64,"./lib/primes":65,"buffer":46}],63:[function(require,module,exports){
+},{"./lib/dh":61,"./lib/generatePrime":62,"./lib/primes":63,"buffer":44}],61:[function(require,module,exports){
 (function (Buffer){
 var BN = require('bn.js');
 var MillerRabin = require('miller-rabin');
@@ -11211,7 +10017,7 @@ function formatReturnValue(bn, enc) {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"./generatePrime":64,"bn.js":18,"buffer":46,"miller-rabin":96,"randombytes":111}],64:[function(require,module,exports){
+},{"./generatePrime":62,"bn.js":16,"buffer":44,"miller-rabin":94,"randombytes":109}],62:[function(require,module,exports){
 var randomBytes = require('randombytes');
 module.exports = findPrime;
 findPrime.simpleSieve = simpleSieve;
@@ -11318,7 +10124,7 @@ function findPrime(bits, gen) {
 
 }
 
-},{"bn.js":18,"miller-rabin":96,"randombytes":111}],65:[function(require,module,exports){
+},{"bn.js":16,"miller-rabin":94,"randombytes":109}],63:[function(require,module,exports){
 module.exports={
     "modp1": {
         "gen": "02",
@@ -11353,7 +10159,7 @@ module.exports={
         "prime": "ffffffffffffffffc90fdaa22168c234c4c6628b80dc1cd129024e088a67cc74020bbea63b139b22514a08798e3404ddef9519b3cd3a431b302b0a6df25f14374fe1356d6d51c245e485b576625e7ec6f44c42e9a637ed6b0bff5cb6f406b7edee386bfb5a899fa5ae9f24117c4b1fe649286651ece45b3dc2007cb8a163bf0598da48361c55d39a69163fa8fd24cf5f83655d23dca3ad961c62f356208552bb9ed529077096966d670c354e4abc9804f1746c08ca18217c32905e462e36ce3be39e772c180e86039b2783a2ec07a28fb5c55df06f4c52c9de2bcbf6955817183995497cea956ae515d2261898fa051015728e5a8aaac42dad33170d04507a33a85521abdf1cba64ecfb850458dbef0a8aea71575d060c7db3970f85a6e1e4c7abf5ae8cdb0933d71e8c94e04a25619dcee3d2261ad2ee6bf12ffa06d98a0864d87602733ec86a64521f2b18177b200cbbe117577a615d6c770988c0bad946e208e24fa074e5ab3143db5bfce0fd108e4b82d120a92108011a723c12a787e6d788719a10bdba5b2699c327186af4e23c1a946834b6150bda2583e9ca2ad44ce8dbbbc2db04de8ef92e8efc141fbecaa6287c59474e6bc05d99b2964fa090c3a2233ba186515be7ed1f612970cee2d7afb81bdd762170481cd0069127d5b05aa993b4ea988d8fddc186ffb7dc90a6c08f4df435c93402849236c3fab4d27c7026c1d4dcb2602646dec9751e763dba37bdf8ff9406ad9e530ee5db382f413001aeb06a53ed9027d831179727b0865a8918da3edbebcf9b14ed44ce6cbaced4bb1bdb7f1447e6cc254b332051512bd7af426fb8f401378cd2bf5983ca01c64b92ecf032ea15d1721d03f482d7ce6e74fef6d55e702f46980c82b5a84031900b1c9e59e7c97fbec7e8f323a97a7e36cc88be0f1d45b7ff585ac54bd407b22b4154aacc8f6d7ebf48e1d814cc5ed20f8037e0a79715eef29be32806a1d58bb7c5da76f550aa3d8a1fbff0eb19ccb1a313d55cda56c9ec2ef29632387fe8d76e3c0468043e8f663f4860ee12bf2d5b0b7474d6e694f91e6dbe115974a3926f12fee5e438777cb6a932df8cd8bec4d073b931ba3bc832b68d9dd300741fa7bf8afc47ed2576f6936ba424663aab639c5ae4f5683423b4742bf1c978238f16cbe39d652de3fdb8befc848ad922222e04a4037c0713eb57a81a23f0c73473fc646cea306b4bcbc8862f8385ddfa9d4b7fa2c087e879683303ed5bdd3a062b3cf5b3a278a66d2a13f83f44f82ddf310ee074ab6a364597e899a0255dc164f31cc50846851df9ab48195ded7ea1b1d510bd7ee74d73faf36bc31ecfa268359046f4eb879f924009438b481c6cd7889a002ed5ee382bc9190da6fc026e479558e4475677e9aa9e3050e2765694dfc81f56e880b96e7160c980dd98edd3dfffffffffffffffff"
     }
 }
-},{}],66:[function(require,module,exports){
+},{}],64:[function(require,module,exports){
 'use strict';
 
 var elliptic = exports;
@@ -11369,7 +10175,7 @@ elliptic.curves = require('./elliptic/curves');
 elliptic.ec = require('./elliptic/ec');
 elliptic.eddsa = require('./elliptic/eddsa');
 
-},{"../package.json":82,"./elliptic/curve":69,"./elliptic/curves":72,"./elliptic/ec":73,"./elliptic/eddsa":76,"./elliptic/hmac-drbg":79,"./elliptic/utils":81,"brorand":19}],67:[function(require,module,exports){
+},{"../package.json":80,"./elliptic/curve":67,"./elliptic/curves":70,"./elliptic/ec":71,"./elliptic/eddsa":74,"./elliptic/hmac-drbg":77,"./elliptic/utils":79,"brorand":17}],65:[function(require,module,exports){
 'use strict';
 
 var BN = require('bn.js');
@@ -11722,7 +10528,7 @@ BasePoint.prototype.dblp = function dblp(k) {
   return r;
 };
 
-},{"../../elliptic":66,"bn.js":18}],68:[function(require,module,exports){
+},{"../../elliptic":64,"bn.js":16}],66:[function(require,module,exports){
 'use strict';
 
 var curve = require('../curve');
@@ -12130,7 +10936,7 @@ Point.prototype.eq = function eq(other) {
 Point.prototype.toP = Point.prototype.normalize;
 Point.prototype.mixedAdd = Point.prototype.add;
 
-},{"../../elliptic":66,"../curve":69,"bn.js":18,"inherits":93}],69:[function(require,module,exports){
+},{"../../elliptic":64,"../curve":67,"bn.js":16,"inherits":91}],67:[function(require,module,exports){
 'use strict';
 
 var curve = exports;
@@ -12140,7 +10946,7 @@ curve.short = require('./short');
 curve.mont = require('./mont');
 curve.edwards = require('./edwards');
 
-},{"./base":67,"./edwards":68,"./mont":70,"./short":71}],70:[function(require,module,exports){
+},{"./base":65,"./edwards":66,"./mont":68,"./short":69}],68:[function(require,module,exports){
 'use strict';
 
 var curve = require('../curve');
@@ -12318,7 +11124,7 @@ Point.prototype.getX = function getX() {
   return this.x.fromRed();
 };
 
-},{"../../elliptic":66,"../curve":69,"bn.js":18,"inherits":93}],71:[function(require,module,exports){
+},{"../../elliptic":64,"../curve":67,"bn.js":16,"inherits":91}],69:[function(require,module,exports){
 'use strict';
 
 var curve = require('../curve');
@@ -13227,7 +12033,7 @@ JPoint.prototype.isInfinity = function isInfinity() {
   return this.z.cmpn(0) === 0;
 };
 
-},{"../../elliptic":66,"../curve":69,"bn.js":18,"inherits":93}],72:[function(require,module,exports){
+},{"../../elliptic":64,"../curve":67,"bn.js":16,"inherits":91}],70:[function(require,module,exports){
 'use strict';
 
 var curves = exports;
@@ -13434,7 +12240,7 @@ defineCurve('secp256k1', {
   ]
 });
 
-},{"../elliptic":66,"./precomputed/secp256k1":80,"hash.js":85}],73:[function(require,module,exports){
+},{"../elliptic":64,"./precomputed/secp256k1":78,"hash.js":83}],71:[function(require,module,exports){
 'use strict';
 
 var BN = require('bn.js');
@@ -13651,7 +12457,7 @@ EC.prototype.getKeyRecoveryParam = function(e, signature, Q, enc) {
   throw new Error('Unable to find valid recovery factor');
 };
 
-},{"../../elliptic":66,"./key":74,"./signature":75,"bn.js":18}],74:[function(require,module,exports){
+},{"../../elliptic":64,"./key":72,"./signature":73,"bn.js":16}],72:[function(require,module,exports){
 'use strict';
 
 var BN = require('bn.js');
@@ -13760,7 +12566,7 @@ KeyPair.prototype.inspect = function inspect() {
          ' pub: ' + (this.pub && this.pub.inspect()) + ' >';
 };
 
-},{"bn.js":18}],75:[function(require,module,exports){
+},{"bn.js":16}],73:[function(require,module,exports){
 'use strict';
 
 var BN = require('bn.js');
@@ -13897,7 +12703,7 @@ Signature.prototype.toDER = function toDER(enc) {
   return utils.encode(res, enc);
 };
 
-},{"../../elliptic":66,"bn.js":18}],76:[function(require,module,exports){
+},{"../../elliptic":64,"bn.js":16}],74:[function(require,module,exports){
 'use strict';
 
 var hash = require('hash.js');
@@ -14017,7 +12823,7 @@ EDDSA.prototype.isPoint = function isPoint(val) {
   return val instanceof this.pointClass;
 };
 
-},{"../../elliptic":66,"./key":77,"./signature":78,"hash.js":85}],77:[function(require,module,exports){
+},{"../../elliptic":64,"./key":75,"./signature":76,"hash.js":83}],75:[function(require,module,exports){
 'use strict';
 
 var elliptic = require('../../elliptic');
@@ -14115,7 +12921,7 @@ KeyPair.prototype.getPublic = function getPublic(enc) {
 
 module.exports = KeyPair;
 
-},{"../../elliptic":66}],78:[function(require,module,exports){
+},{"../../elliptic":64}],76:[function(require,module,exports){
 'use strict';
 
 var BN = require('bn.js');
@@ -14183,7 +12989,7 @@ Signature.prototype.toHex = function toHex() {
 
 module.exports = Signature;
 
-},{"../../elliptic":66,"bn.js":18}],79:[function(require,module,exports){
+},{"../../elliptic":64,"bn.js":16}],77:[function(require,module,exports){
 'use strict';
 
 var hash = require('hash.js');
@@ -14299,7 +13105,7 @@ HmacDRBG.prototype.generate = function generate(len, enc, add, addEnc) {
   return utils.encode(res, enc);
 };
 
-},{"../elliptic":66,"hash.js":85}],80:[function(require,module,exports){
+},{"../elliptic":64,"hash.js":83}],78:[function(require,module,exports){
 module.exports = {
   doubles: {
     step: 4,
@@ -15081,7 +13887,7 @@ module.exports = {
   }
 };
 
-},{}],81:[function(require,module,exports){
+},{}],79:[function(require,module,exports){
 'use strict';
 
 var utils = exports;
@@ -15256,12 +14062,12 @@ function intFromLE(bytes) {
 utils.intFromLE = intFromLE;
 
 
-},{"bn.js":18}],82:[function(require,module,exports){
+},{"bn.js":16}],80:[function(require,module,exports){
 module.exports={
   "_args": [
     [
       "elliptic@^6.0.0",
-      "C:\\Users\\nadav\\AppData\\Roaming\\npm\\node_modules\\browserify\\node_modules\\browserify-sign"
+      "C:\\Users\\liran\\AppData\\Roaming\\npm\\node_modules\\browserify\\node_modules\\browserify-sign"
     ]
   ],
   "_from": "elliptic@>=6.0.0 <7.0.0",
@@ -15292,7 +14098,7 @@ module.exports={
   "_shasum": "68130e03823b4ce024955ad1be195e148099d654",
   "_shrinkwrap": null,
   "_spec": "elliptic@^6.0.0",
-  "_where": "C:\\Users\\nadav\\AppData\\Roaming\\npm\\node_modules\\browserify\\node_modules\\browserify-sign",
+  "_where": "C:\\Users\\liran\\AppData\\Roaming\\npm\\node_modules\\browserify\\node_modules\\browserify-sign",
   "author": {
     "email": "fedor@indutny.com",
     "name": "Fedor Indutny"
@@ -15354,7 +14160,7 @@ module.exports={
   "version": "6.1.0"
 }
 
-},{}],83:[function(require,module,exports){
+},{}],81:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -15654,7 +14460,7 @@ function isUndefined(arg) {
   return arg === void 0;
 }
 
-},{}],84:[function(require,module,exports){
+},{}],82:[function(require,module,exports){
 (function (Buffer){
 var md5 = require('create-hash/md5')
 module.exports = EVP_BytesToKey
@@ -15726,7 +14532,7 @@ function EVP_BytesToKey (password, salt, keyLen, ivLen) {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":46,"create-hash/md5":53}],85:[function(require,module,exports){
+},{"buffer":44,"create-hash/md5":51}],83:[function(require,module,exports){
 var hash = exports;
 
 hash.utils = require('./hash/utils');
@@ -15743,7 +14549,7 @@ hash.sha384 = hash.sha.sha384;
 hash.sha512 = hash.sha.sha512;
 hash.ripemd160 = hash.ripemd.ripemd160;
 
-},{"./hash/common":86,"./hash/hmac":87,"./hash/ripemd":88,"./hash/sha":89,"./hash/utils":90}],86:[function(require,module,exports){
+},{"./hash/common":84,"./hash/hmac":85,"./hash/ripemd":86,"./hash/sha":87,"./hash/utils":88}],84:[function(require,module,exports){
 var hash = require('../hash');
 var utils = hash.utils;
 var assert = utils.assert;
@@ -15836,7 +14642,7 @@ BlockHash.prototype._pad = function pad() {
   return res;
 };
 
-},{"../hash":85}],87:[function(require,module,exports){
+},{"../hash":83}],85:[function(require,module,exports){
 var hmac = exports;
 
 var hash = require('../hash');
@@ -15886,7 +14692,7 @@ Hmac.prototype.digest = function digest(enc) {
   return this.outer.digest(enc);
 };
 
-},{"../hash":85}],88:[function(require,module,exports){
+},{"../hash":83}],86:[function(require,module,exports){
 var hash = require('../hash');
 var utils = hash.utils;
 
@@ -16032,7 +14838,7 @@ var sh = [
   8, 5, 12, 9, 12, 5, 14, 6, 8, 13, 6, 5, 15, 13, 11, 11
 ];
 
-},{"../hash":85}],89:[function(require,module,exports){
+},{"../hash":83}],87:[function(require,module,exports){
 var hash = require('../hash');
 var utils = hash.utils;
 var assert = utils.assert;
@@ -16598,7 +15404,7 @@ function g1_512_lo(xh, xl) {
   return r;
 }
 
-},{"../hash":85}],90:[function(require,module,exports){
+},{"../hash":83}],88:[function(require,module,exports){
 var utils = exports;
 var inherits = require('inherits');
 
@@ -16857,7 +15663,7 @@ function shr64_lo(ah, al, num) {
 };
 exports.shr64_lo = shr64_lo;
 
-},{"inherits":93}],91:[function(require,module,exports){
+},{"inherits":91}],89:[function(require,module,exports){
 exports.read = function (buffer, offset, isLE, mLen, nBytes) {
   var e, m
   var eLen = nBytes * 8 - mLen - 1
@@ -16943,7 +15749,7 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
   buffer[offset + i - d] |= s * 128
 }
 
-},{}],92:[function(require,module,exports){
+},{}],90:[function(require,module,exports){
 
 var indexOf = [].indexOf;
 
@@ -16954,7 +15760,7 @@ module.exports = function(arr, obj){
   }
   return -1;
 };
-},{}],93:[function(require,module,exports){
+},{}],91:[function(require,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -16979,7 +15785,7 @@ if (typeof Object.create === 'function') {
   }
 }
 
-},{}],94:[function(require,module,exports){
+},{}],92:[function(require,module,exports){
 /**
  * Determine if an object is Buffer
  *
@@ -16998,12 +15804,12 @@ module.exports = function (obj) {
     ))
 }
 
-},{}],95:[function(require,module,exports){
+},{}],93:[function(require,module,exports){
 module.exports = Array.isArray || function (arr) {
   return Object.prototype.toString.call(arr) == '[object Array]';
 };
 
-},{}],96:[function(require,module,exports){
+},{}],94:[function(require,module,exports){
 var bn = require('bn.js');
 var brorand = require('brorand');
 
@@ -17118,7 +15924,7 @@ MillerRabin.prototype.getDivisor = function getDivisor(n, k) {
   return false;
 };
 
-},{"bn.js":18,"brorand":19}],97:[function(require,module,exports){
+},{"bn.js":16,"brorand":17}],95:[function(require,module,exports){
 module.exports = assert;
 
 function assert(val, msg) {
@@ -17131,7 +15937,7 @@ assert.equal = function assertEqual(l, r, msg) {
     throw new Error(msg || ('Assertion failed: ' + l + ' != ' + r));
 };
 
-},{}],98:[function(require,module,exports){
+},{}],96:[function(require,module,exports){
 module.exports={"2.16.840.1.101.3.4.1.1": "aes-128-ecb",
 "2.16.840.1.101.3.4.1.2": "aes-128-cbc",
 "2.16.840.1.101.3.4.1.3": "aes-128-ofb",
@@ -17145,7 +15951,7 @@ module.exports={"2.16.840.1.101.3.4.1.1": "aes-128-ecb",
 "2.16.840.1.101.3.4.1.43": "aes-256-ofb",
 "2.16.840.1.101.3.4.1.44": "aes-256-cfb"
 }
-},{}],99:[function(require,module,exports){
+},{}],97:[function(require,module,exports){
 // from https://github.com/indutny/self-signed/blob/gh-pages/lib/asn1.js
 // Fedor, you are amazing.
 
@@ -17264,7 +16070,7 @@ exports.signature = asn1.define('signature', function () {
   )
 })
 
-},{"asn1.js":3}],100:[function(require,module,exports){
+},{"asn1.js":1}],98:[function(require,module,exports){
 (function (Buffer){
 // adapted from https://github.com/apatil/pemstrip
 var findProc = /Proc-Type: 4,ENCRYPTED\r?\nDEK-Info: AES-((?:128)|(?:192)|(?:256))-CBC,([0-9A-H]+)\r?\n\r?\n([0-9A-z\n\r\+\/\=]+)\r?\n/m
@@ -17298,7 +16104,7 @@ module.exports = function (okey, password) {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"browserify-aes":23,"buffer":46,"evp_bytestokey":84}],101:[function(require,module,exports){
+},{"browserify-aes":21,"buffer":44,"evp_bytestokey":82}],99:[function(require,module,exports){
 (function (Buffer){
 var asn1 = require('./asn1')
 var aesid = require('./aesid.json')
@@ -17403,7 +16209,7 @@ function decrypt (data, password) {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"./aesid.json":98,"./asn1":99,"./fixProc":100,"browserify-aes":23,"buffer":46,"pbkdf2":102}],102:[function(require,module,exports){
+},{"./aesid.json":96,"./asn1":97,"./fixProc":98,"browserify-aes":21,"buffer":44,"pbkdf2":100}],100:[function(require,module,exports){
 (function (Buffer){
 var createHmac = require('create-hmac')
 var MAX_ALLOC = Math.pow(2, 30) - 1 // default in iojs
@@ -17487,7 +16293,7 @@ function pbkdf2Sync (password, salt, iterations, keylen, digest) {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":46,"create-hmac":54}],103:[function(require,module,exports){
+},{"buffer":44,"create-hmac":52}],101:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -17511,7 +16317,7 @@ function nextTick(fn) {
 }
 
 }).call(this,require('_process'))
-},{"_process":104}],104:[function(require,module,exports){
+},{"_process":102}],102:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -17604,7 +16410,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],105:[function(require,module,exports){
+},{}],103:[function(require,module,exports){
 exports.publicEncrypt = require('./publicEncrypt');
 exports.privateDecrypt = require('./privateDecrypt');
 
@@ -17615,7 +16421,7 @@ exports.privateEncrypt = function privateEncrypt(key, buf) {
 exports.publicDecrypt = function publicDecrypt(key, buf) {
   return exports.privateDecrypt(key, buf, true);
 };
-},{"./privateDecrypt":107,"./publicEncrypt":108}],106:[function(require,module,exports){
+},{"./privateDecrypt":105,"./publicEncrypt":106}],104:[function(require,module,exports){
 (function (Buffer){
 var createHash = require('create-hash');
 module.exports = function (seed, len) {
@@ -17634,7 +16440,7 @@ function i2ops(c) {
   return out;
 }
 }).call(this,require("buffer").Buffer)
-},{"buffer":46,"create-hash":51}],107:[function(require,module,exports){
+},{"buffer":44,"create-hash":49}],105:[function(require,module,exports){
 (function (Buffer){
 var parseKeys = require('parse-asn1');
 var mgf = require('./mgf');
@@ -17745,7 +16551,7 @@ function compare(a, b){
   return dif;
 }
 }).call(this,require("buffer").Buffer)
-},{"./mgf":106,"./withPublic":109,"./xor":110,"bn.js":18,"browserify-rsa":39,"buffer":46,"create-hash":51,"parse-asn1":101}],108:[function(require,module,exports){
+},{"./mgf":104,"./withPublic":107,"./xor":108,"bn.js":16,"browserify-rsa":37,"buffer":44,"create-hash":49,"parse-asn1":99}],106:[function(require,module,exports){
 (function (Buffer){
 var parseKeys = require('parse-asn1');
 var randomBytes = require('randombytes');
@@ -17843,7 +16649,7 @@ function nonZero(len, crypto) {
   return out;
 }
 }).call(this,require("buffer").Buffer)
-},{"./mgf":106,"./withPublic":109,"./xor":110,"bn.js":18,"browserify-rsa":39,"buffer":46,"create-hash":51,"parse-asn1":101,"randombytes":111}],109:[function(require,module,exports){
+},{"./mgf":104,"./withPublic":107,"./xor":108,"bn.js":16,"browserify-rsa":37,"buffer":44,"create-hash":49,"parse-asn1":99,"randombytes":109}],107:[function(require,module,exports){
 (function (Buffer){
 var bn = require('bn.js');
 function withPublic(paddedMsg, key) {
@@ -17856,7 +16662,7 @@ function withPublic(paddedMsg, key) {
 
 module.exports = withPublic;
 }).call(this,require("buffer").Buffer)
-},{"bn.js":18,"buffer":46}],110:[function(require,module,exports){
+},{"bn.js":16,"buffer":44}],108:[function(require,module,exports){
 module.exports = function xor(a, b) {
   var len = a.length;
   var i = -1;
@@ -17865,7 +16671,7 @@ module.exports = function xor(a, b) {
   }
   return a
 };
-},{}],111:[function(require,module,exports){
+},{}],109:[function(require,module,exports){
 (function (process,global,Buffer){
 'use strict'
 
@@ -17904,10 +16710,10 @@ function randomBytes (size, cb) {
 }
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer)
-},{"_process":104,"buffer":46}],112:[function(require,module,exports){
+},{"_process":102,"buffer":44}],110:[function(require,module,exports){
 module.exports = require("./lib/_stream_duplex.js")
 
-},{"./lib/_stream_duplex.js":113}],113:[function(require,module,exports){
+},{"./lib/_stream_duplex.js":111}],111:[function(require,module,exports){
 // a duplex stream is just a stream that is both readable and writable.
 // Since JS doesn't have multiple prototypal inheritance, this class
 // prototypally inherits from Readable, and then parasitically from
@@ -17991,7 +16797,7 @@ function forEach (xs, f) {
   }
 }
 
-},{"./_stream_readable":115,"./_stream_writable":117,"core-util-is":49,"inherits":93,"process-nextick-args":103}],114:[function(require,module,exports){
+},{"./_stream_readable":113,"./_stream_writable":115,"core-util-is":47,"inherits":91,"process-nextick-args":101}],112:[function(require,module,exports){
 // a passthrough stream.
 // basically just the most minimal sort of Transform stream.
 // Every written chunk gets output as-is.
@@ -18020,7 +16826,7 @@ PassThrough.prototype._transform = function(chunk, encoding, cb) {
   cb(null, chunk);
 };
 
-},{"./_stream_transform":116,"core-util-is":49,"inherits":93}],115:[function(require,module,exports){
+},{"./_stream_transform":114,"core-util-is":47,"inherits":91}],113:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -18999,7 +17805,7 @@ function indexOf (xs, x) {
 }
 
 }).call(this,require('_process'))
-},{"./_stream_duplex":113,"_process":104,"buffer":46,"core-util-is":49,"events":83,"inherits":93,"isarray":95,"process-nextick-args":103,"string_decoder/":132,"util":20}],116:[function(require,module,exports){
+},{"./_stream_duplex":111,"_process":102,"buffer":44,"core-util-is":47,"events":81,"inherits":91,"isarray":93,"process-nextick-args":101,"string_decoder/":130,"util":18}],114:[function(require,module,exports){
 // a transform stream is a readable/writable stream where you do
 // something with the data.  Sometimes it's called a "filter",
 // but that's not a great name for it, since that implies a thing where
@@ -19198,7 +18004,7 @@ function done(stream, er) {
   return stream.push(null);
 }
 
-},{"./_stream_duplex":113,"core-util-is":49,"inherits":93}],117:[function(require,module,exports){
+},{"./_stream_duplex":111,"core-util-is":47,"inherits":91}],115:[function(require,module,exports){
 // A bit simpler than readable streams.
 // Implement an async ._write(chunk, encoding, cb), and it'll handle all
 // the drain event emission and buffering.
@@ -19729,10 +18535,10 @@ function endWritable(stream, state, cb) {
   state.ended = true;
 }
 
-},{"./_stream_duplex":113,"buffer":46,"core-util-is":49,"events":83,"inherits":93,"process-nextick-args":103,"util-deprecate":133}],118:[function(require,module,exports){
+},{"./_stream_duplex":111,"buffer":44,"core-util-is":47,"events":81,"inherits":91,"process-nextick-args":101,"util-deprecate":131}],116:[function(require,module,exports){
 module.exports = require("./lib/_stream_passthrough.js")
 
-},{"./lib/_stream_passthrough.js":114}],119:[function(require,module,exports){
+},{"./lib/_stream_passthrough.js":112}],117:[function(require,module,exports){
 var Stream = (function (){
   try {
     return require('st' + 'ream'); // hack to fix a circular dependency issue when used with browserify
@@ -19746,13 +18552,13 @@ exports.Duplex = require('./lib/_stream_duplex.js');
 exports.Transform = require('./lib/_stream_transform.js');
 exports.PassThrough = require('./lib/_stream_passthrough.js');
 
-},{"./lib/_stream_duplex.js":113,"./lib/_stream_passthrough.js":114,"./lib/_stream_readable.js":115,"./lib/_stream_transform.js":116,"./lib/_stream_writable.js":117}],120:[function(require,module,exports){
+},{"./lib/_stream_duplex.js":111,"./lib/_stream_passthrough.js":112,"./lib/_stream_readable.js":113,"./lib/_stream_transform.js":114,"./lib/_stream_writable.js":115}],118:[function(require,module,exports){
 module.exports = require("./lib/_stream_transform.js")
 
-},{"./lib/_stream_transform.js":116}],121:[function(require,module,exports){
+},{"./lib/_stream_transform.js":114}],119:[function(require,module,exports){
 module.exports = require("./lib/_stream_writable.js")
 
-},{"./lib/_stream_writable.js":117}],122:[function(require,module,exports){
+},{"./lib/_stream_writable.js":115}],120:[function(require,module,exports){
 (function (Buffer){
 /*
 CryptoJS v3.1.2
@@ -19966,7 +18772,7 @@ function ripemd160 (message) {
 module.exports = ripemd160
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":46}],123:[function(require,module,exports){
+},{"buffer":44}],121:[function(require,module,exports){
 (function (Buffer){
 // prototype class for hash functions
 function Hash (blockSize, finalSize) {
@@ -20039,7 +18845,7 @@ Hash.prototype._update = function () {
 module.exports = Hash
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":46}],124:[function(require,module,exports){
+},{"buffer":44}],122:[function(require,module,exports){
 var exports = module.exports = function SHA (algorithm) {
   algorithm = algorithm.toLowerCase()
 
@@ -20056,7 +18862,7 @@ exports.sha256 = require('./sha256')
 exports.sha384 = require('./sha384')
 exports.sha512 = require('./sha512')
 
-},{"./sha":125,"./sha1":126,"./sha224":127,"./sha256":128,"./sha384":129,"./sha512":130}],125:[function(require,module,exports){
+},{"./sha":123,"./sha1":124,"./sha224":125,"./sha256":126,"./sha384":127,"./sha512":128}],123:[function(require,module,exports){
 (function (Buffer){
 /*
  * A JavaScript implementation of the Secure Hash Algorithm, SHA-0, as defined
@@ -20160,7 +18966,7 @@ module.exports = Sha
 
 
 }).call(this,require("buffer").Buffer)
-},{"./hash":123,"buffer":46,"inherits":93}],126:[function(require,module,exports){
+},{"./hash":121,"buffer":44,"inherits":91}],124:[function(require,module,exports){
 (function (Buffer){
 /*
  * A JavaScript implementation of the Secure Hash Algorithm, SHA-1, as defined
@@ -20260,7 +19066,7 @@ Sha1.prototype._hash = function () {
 module.exports = Sha1
 
 }).call(this,require("buffer").Buffer)
-},{"./hash":123,"buffer":46,"inherits":93}],127:[function(require,module,exports){
+},{"./hash":121,"buffer":44,"inherits":91}],125:[function(require,module,exports){
 (function (Buffer){
 /**
  * A JavaScript implementation of the Secure Hash Algorithm, SHA-256, as defined
@@ -20316,7 +19122,7 @@ Sha224.prototype._hash = function () {
 module.exports = Sha224
 
 }).call(this,require("buffer").Buffer)
-},{"./hash":123,"./sha256":128,"buffer":46,"inherits":93}],128:[function(require,module,exports){
+},{"./hash":121,"./sha256":126,"buffer":44,"inherits":91}],126:[function(require,module,exports){
 (function (Buffer){
 /**
  * A JavaScript implementation of the Secure Hash Algorithm, SHA-256, as defined
@@ -20461,7 +19267,7 @@ Sha256.prototype._hash = function () {
 module.exports = Sha256
 
 }).call(this,require("buffer").Buffer)
-},{"./hash":123,"buffer":46,"inherits":93}],129:[function(require,module,exports){
+},{"./hash":121,"buffer":44,"inherits":91}],127:[function(require,module,exports){
 (function (Buffer){
 var inherits = require('inherits')
 var SHA512 = require('./sha512')
@@ -20521,7 +19327,7 @@ Sha384.prototype._hash = function () {
 module.exports = Sha384
 
 }).call(this,require("buffer").Buffer)
-},{"./hash":123,"./sha512":130,"buffer":46,"inherits":93}],130:[function(require,module,exports){
+},{"./hash":121,"./sha512":128,"buffer":44,"inherits":91}],128:[function(require,module,exports){
 (function (Buffer){
 var inherits = require('inherits')
 var Hash = require('./hash')
@@ -20791,7 +19597,7 @@ Sha512.prototype._hash = function () {
 module.exports = Sha512
 
 }).call(this,require("buffer").Buffer)
-},{"./hash":123,"buffer":46,"inherits":93}],131:[function(require,module,exports){
+},{"./hash":121,"buffer":44,"inherits":91}],129:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -20920,7 +19726,7 @@ Stream.prototype.pipe = function(dest, options) {
   return dest;
 };
 
-},{"events":83,"inherits":93,"readable-stream/duplex.js":112,"readable-stream/passthrough.js":118,"readable-stream/readable.js":119,"readable-stream/transform.js":120,"readable-stream/writable.js":121}],132:[function(require,module,exports){
+},{"events":81,"inherits":91,"readable-stream/duplex.js":110,"readable-stream/passthrough.js":116,"readable-stream/readable.js":117,"readable-stream/transform.js":118,"readable-stream/writable.js":119}],130:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -21143,7 +19949,7 @@ function base64DetectIncompleteChar(buffer) {
   this.charLength = this.charReceived ? 3 : 0;
 }
 
-},{"buffer":46}],133:[function(require,module,exports){
+},{"buffer":44}],131:[function(require,module,exports){
 (function (global){
 
 /**
@@ -21214,7 +20020,7 @@ function config (name) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],134:[function(require,module,exports){
+},{}],132:[function(require,module,exports){
 var indexOf = require('indexof');
 
 var Object_keys = function (obj) {
@@ -21354,5 +20160,1213 @@ exports.createContext = Script.createContext = function (context) {
     return copy;
 };
 
-},{"indexof":92}]},{},[1])(1)
+},{"indexof":90}],133:[function(require,module,exports){
+(function (Buffer){
+var BetweenUsModule = (function() {
+
+    /* Symmetric Encryption Algorithms data */
+    /**
+     * Contains the data to be used when symmetric encryption is set to AES 256 bits.
+     * @type {Object}
+     */
+    var aes_256 = {
+        algorithm_name: 'aes-256-ctr',
+        passphrase_byte_size: 32,
+        init_vector_byte_size: 16
+    };
+
+    /**
+     * Contains the data to be used when symmetric encryption is set to AES 128 bits.
+     * @type {Object}
+     */
+    var aes_128 = {
+        algorithm_name: 'aes-128-ctr',
+        passphrase_byte_size: 16,
+        init_vector_byte_size: 16
+    };
+
+    /* Defaults */
+    /**
+     * Contains the default data to be used throughout the module.
+     * @type {Object}
+     */
+    var defaults = {
+        max_bit: 8, // Determines the maximum amount of shares possible - maximum shares is calculated this way: (2^max_bits - 1).
+        symmetric_algorithm: aes_256
+    };
+
+    var _crypto = require("crypto");
+    var _secrets = require("./secrets.js");
+
+    _secrets.init(defaults.max_bit);
+
+    /**
+     * Check type and expected type. throws an error if types isn't matching.
+     * @param  {variable} type          [Variable to check for type.]
+     * @param  {string}   expected_type [String describing the expected type.]
+     * @return {None}                   [Return true if types match, throws an error otherwise.]
+     */
+    var _type_assert = function(type, expected_type) {
+        /* Check special case: buffer */
+        if (Buffer.isBuffer(expected_type)) {
+            if (!Buffer.isBuffer(type)) {
+                throw new Error('Type Error. Expected: Buffer, Received: ' + typeof type + '.');
+            } else {
+                return true;
+            }
+        } else if (typeof type != typeof expected_type) {
+            throw new Error('Type Error. Expected: ' + typeof expected_type + ', Received: ' + typeof type + '.');
+        }
+    };
+
+    var _types = {
+        dictionary: {},
+        number: 1,
+        string: "s",
+        buffer: Buffer("s"),
+        obj: {}
+    };
+
+    /**
+     * Receives dictionary with symmetric key encryption data, serializes it into
+     * a string.
+     * @param  {dictionary} sym_key_dict  [Encryption data, passphrase and IV.]
+     * @return {string}                   [The symmetric key encrypted data
+     *                                    concatenated. 'passphrase:iv'.]
+     */
+    var _SymmetricKeyDataDictionaryToString = function(sym_key_dict) {
+        _type_assert(sym_key_dict, _types.dictionary);
+        var output_string = sym_key_dict.key.toString('hex') + ":" +
+            sym_key_dict.iv.toString('hex');
+        return output_string;
+    };
+
+    /**
+     * Receives a string, deserializes it into a dictionary with the symmetric key
+     * encryption data.
+     * @param  {string} sym_string [String with the encryption data, 'passphrase:iv'.]
+     * @return {dictionary}        [Dictionary with the encryption data]
+     */
+    var _StringToKeyDataDictionary = function(sym_string) {
+        _type_assert(sym_string, _types.string);
+        var key = sym_string.split(':')[0];
+        var iv = sym_string.split(':')[1];
+        return ({
+            key: Buffer(key, 'hex'),
+            iv: Buffer(iv, 'hex')
+        });
+    };
+
+    /**
+     * This function generates two random byte buffers, that act as the symmetric key passphrase and IV.
+     * Then the function seralizes into a string that will later be used for the purpose of decrypting the
+     * cipher text.
+     * @return {string} [Return a serialized dictionary that contains the AES init data.]
+     */
+    var GenerateSymmetricKeyDictionary = function() {
+        var symmetric_key = _crypto.randomBytes(defaults.symmetric_algorithm.passphrase_byte_size);
+        var initialization_vector = _crypto.randomBytes(defaults.symmetric_algorithm.init_vector_byte_size);
+        _type_assert(symmetric_key, _types.buffer);
+        _type_assert(initialization_vector, _types.buffer);
+        return _SymmetricKeyDataDictionaryToString({
+            key: symmetric_key,
+            iv: initialization_vector
+        });
+    };
+
+    /**
+     *	Symmetric Encryption Section
+     */
+    /**
+     * Encrypts a message with the symmetric key data dictionary.
+     * @param  {string}     message                  [Plain text to be encrypted.]
+     * @param  {string }    symmetric_key_dictionary [Dictionary containing the data needed for encrypting the plain text.]
+     * @return {Buffer}                              [Buffer containing the output data - the cipher text.]
+     */
+    var SymmetricEncrypt = function(message, symmetric_key_dictionary) {
+        _type_assert(message, _types.string);
+        var key_object = _StringToKeyDataDictionary(symmetric_key_dictionary);
+        var cipher = _crypto.createCipheriv(defaults.symmetric_algorithm.algorithm_name,
+            key_object.key, key_object.iv);
+        var crypted = Buffer.concat([cipher.update(message), cipher.final()]);
+        _type_assert(crypted, _types.buffer);
+        return crypted;
+    };
+
+    /**
+     * Receives an hex Buffer, and the dictionary containing the symmetric key data, and decrypts it.
+     * @param  {Buffer} encrypted_message           [Encryped message, in the form of a Buffer object.]
+     * @param  {string} symmetric_key_dictionary    [Serialized dictionary containing the symmetric key data.]
+     * @return {Buffer}                             [Buffer containing the decrypted cipher text.]
+     */
+
+    var SymmetricDecrypt = function(encrypted_message, symmetric_key_dictionary) {
+        if (typeof(encrypted_message) == 'object') {
+            encrypted_message = new Buffer( new Uint8Array(encrypted_message) );
+        }
+        _type_assert(encrypted_message, _types.buffer);
+        _type_assert(symmetric_key_dictionary, _types.string);
+        var key_object = _StringToKeyDataDictionary(symmetric_key_dictionary);
+        var decipher = _crypto.createDecipheriv(defaults.symmetric_algorithm.algorithm_name, key_object.key, key_object.iv);
+        var dec = Buffer.concat([decipher.update(encrypted_message), decipher.final()]);
+        _type_assert(dec, _types.buffer);
+        return dec;
+    };
+
+    /**
+     *  Shamir Secret Sharing Section
+     */
+    /**
+     * Receives a serialized dictionary that contains the Symmetric encryption data
+     * and uses Shamir's Secret Sharing algorithm to divide it into N shares, with
+     * a threshold of K.
+     * @param  {string} serialized_dictionary [Serialized dicionary that contains the encryption information]
+     * @param  {number} shares                [Numbers of shares to produce with SSS algo. out of the original text.]
+     * @param  {number} threshold             [Threshold of shares needed to restore the original text.]
+     * @param  {number} zeropadding           [Padding.]
+     * @return {Object}                       [Object that contains the list of the actual shares in hex string forms.]
+     */
+    var MakeShares = function(serialized_dictionary, shares, threshold, zeropadding) {
+        _type_assert(serialized_dictionary, _types.string);
+        _type_assert(shares, _types.number);
+        _type_assert(threshold, _types.number);
+        _type_assert(zeropadding, _types.number);
+        var share_list = _secrets.share(_secrets.str2hex(serialized_dictionary), shares, threshold, zeropadding);
+        for (var share in share_list) {
+            var share_component = _secrets.extractShareComponents(share_list[share]);
+            share_list[share] = JSON.stringify({
+                bits:share_component.bits,
+                id:share_component.id,
+                data:_secrets.hex2str(share_component.data)
+            });
+        }
+        return share_list;
+    };
+
+    /**
+     * Receives a list of shares, and reconstruct the original text with them.
+     * @param  {Object} shares [A list of shares, each share should be an hex string.]
+     * @return {string}        [Resolve the shares into the serialized dictionary that contains the encryption data.]
+     */
+    var CombineShares = function(shares) {
+        _type_assert(shares, _types.obj);
+        var decompressed_list = [];
+        for (var share in shares) {
+            decompressed_list.push(_secrets.constructPublicShareString(shares[share].bits,shares[share].id,shares[share].data));
+        }
+        var hex_string = _secrets.combine(decompressed_list);
+        return _secrets.hex2str(hex_string);
+    };
+
+    var AsymmetricEncrypt = function(share_plain, rsa_key) {
+        var data_to_encrypt = JSON.parse(share_plain);
+        //TODO encrypt data before str2hex
+        data_to_encrypt.data = _secrets.str2hex(data_to_encrypt.data);
+
+        return (data_to_encrypt);
+    };
+
+    var AsymmetricDecrypt = function(encrypted_share, rsa_key) {
+        return encrypted_share;
+    };
+
+    /**
+     * BetweenUs Module API
+     */
+    exports.AsymmetricEncrypt = AsymmetricEncrypt;
+    exports.AsymmetricDecrypt = AsymmetricDecrypt;
+    exports.str2hex = _secrets.str2hex;
+    exports.hex2str = _secrets.hex2str;
+    exports.MakeShares = MakeShares;
+    exports.CombineShares = CombineShares;
+    exports.GenerateSymmetricKeyDictionary = GenerateSymmetricKeyDictionary;
+    exports.SymmetricEncrypt = SymmetricEncrypt;
+    exports.SymmetricDecrypt = SymmetricDecrypt;
+
+}(BetweenUsModule || {}));
+
+}).call(this,require("buffer").Buffer)
+},{"./secrets.js":134,"buffer":44,"crypto":53}],134:[function(require,module,exports){
+// @preserve author Alexander Stetsyuk
+// @preserve author Glenn Rempe <glenn@rempe.us>
+//  https://raw.githubusercontent.com/grempe/secrets.js/master/secrets.js
+//  BetweenUs: Added: Exposed constructPublicShareString to public
+// @license MIT
+
+/*jslint passfail: false, bitwise: true, nomen: true, plusplus: true, todo: false, maxerr: 1000 */
+/*global define, require, module, exports, window, Uint32Array, sjcl */
+
+// eslint : http://eslint.org/docs/configuring/
+/*eslint-env node, browser, jasmine, sjcl */
+/*eslint no-underscore-dangle:0 */
+
+// UMD (Universal Module Definition)
+// Uses Node, AMD or browser globals to create a module. This module creates
+// a global even when AMD is used. This is useful if you have some scripts
+// that are loaded by an AMD loader, but they still want access to globals.
+// See : https://github.com/umdjs/umd
+// See : https://github.com/umdjs/umd/blob/master/returnExportsGlobal.js
+//
+(function (root, factory) {
+    "use strict";
+
+    if (typeof define === "function" && define.amd) {
+        // AMD. Register as an anonymous module.
+        define([], function () {
+            /*eslint-disable no-return-assign */
+            return (root.secrets = factory());
+            /*eslint-enable no-return-assign */
+        });
+    } else if (typeof exports === "object") {
+        // Node. Does not work with strict CommonJS, but
+        // only CommonJS-like environments that support module.exports,
+        // like Node.
+        module.exports = factory(require("crypto"));
+    } else {
+        // Browser globals (root is window)
+        root.secrets = factory(root.crypto);
+    }
+}(this, function (crypto) {
+    "use strict";
+
+    var defaults,
+        config,
+        preGenPadding,
+        runCSPRNGTest,
+        sjclParanoia,
+        CSPRNGTypes;
+
+    function reset() {
+        defaults = {
+            bits: 8, // default number of bits
+            radix: 16, // work with HEX by default
+            minBits: 3,
+            maxBits: 20, // this permits 1,048,575 shares, though going this high is NOT recommended in JS!
+            bytesPerChar: 2,
+            maxBytesPerChar: 6, // Math.pow(256,7) > Math.pow(2,53)
+
+            // Primitive polynomials (in decimal form) for Galois Fields GF(2^n), for 2 <= n <= 30
+            // The index of each term in the array corresponds to the n for that polynomial
+            // i.e. to get the polynomial for n=16, use primitivePolynomials[16]
+            primitivePolynomials: [null, null, 1, 3, 3, 5, 3, 3, 29, 17, 9, 5, 83, 27, 43, 3, 45, 9, 39, 39, 9, 5, 3, 33, 27, 9, 71, 39, 9, 5, 83]
+        };
+        config = {};
+        preGenPadding = new Array(1024).join("0"); // Pre-generate a string of 1024 0's for use by padLeft().
+        runCSPRNGTest = true;
+        sjclParanoia = 10;
+
+        // WARNING : Never use 'testRandom' except for testing.
+        CSPRNGTypes = ["nodeCryptoRandomBytes", "browserCryptoGetRandomValues", "browserSJCLRandom", "testRandom"];
+    }
+
+    function isSetRNG() {
+        if (config && config.rng && typeof config.rng === "function") {
+            return true;
+        }
+
+        return false;
+    }
+
+    // Pads a string `str` with zeros on the left so that its length is a multiple of `bits`
+    function padLeft(str, multipleOfBits) {
+        var missing;
+
+        if (multipleOfBits === 0 || multipleOfBits === 1) {
+            return str;
+        }
+
+        if (multipleOfBits && multipleOfBits > 1024) {
+            throw new Error("Padding must be multiples of no larger than 1024 bits.");
+        }
+
+        multipleOfBits = multipleOfBits || config.bits;
+
+        if (str) {
+            missing = str.length % multipleOfBits;
+        }
+
+        if (missing) {
+            return (preGenPadding + str).slice(-(multipleOfBits - missing + str.length));
+        }
+
+        return str;
+    }
+
+    function hex2bin(str) {
+        var bin = "",
+            num,
+            i;
+
+        for (i = str.length - 1; i >= 0; i--) {
+            num = parseInt(str[i], 16);
+
+            if (isNaN(num)) {
+                throw new Error("Invalid hex character.");
+            }
+
+            bin = padLeft(num.toString(2), 4) + bin;
+        }
+        return bin;
+    }
+
+    function bin2hex(str) {
+        var hex = "",
+            num,
+            i;
+
+        str = padLeft(str, 4);
+
+        for (i = str.length; i >= 4; i -= 4) {
+            num = parseInt(str.slice(i - 4, i), 2);
+            if (isNaN(num)) {
+                throw new Error("Invalid binary character.");
+            }
+            hex = num.toString(16) + hex;
+        }
+
+        return hex;
+    }
+
+    // Browser supports crypto.getRandomValues()
+    function hasCryptoGetRandomValues() {
+        if (crypto &&
+            typeof crypto === "object" &&
+            (typeof crypto.getRandomValues === "function" || typeof crypto.getRandomValues === "object") &&
+            (typeof Uint32Array === "function" || typeof Uint32Array === "object")) {
+            return true;
+        }
+
+        return false;
+    }
+
+    // Node.js support for crypto.randomBytes()
+    function hasCryptoRandomBytes() {
+        if (typeof crypto === "object" &&
+            typeof crypto.randomBytes === "function") {
+            return true;
+        }
+
+        return false;
+    }
+
+    // Stanford Javascript Crypto Library Support
+    function hasSJCL() {
+        if (typeof sjcl === "object" &&
+            typeof sjcl.random === "object") {
+            return true;
+        }
+
+        return false;
+    }
+
+    // Returns a pseudo-random number generator of the form function(bits){}
+    // which should output a random string of 1's and 0's of length `bits`.
+    // `type` (Optional) : A string representing the CSPRNG that you want to
+    // force to be loaded, overriding feature detection. Can be one of:
+    //    "nodeCryptoRandomBytes"
+    //    "browserCryptoGetRandomValues"
+    //    "browserSJCLRandom"
+    //
+    function getRNG(type) {
+
+        function construct(bits, arr, radix, size) {
+            var i = 0,
+                len,
+                str = "",
+                parsedInt;
+
+            if (arr) {
+                len = arr.length - 1;
+            }
+
+            while (i < len || (str.length < bits)) {
+                // convert any negative nums to positive with Math.abs()
+                parsedInt = Math.abs(parseInt(arr[i], radix));
+                str = str + padLeft(parsedInt.toString(2), size);
+                i++;
+            }
+
+            str = str.substr(-bits);
+
+            // return null so this result can be re-processed if the result is all 0's.
+            if ((str.match(/0/g) || []).length === str.length) {
+                return null;
+            }
+
+            return str;
+        }
+
+        // Node.js : crypto.randomBytes()
+        // Note : Node.js and crypto.randomBytes() uses the OpenSSL RAND_bytes() function for its CSPRNG.
+        //        Node.js will need to have been compiled with OpenSSL for this to work.
+        // See : https://github.com/joyent/node/blob/d8baf8a2a4481940bfed0196308ae6189ca18eee/src/node_crypto.cc#L4696
+        // See : https://www.openssl.org/docs/crypto/rand.html
+        function nodeCryptoRandomBytes(bits) {
+            var buf,
+                bytes,
+                radix,
+                size,
+                str = null;
+
+            radix = 16;
+            size = 4;
+            bytes = Math.ceil(bits / 8);
+
+            while (str === null) {
+                buf = crypto.randomBytes(bytes);
+                str = construct(bits, buf.toString("hex"), radix, size);
+            }
+
+            return str;
+        }
+
+        // Browser : crypto.getRandomValues()
+        // See : https://dvcs.w3.org/hg/webcrypto-api/raw-file/tip/spec/Overview.html#dfn-Crypto
+        // See : https://developer.mozilla.org/en-US/docs/Web/API/RandomSource/getRandomValues
+        // Supported Browsers : http://caniuse.com/#search=crypto.getRandomValues
+        function browserCryptoGetRandomValues(bits) {
+            var elems,
+                radix,
+                size,
+                str = null;
+
+            radix = 10;
+            size = 32;
+            elems = Math.ceil(bits / 32);
+            while (str === null) {
+                str = construct(bits, crypto.getRandomValues(new Uint32Array(elems)), radix, size);
+            }
+
+            return str;
+        }
+
+        // Browser SJCL : If the Stanford Javascript Crypto Library (SJCL) is loaded in the browser
+        // then use it as a fallback CSPRNG when crypto.getRandomValues() is not available.
+        // It may require some time and mouse movements to be fully seeded. Uses a modified version
+        // of the Fortuna RNG.
+        // See : https://bitwiseshiftleft.github.io/sjcl/
+        function browserSJCLRandom(bits) {
+            var elems,
+                radix,
+                size,
+                str = null;
+
+            radix = 10;
+            size = 32;
+            elems = Math.ceil(bits / 32);
+
+            if(sjcl.random.isReady(sjclParanoia)) {
+                str = construct(bits, sjcl.random.randomWords(elems, sjclParanoia), radix, size);
+            } else {
+                throw new Error("SJCL isn't finished seeding the RNG yet.");
+            }
+
+            return str;
+        }
+
+        // /////////////////////////////////////////////////////////////
+        // WARNING : DO NOT USE. For testing purposes only.
+        // /////////////////////////////////////////////////////////////
+        // This function will return repeatable non-random test bits. Can be used
+        // for testing only. Node.js does not return proper random bytes
+        // when run within a PhantomJS container.
+        function testRandom(bits) {
+            var arr,
+                elems,
+                int,
+                radix,
+                size,
+                str = null;
+
+            radix = 10;
+            size = 32;
+            elems = Math.ceil(bits / 32);
+            int = 123456789;
+            arr = new Uint32Array(elems);
+
+            // Fill every element of the Uint32Array with the same int.
+            for (var i = 0; i < arr.length; i++) {
+                arr[i] = int;
+            }
+
+            while (str === null) {
+                str = construct(bits, arr, radix, size);
+            }
+
+            return str;
+        }
+
+        // Return a random generator function for browsers that support HTML5
+        // crypto.getRandomValues(), Node.js compiled with OpenSSL support.
+        // or the Stanford Javascript Crypto Library Fortuna RNG.
+        // WARNING : NEVER use testRandom outside of a testing context. Totally non-random!
+        if (type && type === "testRandom") {
+            config.typeCSPRNG = type;
+            return testRandom;
+        } else if (type && type === "nodeCryptoRandomBytes") {
+            config.typeCSPRNG = type;
+            return nodeCryptoRandomBytes;
+        } else if (type && type === "browserCryptoGetRandomValues") {
+            config.typeCSPRNG = type;
+            return browserCryptoGetRandomValues;
+        } else if (type && type === "browserSJCLRandom") {
+            runCSPRNGTest = false;
+            config.typeCSPRNG = type;
+            return browserSJCLRandom;
+        } else if (hasCryptoRandomBytes()) {
+            config.typeCSPRNG = "nodeCryptoRandomBytes";
+            return nodeCryptoRandomBytes;
+        } else if (hasCryptoGetRandomValues()) {
+            config.typeCSPRNG = "browserCryptoGetRandomValues";
+            return browserCryptoGetRandomValues;
+        } else if (hasSJCL()) {
+            runCSPRNGTest = false;
+            config.typeCSPRNG = "browserSJCLRandom";
+            return browserSJCLRandom;
+        }
+
+    }
+
+    // Splits a number string `bits`-length segments, after first
+    // optionally zero-padding it to a length that is a multiple of `padLength.
+    // Returns array of integers (each less than 2^bits-1), with each element
+    // representing a `bits`-length segment of the input string from right to left,
+    // i.e. parts[0] represents the right-most `bits`-length segment of the input string.
+    function splitNumStringToIntArray(str, padLength) {
+        var parts = [],
+            i;
+
+        if (padLength) {
+            str = padLeft(str, padLength);
+        }
+
+        for (i = str.length; i > config.bits; i -= config.bits) {
+            parts.push(parseInt(str.slice(i - config.bits, i), 2));
+        }
+
+        parts.push(parseInt(str.slice(0, i), 2));
+
+        return parts;
+    }
+
+    // Polynomial evaluation at `x` using Horner's Method
+    // NOTE: fx=fx * x + coeff[i] ->  exp(log(fx) + log(x)) + coeff[i],
+    //       so if fx===0, just set fx to coeff[i] because
+    //       using the exp/log form will result in incorrect value
+    function horner(x, coeffs) {
+        var logx = config.logs[x],
+            fx = 0,
+            i;
+
+        for (i = coeffs.length - 1; i >= 0; i--) {
+            if (fx !== 0) {
+                fx = config.exps[(logx + config.logs[fx]) % config.maxShares] ^ coeffs[i];
+            } else {
+                fx = coeffs[i];
+            }
+        }
+
+        return fx;
+    }
+
+    // Evaluate the Lagrange interpolation polynomial at x = `at`
+    // using x and y Arrays that are of the same length, with
+    // corresponding elements constituting points on the polynomial.
+    function lagrange(at, x, y) {
+        var sum = 0,
+            len,
+            product,
+            i,
+            j;
+
+        for (i = 0, len = x.length; i < len; i++) {
+            if (y[i]) {
+
+                product = config.logs[y[i]];
+
+                for (j = 0; j < len; j++) {
+                    if (i !== j) {
+                        if (at === x[j]) { // happens when computing a share that is in the list of shares used to compute it
+                            product = -1; // fix for a zero product term, after which the sum should be sum^0 = sum, not sum^1
+                            break;
+                        }
+                        product = (product + config.logs[at ^ x[j]] - config.logs[x[i] ^ x[j]] + config.maxShares) % config.maxShares; // to make sure it's not negative
+                    }
+                }
+
+                // though exps[-1] === undefined and undefined ^ anything = anything in
+                // chrome, this behavior may not hold everywhere, so do the check
+                sum = product === -1 ? sum : sum ^ config.exps[product];
+            }
+
+        }
+
+        return sum;
+    }
+
+    // This is the basic polynomial generation and evaluation function
+    // for a `config.bits`-length secret (NOT an arbitrary length)
+    // Note: no error-checking at this stage! If `secret` is NOT
+    // a NUMBER less than 2^bits-1, the output will be incorrect!
+    function getShares(secret, numShares, threshold) {
+        var shares = [],
+            coeffs = [secret],
+            i,
+            len;
+
+        for (i = 1; i < threshold; i++) {
+            coeffs[i] = parseInt(config.rng(config.bits), 2);
+        }
+
+        for (i = 1, len = numShares + 1; i < len; i++) {
+            shares[i - 1] = {
+                x: i,
+                y: horner(i, coeffs)
+            };
+        }
+
+        return shares;
+    }
+
+    function constructPublicShareString(bits, id, data) {
+        var bitsBase36,
+            idHex,
+            idMax,
+            idPaddingLen,
+            newShareString;
+
+        id = parseInt(id, config.radix);
+        bits = parseInt(bits, 10) || config.bits;
+        bitsBase36 = bits.toString(36).toUpperCase();
+        idMax = Math.pow(2, bits) - 1;
+        idPaddingLen = idMax.toString(config.radix).length;
+        idHex = padLeft(id.toString(config.radix), idPaddingLen);
+
+        if (typeof id !== "number" || id % 1 !== 0 || id < 1 || id > idMax) {
+            throw new Error("Share id must be an integer between 1 and " + idMax + ", inclusive.");
+        }
+
+        newShareString = bitsBase36 + idHex + data;
+
+        return newShareString;
+    }
+
+    // EXPORTED FUNCTIONS
+    // //////////////////
+
+    var secrets = {
+
+        init: function (bits, rngType) {
+            var logs = [],
+                exps = [],
+                x = 1,
+                primitive,
+                i;
+
+            // reset all config back to initial state
+            reset();
+
+            if (bits && (typeof bits !== "number" || bits % 1 !== 0 || bits < defaults.minBits || bits > defaults.maxBits)) {
+                throw new Error("Number of bits must be an integer between " + defaults.minBits + " and " + defaults.maxBits + ", inclusive.");
+            }
+
+            if (rngType && CSPRNGTypes.indexOf(rngType) === -1) {
+                throw new Error("Invalid RNG type argument : '" + rngType + "'");
+            }
+
+            config.radix = defaults.radix;
+            config.bits = bits || defaults.bits;
+            config.size = Math.pow(2, config.bits);
+            config.maxShares = config.size - 1;
+
+            // Construct the exp and log tables for multiplication.
+            primitive = defaults.primitivePolynomials[config.bits];
+
+            for (i = 0; i < config.size; i++) {
+                exps[i] = x;
+                logs[x] = i;
+                x = x << 1;              // Left shift assignment
+                if (x >= config.size) {
+                    x = x ^ primitive;   // Bitwise XOR assignment
+                    x = x & config.maxShares;  // Bitwise AND assignment
+                }
+            }
+
+            config.logs = logs;
+            config.exps = exps;
+
+            if (rngType) {
+                this.setRNG(rngType);
+            }
+
+            if (!isSetRNG()) {
+                this.setRNG();
+            }
+
+            // Setup SJCL and start collecting entropy from mouse movements
+            if (hasSJCL() && config.typeCSPRNG === "browserSJCLRandom") {
+                /*eslint-disable new-cap */
+                sjcl.random = new sjcl.prng(sjclParanoia);
+                /*eslint-enable new-cap */
+
+                // In a Browser
+                if (hasCryptoGetRandomValues()) {
+                    // Collects entropy from browser mouse movement
+                    // which obviously won't work in Node.js.
+                    sjcl.random.startCollectors();
+                }
+
+                // see SJCL with browser or Node.js RNG if available.
+                this.seedRNG();
+            }
+
+            if (!isSetRNG() || !config.bits || !config.size || !config.maxShares || !config.logs || !config.exps || config.logs.length !== config.size || config.exps.length !== config.size) {
+                throw new Error("Initialization failed.");
+            }
+
+        },
+
+        // Pass in additional secure entropy, and an estimate of the bits of entropy
+        // provided, and a source name, and it will be used to seed the SJCL PRNG. This is
+        // useful since SJCL may take a while to be seeded since it depends on mouse
+        // movement and this can kickstart the generator almost immediately. SJCL will
+        // also continue to collect entropy from mouse movements after seeding.
+        //
+        // e.g. from random data sources like:
+        // https://api.random.org/json-rpc/1/
+        // https://entropy.ubuntu.com/?challenge=123
+        // https://qrng.anu.edu.au/API/api-demo.php
+        //
+        // See `examples/example_js_global.html` for sample usage with an
+        // external source of entropy.
+        seedRNG: function (data, estimatedEntropy, source) {
+
+            var bytes, rand;
+
+            estimatedEntropy = parseInt(estimatedEntropy, 10);
+            source = source || "seedRNG";
+
+            // Seed with browser RNG
+            if (hasSJCL() && hasCryptoGetRandomValues()) {
+                bytes = new Uint32Array(256);
+                rand = crypto.getRandomValues(bytes);
+                //console.log(rand);
+                sjcl.random.addEntropy(rand, 2048, "cryptoGetRandomValues");
+            }
+
+            // See with Node.js RNG (Async)
+            if (hasSJCL() && hasCryptoRandomBytes()) {
+                crypto.randomBytes(256, function(ex, buf) {
+                    if (ex) { throw ex; }
+                    //console.log("Have %d bytes of random data containing %s", buf.length, buf.toString('hex'));
+                    sjcl.random.addEntropy(buf.toString("hex"), 2048, "cryptoRandomBytes");
+                });
+            }
+
+            if (hasSJCL() && data && estimatedEntropy && source && config.typeCSPRNG === "browserSJCLRandom") {
+                sjcl.random.addEntropy(data, estimatedEntropy, source);
+            }
+        },
+
+        // Evaluates the Lagrange interpolation polynomial at x=`at` for
+        // individual config.bits-length segments of each share in the `shares`
+        // Array. Each share is expressed in base `inputRadix`. The output
+        // is expressed in base `outputRadix'.
+        combine: function (shares, at) {
+            var i,
+                j,
+                len,
+                len2,
+                result = "",
+                setBits,
+                share,
+                splitShare,
+                x = [],
+                y = [];
+
+            at = at || 0;
+
+            for (i = 0, len = shares.length; i < len; i++) {
+                share = this.extractShareComponents(shares[i]);
+
+                // All shares must have the same bits settings.
+                if (setBits === undefined) {
+                    setBits = share.bits;
+                } else if (share.bits !== setBits) {
+                    throw new Error("Mismatched shares: Different bit settings.");
+                }
+
+                // Reset everything to the bit settings of the shares.
+                if (config.bits !== setBits) {
+                    this.init(setBits);
+                }
+
+                // Proceed if this share.id is not already in the Array 'x' and
+                // then split each share's hex data into an Array of Integers,
+                // then 'rotate' those arrays where the first element of each row is converted to
+                // its own array, the second element of each to its own Array, and so on for all of the rest.
+                // Essentially zipping all of the shares together.
+                //
+                // e.g.
+                //   [ 193, 186, 29, 150, 5, 120, 44, 46, 49, 59, 6, 1, 102, 98, 177, 196 ]
+                //   [ 53, 105, 139, 49, 187, 240, 91, 92, 98, 118, 12, 2, 204, 196, 127, 149 ]
+                //   [ 146, 211, 249, 167, 209, 136, 118, 114, 83, 77, 10, 3, 170, 166, 206, 81 ]
+                //
+                // becomes:
+                //
+                // [ [ 193, 53, 146 ],
+                //   [ 186, 105, 211 ],
+                //   [ 29, 139, 249 ],
+                //   [ 150, 49, 167 ],
+                //   [ 5, 187, 209 ],
+                //   [ 120, 240, 136 ],
+                //   [ 44, 91, 118 ],
+                //   [ 46, 92, 114 ],
+                //   [ 49, 98, 83 ],
+                //   [ 59, 118, 77 ],
+                //   [ 6, 12, 10 ],
+                //   [ 1, 2, 3 ],
+                //   [ 102, 204, 170 ],
+                //   [ 98, 196, 166 ],
+                //   [ 177, 127, 206 ],
+                //   [ 196, 149, 81 ] ]
+                //
+                if (x.indexOf(share.id) === -1) {
+                    x.push(share.id);
+                    splitShare = splitNumStringToIntArray(hex2bin(share.data));
+                    for (j = 0, len2 = splitShare.length; j < len2; j++) {
+                        y[j] = y[j] || [];
+                        y[j][x.length - 1] = splitShare[j];
+                    }
+                }
+
+            }
+
+            // Extract the secret from the 'rotated' share data and return a
+            // string of Binary digits which represent the secret directly. or in the
+            // case of a newShare() return the binary string representing just that
+            // new share.
+            for (i = 0, len = y.length; i < len; i++) {
+                result = padLeft(lagrange(at, x, y[i]).toString(2)) + result;
+            }
+
+            // If 'at' is non-zero combine() was called from newShare(). In this
+            // case return the result (the new share data) directly.
+            //
+            // Otherwise find the first '1' which was added in the share() function as a padding marker
+            // and return only the data after the padding and the marker. Convert this Binary string
+            // to hex, which represents the final secret result (which can be converted from hex back
+            // to the original string in user space using `hex2str()`).
+            return bin2hex(at >= 1 ? result : result.slice(result.indexOf("1") + 1));
+        },
+
+        getConfig: function () {
+            var obj = {};
+            obj.radix = config.radix;
+            obj.bits = config.bits;
+            obj.maxShares = config.maxShares;
+            obj.hasCSPRNG = isSetRNG();
+            obj.typeCSPRNG = config.typeCSPRNG;
+            return obj;
+        },
+
+        // Given a public share, extract the bits (Integer), share ID (Integer), and share data (Hex)
+        // and return an Object containing those components.
+        extractShareComponents: function (share) {
+            var bits,
+                id,
+                idLen,
+                max,
+                obj = {},
+                regexStr,
+                shareComponents;
+
+            // Extract the first char which represents the bits in Base 36
+            bits = parseInt(share.substr(0, 1), 36);
+
+            if (bits && (typeof bits !== "number" || bits % 1 !== 0 || bits < defaults.minBits || bits > defaults.maxBits)) {
+                throw new Error("Invalid share : Number of bits must be an integer between " + defaults.minBits + " and " + defaults.maxBits + ", inclusive.");
+            }
+
+            // calc the max shares allowed for given bits
+            max = Math.pow(2, bits) - 1;
+
+            // Determine the ID length which is variable and based on the bit count.
+            idLen = (Math.pow(2, bits) - 1).toString(config.radix).length;
+
+            // Extract all the parts now that the segment sizes are known.
+            regexStr = "^([a-kA-K3-9]{1})([a-fA-F0-9]{" + idLen + "})([a-fA-F0-9]+)$";
+            shareComponents = new RegExp(regexStr).exec(share);
+
+            // The ID is a Hex number and needs to be converted to an Integer
+            if (shareComponents) {
+                id = parseInt(shareComponents[2], config.radix);
+            }
+
+            if (typeof id !== "number" || id % 1 !== 0 || id < 1 || id > max) {
+                throw new Error("Invalid share : Share id must be an integer between 1 and " + config.maxShares + ", inclusive.");
+            }
+
+            if (shareComponents && shareComponents[3]) {
+                obj.bits = bits;
+                obj.id = id;
+                obj.data = shareComponents[3];
+                return obj;
+            }
+
+            throw new Error("The share data provided is invalid : " + share);
+
+        },
+
+        // Set the PRNG to use. If no RNG function is supplied, pick a default using getRNG()
+        setRNG: function (rng) {
+
+            var errPrefix = "Random number generator is invalid ",
+                errSuffix = " Supply an CSPRNG of the form function(bits){} that returns a string containing 'bits' number of random 1's and 0's.";
+
+            if (rng && typeof rng === "string" && CSPRNGTypes.indexOf(rng) === -1) {
+                throw new Error("Invalid RNG type argument : '" + rng + "'");
+            }
+
+            // If RNG was not specified at all,
+            // try to pick one appropriate for this env.
+            if (!rng) {
+                rng = getRNG();
+            }
+
+            // If `rng` is a string, try to forcibly
+            // set the RNG to the type specified.
+            if (rng && typeof rng === "string") {
+                rng = getRNG(rng);
+            }
+
+            if (runCSPRNGTest) {
+
+                if (rng && typeof rng !== "function") {
+                    throw new Error(errPrefix + "(Not a function)." + errSuffix);
+                }
+
+                if (rng && typeof rng(config.bits) !== "string") {
+                    throw new Error(errPrefix + "(Output is not a string)." + errSuffix);
+                }
+
+                if (rng && !parseInt(rng(config.bits), 2)) {
+                    throw new Error(errPrefix + "(Binary string output not parseable to an Integer)." + errSuffix);
+                }
+
+                if (rng && rng(config.bits).length > config.bits) {
+                    throw new Error(errPrefix + "(Output length is greater than config.bits)." + errSuffix);
+                }
+
+                if (rng && rng(config.bits).length < config.bits) {
+                    throw new Error(errPrefix + "(Output length is less than config.bits)." + errSuffix);
+                }
+
+            }
+
+            config.rng = rng;
+
+            return true;
+        },
+
+        // Converts a given UTF16 character string to the HEX representation.
+        // Each character of the input string is represented by
+        // `bytesPerChar` bytes in the output string which defaults to 2.
+        str2hex: function (str, bytesPerChar) {
+            var hexChars,
+                max,
+                out = "",
+                neededBytes,
+                num,
+                i,
+                len;
+
+            if (typeof str !== "string") {
+                throw new Error("Input must be a character string.");
+            }
+
+            if (!bytesPerChar) {
+                bytesPerChar = defaults.bytesPerChar;
+            }
+
+            if (typeof bytesPerChar !== "number" || bytesPerChar < 1 || bytesPerChar > defaults.maxBytesPerChar || bytesPerChar % 1 !== 0) {
+                throw new Error("Bytes per character must be an integer between 1 and " + defaults.maxBytesPerChar + ", inclusive.");
+            }
+
+            hexChars = 2 * bytesPerChar;
+            max = Math.pow(16, hexChars) - 1;
+
+            for (i = 0, len = str.length; i < len; i++) {
+                num = str[i].charCodeAt();
+
+                if (isNaN(num)) {
+                    throw new Error("Invalid character: " + str[i]);
+                }
+
+                if (num > max) {
+                    neededBytes = Math.ceil(Math.log(num + 1) / Math.log(256));
+                    throw new Error("Invalid character code (" + num + "). Maximum allowable is 256^bytes-1 (" + max + "). To convert this character, use at least " + neededBytes + " bytes.");
+                }
+
+                out = padLeft(num.toString(16), hexChars) + out;
+            }
+            return out;
+        },
+
+        // Converts a given HEX number string to a UTF16 character string.
+        hex2str: function (str, bytesPerChar) {
+            var hexChars,
+                out = "",
+                i,
+                len;
+
+            if (typeof str !== "string") {
+                throw new Error("Input must be a hexadecimal string.");
+            }
+            bytesPerChar = bytesPerChar || defaults.bytesPerChar;
+
+            if (typeof bytesPerChar !== "number" || bytesPerChar % 1 !== 0 || bytesPerChar < 1 || bytesPerChar > defaults.maxBytesPerChar) {
+                throw new Error("Bytes per character must be an integer between 1 and " + defaults.maxBytesPerChar + ", inclusive.");
+            }
+
+            hexChars = 2 * bytesPerChar;
+
+            str = padLeft(str, hexChars);
+
+            for (i = 0, len = str.length; i < len; i += hexChars) {
+                out = String.fromCharCode(parseInt(str.slice(i, i + hexChars), 16)) + out;
+            }
+
+            return out;
+        },
+
+        // Generates a random bits-length number string using the PRNG
+        random: function (bits) {
+
+            if (typeof bits !== "number" || bits % 1 !== 0 || bits < 2 || bits > 65536) {
+                throw new Error("Number of bits must be an Integer between 1 and 65536.");
+            }
+
+            if (config.typeCSPRNG === "browserSJCLRandom" && sjcl.random.isReady(sjclParanoia) < 1) {
+                throw new Error("SJCL isn't finished seeding the RNG yet. Needs new entropy added or more mouse movement.");
+            }
+
+            return bin2hex(config.rng(bits));
+        },
+
+        // Divides a `secret` number String str expressed in radix `inputRadix` (optional, default 16)
+        // into `numShares` shares, each expressed in radix `outputRadix` (optional, default to `inputRadix`),
+        // requiring `threshold` number of shares to reconstruct the secret.
+        // Optionally, zero-pads the secret to a length that is a multiple of padLength before sharing.
+        share: function (secret, numShares, threshold, padLength) {
+            var neededBits,
+                subShares,
+                x = new Array(numShares),
+                y = new Array(numShares),
+                i,
+                j,
+                len;
+
+            // Security:
+            // For additional security, pad in multiples of 128 bits by default.
+            // A small trade-off in larger share size to help prevent leakage of information
+            // about small-ish secrets and increase the difficulty of attacking them.
+            padLength = padLength || 128;
+
+            if (typeof secret !== "string") {
+                throw new Error("Secret must be a string.");
+            }
+
+            if (typeof numShares !== "number" || numShares % 1 !== 0 || numShares < 2) {
+                throw new Error("Number of shares must be an integer between 2 and 2^bits-1 (" + config.maxShares + "), inclusive.");
+            }
+
+            if (numShares > config.maxShares) {
+                neededBits = Math.ceil(Math.log(numShares + 1) / Math.LN2);
+                throw new Error("Number of shares must be an integer between 2 and 2^bits-1 (" + config.maxShares + "), inclusive. To create " + numShares + " shares, use at least " + neededBits + " bits.");
+            }
+
+            if (typeof threshold !== "number" || threshold % 1 !== 0 || threshold < 2) {
+                throw new Error("Threshold number of shares must be an integer between 2 and 2^bits-1 (" + config.maxShares + "), inclusive.");
+            }
+
+            if (threshold > config.maxShares) {
+                neededBits = Math.ceil(Math.log(threshold + 1) / Math.LN2);
+                throw new Error("Threshold number of shares must be an integer between 2 and 2^bits-1 (" + config.maxShares + "), inclusive.  To use a threshold of " + threshold + ", use at least " + neededBits + " bits.");
+            }
+
+            if (threshold > numShares) {
+                throw new Error("Threshold number of shares was " + threshold + " but must be less than or equal to the " + numShares + " shares specified as the total to generate.");
+            }
+
+            if (typeof padLength !== "number" || padLength % 1 !== 0 || padLength < 0 || padLength > 1024) {
+                throw new Error("Zero-pad length must be an integer between 0 and 1024 inclusive.");
+            }
+
+            secret = "1" + hex2bin(secret); // append a 1 as a marker so that we can preserve the correct number of leading zeros in our secret
+            secret = splitNumStringToIntArray(secret, padLength);
+
+            for (i = 0, len = secret.length; i < len; i++) {
+                subShares = getShares(secret[i], numShares, threshold);
+                for (j = 0; j < numShares; j++) {
+                    x[j] = x[j] || subShares[j].x.toString(config.radix);
+                    y[j] = padLeft(subShares[j].y.toString(2)) + (y[j] || "");
+                }
+            }
+
+            for (i = 0; i < numShares; i++) {
+                x[i] = constructPublicShareString(config.bits, x[i], bin2hex(y[i]));
+            }
+
+            return x;
+        },
+
+        //Exposed to public
+        constructPublicShareString: constructPublicShareString,
+
+        // Generate a new share with id `id` (a number between 1 and 2^bits-1)
+        // `id` can be a Number or a String in the default radix (16)
+        newShare: function (id, shares) {
+            var share;
+
+            if (id && typeof id === "string") {
+                id = parseInt(id, config.radix);
+            }
+
+            if (id && shares && shares[0]) {
+                share = this.extractShareComponents(shares[0]);
+                return constructPublicShareString(share.bits, id, this.combine(shares, id));
+            }
+
+            throw new Error("Invalid 'id' or 'shares' Array argument to newShare().");
+        },
+
+        /* test-code */
+        // export private functions so they can be unit tested directly.
+
+        _reset: reset,
+        _padLeft: padLeft,
+        _hex2bin: hex2bin,
+        _bin2hex: bin2hex,
+        _hasCryptoGetRandomValues: hasCryptoGetRandomValues,
+        _hasCryptoRandomBytes: hasCryptoRandomBytes,
+        _hasSJCL: hasSJCL,
+        _getRNG: getRNG,
+        _isSetRNG: isSetRNG,
+        _splitNumStringToIntArray: splitNumStringToIntArray,
+        _horner: horner,
+        _lagrange: lagrange,
+        _getShares: getShares,
+        _constructPublicShareString: constructPublicShareString
+        /* end-test-code */
+
+    };
+
+    // Always initialize secrets with default settings.
+    secrets.init();
+
+    return secrets;
+
+}));
+},{"crypto":53}]},{},[133])(133)
 });
