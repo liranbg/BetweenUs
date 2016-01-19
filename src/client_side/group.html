@@ -6,11 +6,12 @@
     <script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.11.3.min.js"></script>
     <script type='text/javascript' src='index.js'></script>
 </head>
-<body onload="GroupPageOnLoad()";>
+<body onload="GroupPageOnLoad('input_group_id','member_list_table','transaction_list_table','group_info_error')";>
 <div id="group_information_div">
     <h2>Get group info</h2>
+    <span id="group_info_error"></span><br>
     <input type="text" id="input_group_id" placeholder="Group ID"/>
-    <button onclick="FetchGroupDataOnClick();">Fetch group data</button>
+    <button onclick="FetchGroupDataOnClick('input_group_id','member_list_table','transaction_list_table','group_info_error');">Fetch group data</button>
     <br>
     <h3>Member list</h3>
     <table id="member_list_table">

@@ -11,14 +11,12 @@
 <body>
 <h1> Server API Tester </h1>
 <div id="group_transactions_div">
-    <div id="transction_div">
-
-    </div>
-
     <div id="group_actions_div">
+
+        <!-- Get Groups section. -->
         <div id="get_group_div">
             <h2>Group actions</h2>
-            <button onclick="GetGroupsOnClick();">Get Groups</button>
+            <button onclick="GetGroupsOnClick('table_groups');">Get Groups</button>
             <h3>Groups</h3>
             <table id ="table_groups" style="width:100%">
                 <tr>
@@ -30,6 +28,8 @@
             </table>
         </div>
         <br>
+
+        <!-- Create New Group section. -->
         <div id="create_group_div">
             <h2>Create new group</h2>
             <form id="create_group_form" onsubmit="return false;">
@@ -43,11 +43,12 @@
                 </tr>
                 <tr>
                     <td><input style="width: 99%" type="text" id="member0" /></td>
-                    <td><button style="width: 100%" onclick="AddUserOnClick(0)">Add User</button></td>
+                    <td><button style="width: 100%" onclick="AddUserOnClick('table_add_members')">Add User</button></td>
                 </tr>
 
             </table>
-            <input type="submit" value="Create Group" onclick="CreateGroupOnClick();"/>
+            <input type="submit" value="Create Group" onclick="CreateGroupOnClick('create_group_name', 'table_add_members','create_group_error');"/>
+            <span id="create_group_error"></span>
         </div>
     </div>
 </div>
