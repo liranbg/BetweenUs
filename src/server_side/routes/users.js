@@ -22,6 +22,7 @@ router.get('/get_user', function(req, res, next) {
     });
 });
 
+
 router.get('/user_exists', function(req, res, next) {
     var user_email = req.query.user_email;
     database_interface.IsUserExists(user_email, function(err, data) {
@@ -37,6 +38,7 @@ router.get('/user_exists', function(req, res, next) {
         }
     });
 });
+
 
 router.post('/register_user', function(req, res) {
     // TODO: Check parameters are in compliance with some policy we'll set regarding username, password etc.
@@ -73,6 +75,7 @@ router.post('/register_user', function(req, res) {
     }
 
 });
+
 
 router.post('/login', function (req, res) {
     var email = req.body.email;

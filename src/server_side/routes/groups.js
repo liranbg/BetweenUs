@@ -73,12 +73,12 @@ router.get('/get_groups', function (req, res) {
     }
 });
 
+
 router.get('/get_group_info', function (req, res) {
     var user_id = session_util.GetUserId(req.session);
     if (!user_id) {
         res.json({success:false})
     }
-
     else {
         var group_id = req.query.group_id;
         database_interface.GetGroupDataByGroupId(group_id, function(err, data) {
@@ -94,22 +94,33 @@ router.get('/get_group_info', function (req, res) {
 });
 
 
-
-router.get('/get_members_public_keys/:transaction_id', function (req, res) {
-    var transaction_id = req.params.transaction_id;
+router.get('/get_members_public_keys/:group_id', function (req, res) {
+    var group_id = req.params.group_id;
     /* TODO Check for authenticated session */
     /* Find group id associated with transaction */
-    database_interface.GetGroupIdByTransactionId(transaction_id, function(data, error) {
-        //we have group_id in data
-        if (error) {
-            res.json({success: false, message: error.message});
+    database_interface.GetGroupDataByGroupId(group_id, function(err, group_data){
+        if (err) {
+            res.status(500).json({success: false, message: err.message});
         }
         else {
             //TODO send user all public keys associated with group id
             //make another db call and send the data as [{user_id:"123", public_key: "dsfsd"},...]
-            res.json({success: true, data:data });
+            var users_id_list = [];
+            for (var i = 0; i< group_data.members.length; ++i) {
+                users_id_list.push(group_data.members[i].user_id);
+            }
+            users_id_list.push(group_data.creator.user_id);
+            database_interface.GetUsersPublicKeys(users_id_list, function(err, user_data) {
+                if (err) {
+                    res.status(500).json({success: false, message: err.message});
+                }
+                else {
+                    res.status(200).json({success: true, key_info:user_data });
+                }
+            });
         }
     });
 });
+
 
 module.exports = router;

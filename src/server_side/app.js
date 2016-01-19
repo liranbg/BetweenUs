@@ -5,10 +5,11 @@ const
     logger = require('morgan'),
     cookieParser = require('cookie-parser'),
     bodyParser = require('body-parser'),
+    cors = require('cors'),
+    database_interface = require('./cloudantdb'),
     users = require('./routes/users'),
     groups = require('./routes/groups'),
-    cors = require('cors'),
-    database_interface = require('./cloudantdb');
+    transactions = require('./routes/transactions');
 
 
 var app = express();
@@ -29,6 +30,7 @@ app.use(cookieParser());
 
 app.use('/users', users);
 app.use('/groups', groups);
+app.use('/transactions', transactions);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

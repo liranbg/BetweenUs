@@ -368,10 +368,10 @@ var CloudantDBModule = (function() {
                         for (var i = 0; i < users_data.rows.length; ++i) {
                             var doc = users_data.rows[i].doc;
                             if (doc._id == data.creator) {
-                                group_data.creator = doc.email;
+                                group_data.creator = { email:doc.email, user_id:doc._id };
                             }
                             else {
-                                group_data.members.push(doc.email);
+                                group_data.members.push({email:doc.email, user_id: doc._id});
                             }
                         }
                         group_data.transactions = data.transactions;
@@ -381,10 +381,6 @@ var CloudantDBModule = (function() {
             }
 
         });
-
-    };
-
-    var GetGroupIdByTransactionId = function(transaction_id, callback_func) {
 
     };
 
@@ -414,7 +410,7 @@ var CloudantDBModule = (function() {
             else {
                 for (var i = 0; i < data.rows.length; ++i) {
                     var doc = data.rows[i].doc;
-                    list_of_public_keys.push({email:doc.email,public_key:doc.public_key});
+                    list_of_public_keys.push({user_id: doc._id, email:doc.email,public_key:doc.public_key});
                 }
                 callback_func(err, list_of_public_keys);
             }
@@ -438,7 +434,6 @@ var CloudantDBModule = (function() {
     exports.GetAllMyGroups = GetAllMyGroups;
     exports.CreateTransaction = CreateTransaction;
     exports.CreateShare = CreateShare;
-    exports.GetGroupIdByTransactionId = GetGroupIdByTransactionId;
     exports.GetGroupDataByGroupId = GetGroupDataByGroupId;
 
 } (CloudantDBModule || {}));
