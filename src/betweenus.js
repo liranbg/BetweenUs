@@ -116,7 +116,7 @@ var BetweenUsModule = (function() {
   /**
    * Encrypts a message with the symmetric key data dictionary.
    * @param  {string}     message                  [Plain text to be encrypted.]
-   * @param  {dictionary} symmetric_key_dictionary [Dictionary containing the data needed for encrypting the plain text.]
+   * @param  {string }    symmetric_key_dictionary [Dictionary containing the data needed for encrypting the plain text.]
    * @return {Buffer}                              [Buffer containing the output data - the cipher text.]
    */
   var SymmetricEncrypt = function(message, symmetric_key_dictionary) {
@@ -137,6 +137,9 @@ var BetweenUsModule = (function() {
    */
 
   var SymmetricDecrypt = function(encrypted_message, symmetric_key_dictionary) {
+    if (typeof(encrypted_message) == 'object') {
+      encrypted_message = new Buffer( new Uint8Array(encrypted_message) );
+    }
     _type_assert(encrypted_message, _types.buffer);
     _type_assert(symmetric_key_dictionary, _types.string);
     var key_object = _StringToKeyDataDictionary(symmetric_key_dictionary);

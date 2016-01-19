@@ -1,3 +1,5 @@
+
+
 var server = "http://localhost:3000";
 function RegisterFormOnClick () {
     var email = document.getElementById("form_register_email").value;
@@ -190,6 +192,44 @@ function TransactionPageOnLoad() {
     //alert(QueryString.group_id);
 }
 
+function GenerateSymmetricKeyOnClick() {
+    var sym_key = betweenus.GenerateSymmetricKeyDictionary();
+    $('#sym_key').val(sym_key);
+}
+
+function uintarray2text(uintArray) {
+    return String.fromCharCode.apply(null, new Uint16Array(uintArray));
+}
+
+
+function text2uintarray(s) {
+    var ua = new Uint8Array(s.length);
+    for (var i = 0; i < s.length; i++) {
+        ua[i] = s.charCodeAt(i);
+    }
+    return ua;
+}
+
+function EncryptSecretContentOnClick() {
+    var text_to_encrypt = $('#secret_content').val();
+    var sym_key = $("#sym_key").val();
+    var cipher_text_buffer = betweenus.SymmetricEncrypt(text_to_encrypt, sym_key);
+    var cipher_text_string = uintarray2text(cipher_text_buffer);
+    console.log('Plain Text: ', text_to_encrypt);
+    console.log('Key:', sym_key);
+    console.log(cipher_text_string)
+    $('#secret_content').val(cipher_text_string);
+}
+
+
+function DecryptSecretContentOnClick() {
+    var text_to_decrypt = $('#secret_content').val();
+    var sym_key = $("#sym_key").val();
+    var buffered_text_to_decrypt = text2uintarray(text_to_decrypt);
+    var plain_text = betweenus.SymmetricDecrypt(buffered_text_to_decrypt, sym_key);
+    $('#secret_content').val(plain_text);
+}
+
 function GetMembersPublicKey() {
     var group_id = QueryString.group_id;
     $.ajax({
@@ -213,4 +253,14 @@ function GetMembersPublicKey() {
 function CreateNewTransactionOnClick() {
     var group_id = QueryString.group_id;
     window.location.href = "new_transaction.html?group_id=" + group_id;
+}
+
+function KeyToSharesOnClick() {
+    var sym_key = $('#sym_key').val();
+    var members = $('#member_key_table tr').length;
+    var shares = betweenus.SerializedDictionaryToShares(sym_key, members, members - 1, 100);
+    var placeholder = "lala";
+    for (var i in shares) {
+        $('#shamir_secret_table tr:last').after('<tr><td>' + shares[i] +'</td><td>'+ placeholder + '</td>');
+    }
 }
