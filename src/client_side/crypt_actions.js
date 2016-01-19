@@ -1,7 +1,3 @@
-// THIS FILE IS BROWSERIFIED FROM betweenus.js:
-// $ browserify betweenus.js --s betweenus > crypt_actions.js
-// Access functions contained here by namespace betweenjs
-
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.betweenus = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 (function (Buffer){
 var BetweenUsModule = (function() {
@@ -168,13 +164,21 @@ var BetweenUsModule = (function() {
    * @param  {number} zeropadding           [Padding.]
    * @return {Object}                       [Object that contains the list of the actual shares in hex string forms.]
    */
-  var SerializedDictionaryToShares = function(serialized_dictionary, shares, threshold, zeropadding) {
+  var SerializedDictionaryToShares = function(serialized_dictionary, shares, threshold, zeropadding, max_chunk_len) {
     _type_assert(serialized_dictionary, _types.string);
     _type_assert(shares, _types.number);
     _type_assert(threshold, _types.number);
     _type_assert(zeropadding, _types.number);
     var share_list = _secrets.share(_secrets.str2hex(serialized_dictionary), shares, threshold, zeropadding);
-    return share_list;
+
+    split_shares = []
+    var max_len_string_regex = new RegExp('.{1,' + max_chunk_len + '}', 'g');
+
+    for (var i in share_list) {
+        split_shares.push(share_list[i].match(max_len_string_regex));
+    }
+    
+    return split_shares;
   };
 
   /**

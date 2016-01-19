@@ -258,9 +258,15 @@ function CreateNewTransactionOnClick() {
 function KeyToSharesOnClick() {
     var sym_key = $('#sym_key').val();
     var members = $('#member_key_table tr').length;
-    var shares = betweenus.SerializedDictionaryToShares(sym_key, members, members - 1, 100);
+    console.log(sym_key);
+    var shares = betweenus.SerializedDictionaryToShares(sym_key, members, members - 1, 0, 100);
+    console.log(shares);
     var placeholder = "lala";
     for (var i in shares) {
-        $('#shamir_secret_table tr:last').after('<tr><td>' + shares[i] +'</td><td>'+ placeholder + '</td>');
+        var reconstructed_share = "";
+        for (var chunk in shares[i]) {
+            reconstructed_share += shares[i][chunk] + "<br>";
+        }
+        $('#shamir_secret_table tr:last').after('<tr><td>' + reconstructed_share +'</td><td>'+ placeholder + '</td>');
     }
 }

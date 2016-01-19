@@ -162,13 +162,18 @@ var BetweenUsModule = (function() {
    * @param  {number} zeropadding           [Padding.]
    * @return {Object}                       [Object that contains the list of the actual shares in hex string forms.]
    */
-  var SerializedDictionaryToShares = function(serialized_dictionary, shares, threshold, zeropadding) {
+  var SerializedDictionaryToShares = function(serialized_dictionary, shares, threshold, zeropadding, max_chunk_len) {
     _type_assert(serialized_dictionary, _types.string);
     _type_assert(shares, _types.number);
     _type_assert(threshold, _types.number);
     _type_assert(zeropadding, _types.number);
     var share_list = _secrets.share(_secrets.str2hex(serialized_dictionary), shares, threshold, zeropadding);
-    return share_list;
+    split_shares = []
+    var max_len_string_regex = new RegExp('.{1,' + max_chunk_len + '}', 'g');
+    for (var i in share_list) {
+        split_shares.push(share_list[i].match(max_len_string_regex));
+    }
+    return split_shares;
   };
 
   /**
