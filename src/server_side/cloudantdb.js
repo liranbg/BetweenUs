@@ -108,9 +108,11 @@ var CloudantDBModule = (function() {
 
     var groups_db = cld_db.db.use(db_module_config.groups_db.name);
     var users_db = cld_db.db.use(db_module_config.users_db.name);
+    var transactions_db = cld_db.db.use(db_module_config.transactions_db_name);
+    var shares_stash_db = cld_db.db.use(db_module_config.shares_db_name);
 
     /*
-    Databases initialization
+     Databases initialization
      */
     var InitDataBases =  function() {
         logger.info("Initializing UsersDB");
@@ -177,48 +179,43 @@ var CloudantDBModule = (function() {
             });
     };
 
-    var CreateTransaction = function(creator_userid, encrypted_data, user_stash_list, group_id, callback_func) {
+    var CreateTransaction = function(creator_userid, encrypted_data, user_stash_list, group_id, share_threshold, callback_func) {
         //TODO: Store shares_stash before creating the transaction and then add it to the new transaction
-        //user_stash_list - [{user:"liranbg@gmail.com", share:"asdasdasdasd"},{},{},...]
-        var transactions_db = cld_db.db.use(db_module_config.transactions_db_name);
-        var shares_stash_db = cld_db.db.use(db_module_config.shares_db_name);
-        transactions_db.insert(
-            { initiator: creator_userid, encrypted_data: encrypted_data, group_id: group_id, shares: [] }, function(err, transaction_body) {
+        //TODO: add transaction to group
+        //user_stash_list - [{user_id:"liranbg@gmail.com", share:"asdasdasdasd"},{},{},...]
+        var new_transaction_doc = {
+            initiator: creator_userid,
+            encrypted_data: encrypted_data,
+            group_id: group_id,
+            share_threshold: share_threshold,
+            shares: []
+        };
+        var list_of_user_stash_to_insert = [];
+        for (var i in user_stash_list) {
+            list_of_user_stash_to_insert.push({ group_id:group_id, stash_owner: user_stash_list[i].user_id, stashed_shares: [user_stash_list[i]]});
+        }
+        shares_stash_db.bulk({docs: list_of_user_stash_to_insert},{include_docs :true}, function(err, stash_share_body) {
                 if (err) {
-                    logger.error("CreateTransaction: Insert - %s", err.message);
-                    callback_func(err, transaction_body);
+                    logger.error("CreateTransaction: Bulk - %s", err.message);
+                    callback_func(err, stash_share_body);
                 }
                 else {
-                    var list_of_user_stash_to_insert = [];
-                    for (var i in user_stash_list) {
-                        list_of_user_stash_to_insert.push({ group_id:group_id, stash_owner: user_stash_list[i].user, stashed_shares: [user_stash_list[i]]});
+                    var list_of_stash_shares_ids = [];
+                    for (var j = 0; j < stash_share_body.length; ++j) {
+                        list_of_stash_shares_ids.push({user_id: list_of_user_stash_to_insert[i].stash_owner, stash_id: stash_share_body[j].id});
                     }
-                    shares_stash_db.bulk({docs: list_of_user_stash_to_insert}, function(err, stash_share_body) {
-                            if (err) {
-                                logger.error("CreateTransaction: Bulk - %s", err.message);
-                                callback_func(err, stash_share_body);
-                            }
-                            else {
-                                var list_of_stash_shares_ids = [];
-                                for (var j = 0; j < stash_share_body.length; ++j) {
-                                    list_of_stash_shares_ids.push(stash_share_body[j].id);
-                                }
-                                transactions_db.get(transaction_body.id, function(err, doc_to_update){
-                                    transaction_body._rev = doc_to_update._rev;
-                                    doc_to_update.shares = list_of_stash_shares_ids;
-                                    transactions_db.insert(doc_to_update, transaction_body.id, function(err,body) {
-                                        if (err) {
-                                            logger.error("CreateTransaction: Update - %s", err.message);
-                                        }
-                                        callback_func(err, body);
-                                    })
-                                });
-                            }
+                    new_transaction_doc.shares = list_of_stash_shares_ids;
+                    transactions_db.insert(new_transaction_doc, function(err, transaction_body) {
+                        if (err) {
+                            //TODO remove all created stash
+                            logger.error("CreateTransaction: Insert - %s", err.message);
                         }
-                    );
-                }
+                        callback_func(err, transaction_body);
 
-            });
+                    });
+                }
+            }
+        );
     };
 
     var AddTransactionToGroup = function(group, transaction, callback_func) {
@@ -418,22 +415,25 @@ var CloudantDBModule = (function() {
     };
 
     exports.InitDataBases = InitDataBases;
-
     exports.InsertNewUser =InsertNewUser;
-    exports.CreateGroup = CreateGroup;
 
-    exports.AddShareToTransaction = AddShareToTransaction;
-    exports.AddTransactionToGroup = AddTransactionToGroup;
+    exports.IsUserExists = IsUserExists;
     exports.AddGroupToUser = AddGroupToUser;
     exports.AddUsersToGroup = AddUsersToGroup;
-    exports.GetUsersPublicKeys = GetUsersPublicKeys;
     exports.GetUserByEmail = GetUserByEmail;
     exports.GetUsersByEmailList = GetUsersByEmailList;
     exports.GetUsersByIdsList = GetUsersByIdsList;
-    exports.IsUserExists = IsUserExists;
+    exports.GetUsersPublicKeys = GetUsersPublicKeys;
+
+    exports.CreateGroup = CreateGroup;
     exports.GetAllMyGroups = GetAllMyGroups;
+    exports.GetGroupDataByGroupId = GetGroupDataByGroupId;
+
     exports.CreateTransaction = CreateTransaction;
     exports.CreateShare = CreateShare;
-    exports.GetGroupDataByGroupId = GetGroupDataByGroupId;
+    exports.AddShareToTransaction = AddShareToTransaction;
+    exports.AddTransactionToGroup = AddTransactionToGroup;
+
+
 
 } (CloudantDBModule || {}));
