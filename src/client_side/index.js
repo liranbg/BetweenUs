@@ -132,10 +132,10 @@ function FetchGroupDataOnClick() {
             data = data.data;
             $("#member_list_table tr:not(:first)").remove(); // Remove all lines beside the header
             var creator_name = data.creator;
-            $('#member_list_table tr:last').after('<tr><td>' + creator_name +'</td><td>' + "Creator" + '</td>');
+            $('#member_list_table tr:last').after('<tr><td>' + creator_name.email +'</td><td>' + "Creator" + '</td>');
 
             for (var i in data.members) {
-                $('#member_list_table tr:last').after('<tr><td>' + data.members[i] +'</td><td>' + "Participant" + '</td>');
+                $('#member_list_table tr:last').after('<tr><td>' + data.members[i].email +'</td><td>' + "Participant" + '</td>');
             }
             // Fill in Transaction List table.
             $("#transaction_list_table tr:not(:first)").remove(); // Remove all lines beside the header
@@ -200,9 +200,8 @@ function GetMembersPublicKey() {
         // On success, fill in public keys in the table.
         success: function(data, status, xhr) {
             // Fill in Member List table.
-            data = data.data;
             $("#member_key_table tr:not(:first)").remove(); // Remove all lines beside the header
-            for (var i in data.members) {
+            for (var i in data.key_info) {
                 $('#member_key_table tr:last').after('<tr><td>' + data.key_info[i].email +'</td><td>' + data.key_info[i].public_key + '</td>');
             }
         },
