@@ -86,7 +86,7 @@ router.post('/login', function (req, res) {
         }
         else {
             if (data.rows.length == 0) {
-                res.status(500).send({success: false,  message: "Username does not exists"});
+                res.status(404).send({success: false,  message: "Username does not exists"});
             }
             else {
                 var doc = data.rows[0];
