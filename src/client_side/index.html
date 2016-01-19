@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en" class=" is-copy-enabled is-u2f-enabled">
 <head>
@@ -10,32 +9,39 @@
 <body>
 <h1> Server API Tester </h1>
 </body>
+
+<!-- Parent div for the Register and Login sections. -->
 <div id="register_login_parent_div">
+
+    <!-- Register User Section. -->
   <div id="div_form_register" style="float: right;">
     <h2>Register New User</h2>
     <form id="form_register_user" onsubmit="return false;">
       Email:<br> <input type="text" id="form_register_email" name="email" placeholder="alice@alice.com"><br>
       Password:  <br><input type="text" id="form_register_password" name="password"><br>
       Public Key:<br> <input type="text" id="form_register_public_key" name="public_key"><br><br>
-      <input type="submit" value="Submit" onclick="RegisterFormOnClick(this.form)">
-    </form >
+      <input type="submit" value="Submit"
+             onclick="RegisterFormOnClick('form_register_email', 'form_register_password', 'form_register_public_key', 'textarea_register_user')">
+    </form>
     <br>
     <br>
     <h3>Output</h3>
-    <textarea id="textfield_register_user" rows="5", cols="24"></textarea>
+    <textarea id="textarea_register_user" rows="5", cols="24"></textarea>
   </div>
 
+    <!-- Login Section. -->
   <div id="div_form_login" style="float: left;">
     <h2>Login</h2>
     <form id="form_login_user" onsubmit="return false;">
       Email:<br> <input type="text" id="form_login_email" name="email" placeholder="alice@alice.com"><br>
       Password:  <br><input type="text" id="form_login_password" name="password"><br>
-      <input type="submit" value="Submit" onclick="LoginFormOnClick(this.form)">
-    </form >
+      <input type="submit" value="Submit"
+             onclick="LoginFormOnClick('form_login_email', 'form_login_password', 'textarea_login_user')">
+    </form>
     <br>
     <br><br><br><br>
     <h3>Output</h3>
-    <textarea id="textfield_login_user" rows="5", cols="24"></textarea>
+    <textarea id="textarea_login_user" rows="5", cols="24"></textarea>
   </div>
 </div>
 <br><br>
