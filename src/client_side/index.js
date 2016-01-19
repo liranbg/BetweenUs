@@ -344,7 +344,20 @@ function SubmitNewTransactionOnClick(share_table_id, sym_key_field_id, member_ta
         share_threshold: threshold,
         transaction_name: transaction_name,
         stash_list: encrypted_share_info
-    }
+    };
+    $.ajax({
+        type: "POST",
+        url: server + "/transactions/create_transaction",
+        dataType:'json',
+        data: JSON.stringify(json_data), // Must stringify due to encryption including wierd chars
+        xhrFields: {withCredentials: true},
+        success: function(data, status, xhr) {
+            alert("SUCCESS!");
+        },
+        error: function(xhr, status, error) {
+            alert("ERROR!");
+        }});
+
 }
 
 /** Takes a non encrypt stringified shares and user information (id and key), and creates a list of a dictionary
