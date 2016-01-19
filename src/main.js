@@ -118,7 +118,7 @@ for (var i in shares) {
     var start = process.hrtime();
     assigned_shares.push({
         belong_to: clients_to_share_with[i].id,
-        share: encrypt_with_public_key(shares[i], clients_to_share_with[i].assymetric_key.rsa_key)
+        share: BetweenUsModule.AsymmetricEncrypt(shares[i], clients_to_share_with[i].assymetric_key.rsa_key)
     });
     logger.log("Took %d seconds", (process.hrtime(start)[1]*1e-9).toFixed(5));
 }
@@ -131,7 +131,7 @@ for (var i in clients_to_share_with) {
         if (assigned_shares[j].belong_to == clients_to_share_with[i].id) {
             logger.log('ID: ' + clients_to_share_with[i].id + ', Encrypted Share: ' + assigned_shares[j].share);
             var start = process.hrtime();
-            clients_to_share_with[i].owned_share = decrypt_with_private_key(assigned_shares[j].share, clients_to_share_with[i].assymetric_key.rsa_key);
+            clients_to_share_with[i].owned_share = BetweenUsModule.AsymmetricDecrypt(assigned_shares[j].share, clients_to_share_with[i].assymetric_key.rsa_key);
             logger.log("Took %d seconds", (process.hrtime(start)[1]*1e-9).toFixed(5));
         }
     }
@@ -148,4 +148,4 @@ var shares_to_decrypt = [clients_to_share_with[0].owned_share, clients_to_share_
 var from_shares_symmetric_key_dictionary = BetweenUsModule.CombineShares(shares_to_decrypt);
 var decrypted_buffer = BetweenUsModule.SymmetricDecrypt(encrypted_buffer, from_shares_symmetric_key_dictionary);
 
-logger.log(decrypted_buffer.toString('utf-8'));
+console.log(decrypted_buffer.toString('utf-8'));

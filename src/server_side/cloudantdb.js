@@ -167,54 +167,72 @@ var CloudantDBModule = (function() {
 
     //Transactions Related Functions
 
-    var CreateTransaction = function(creator_userid, transaction_name, encrypted_data, user_stash_list, group_id, share_threshold, callback_func) {
+    var GetTransactionById = function(transaction_id, callback_func) {
+        transactions_db.get(transaction_id, function(err, data) {
+            if (err) {
+                logger.error("GetTransactionById: Get - %s", err.message);
+            }
+            callback_func(err, data);
+        });
+
+    };
+
+    var CreateTransaction = function(creator_userid, transaction_name, chiper_data, user_stash_list, group_id, share_threshold, callback_func) {
         //TODO: Store shares_stash before creating the transaction and then add it to the new transaction
-        //user_stash_list - [{user_id:"liranbg@gmail.com", share:"asdasdasdasd"},{},{},...]
+        //user_stash_list - [{user_id:"123assss", share:"asdasdasdasd"},{},{},...]
         var new_transaction_doc = {
             initiator: creator_userid,
             transaction_name: transaction_name,
-            encrypted_data: encrypted_data,
+            encrypted_data: chiper_data,
             group_id: group_id,
             share_threshold: share_threshold,
             shares: []
         };
-        var list_of_user_stash_to_insert = [];
+        var email_list = [];
         for (var i in user_stash_list) {
-            list_of_user_stash_to_insert.push({ group_id:group_id, stash_owner: user_stash_list[i].user_id, stashed_shares: [user_stash_list[i]]});
+            email_list.push(user_stash_list[i].user_id);
         }
-        shares_stash_db_name.bulk({docs: list_of_user_stash_to_insert},{include_docs :true}, function(err, stash_share_body) {
-                if (err) {
-                    logger.error("CreateTransaction: Bulk - %s", err.message);
-                    callback_func(err, stash_share_body);
-                }
-                else {
-                    var list_of_stash_shares_ids = [];
-                    for (var j = 0; j < stash_share_body.length; ++j) {
-                        list_of_stash_shares_ids.push({user_id: list_of_user_stash_to_insert[i].stash_owner, stash_id: stash_share_body[j].id});
+        GetUsersByEmailList(email_list, function(err, data) {
+            var list_of_user_stash_to_insert = [];
+            for (var i in data.rows) {
+                user_stash_list[i].user_id = data.rows[i].id;
+                list_of_user_stash_to_insert.push({ group_id:group_id, stash_owner: data.rows[i].id, stashed_shares: [user_stash_list[i]]});
+            }
+            shares_stash_db_name.bulk({docs: list_of_user_stash_to_insert}, function(err, stash_share_body) {
+                    if (err) {
+                        logger.error("CreateTransaction: Bulk - %s", err.message);
+                        callback_func(err, stash_share_body);
                     }
-                    new_transaction_doc.shares = list_of_stash_shares_ids;
-                    transactions_db.insert(new_transaction_doc, function(err, transaction_body) {
-                        if (err) {
-                            //TODO remove all created stash
-                            logger.error("CreateTransaction: Insert - %s", err.message);
+                    else {
+                        var list_of_stash_shares_ids = [];
+                        for (var j = 0; j < stash_share_body.length; ++j) {
+                            list_of_stash_shares_ids.push({user_id: list_of_user_stash_to_insert[j].stash_owner, stash_id: stash_share_body[j].id});
                         }
-                        groups_db.get(group_id, function (err, group_data) {
+                        new_transaction_doc.shares = list_of_stash_shares_ids;
+                        transactions_db.insert(new_transaction_doc, function(err, transaction_body) {
                             if (err) {
-                                logger.error("CreateTransaction: Groups Get - %s", err.message);
+                                //TODO remove all created stash
+                                logger.error("CreateTransaction: Insert - %s", err.message);
                             }
-                            groups_db.update(group_data,group_data._id, function(err, updated_group) {
+                            groups_db.get(group_id, function (err, group_data) {
                                 if (err) {
-                                    logger.error("CreateTransaction: Groups Update - %s", err.message);
+                                    logger.error("CreateTransaction: Groups Get - %s", err.message);
                                 }
-                                callback_func(err, transaction_body);
+                                groups_db.update(group_data,group_data._id, function(err, updated_group) {
+                                    if (err) {
+                                        logger.error("CreateTransaction: Groups Update - %s", err.message);
+                                    }
+                                    callback_func(err, transaction_body);
+                                });
                             });
+
                         });
 
-                    });
-
+                    }
                 }
-            }
-        );
+            );
+        });
+
     };
 
     var AddTransactionToGroup = function(group, transaction, callback_func) {
@@ -429,6 +447,7 @@ var CloudantDBModule = (function() {
     exports.GetGroupDataByGroupId = GetGroupDataByGroupId;
 
     exports.CreateTransaction = CreateTransaction;
+    exports.GetTransactionById = GetTransactionById;
     exports.AddShareToTransaction = AddShareToTransaction;
     exports.AddTransactionToGroup = AddTransactionToGroup;
 
