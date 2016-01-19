@@ -229,6 +229,33 @@ function FetchGroupDataOnClick(group_id_field, member_list_table, transaction_li
     }});
 }
 
+/** Gets the public keys for all users in the group, sets threshold to maximum of members.length.
+ *
+ * @param member_table_id
+ * @param threshold_input_field
+ * @return none
+ */
+function GetMembersPublicKeyOnClick(member_table_id, threshold_input_field) {
+    var group_id = Util_QueryString.group_id;
+    $.ajax({
+        type: "GET",
+        url: server + "/groups/get_members_public_keys/" + group_id,
+        dataType:'json',
+        xhrFields: {withCredentials: true},
+        // On success, fill in public keys in the table.
+        success: function(data, status, xhr) {
+            var member_amt = 0;
+            Util_ClearTable(member_table_id);
+            for (var i in data.key_info) {
+                Util_AppendRowToTable(member_table_id, '<td>' + data.key_info[i].email +'</td><td>' + data.key_info[i].public_key + '</td>');
+                member_amt++;
+            }
+            $('#' + threshold_input_field).prop('max', member_amt);
+        },
+        error: function(xhr, status, error) {
+            alert("Error fetching public keys group");
+        }});
+}
 
 /* On Page Load Functions */
 
@@ -248,6 +275,11 @@ function GroupPageOnLoad(group_id_field, member_list_table, transaction_list_tab
     FetchGroupDataOnClick(group_id_field, member_list_table, transaction_list_table, error_span_id);
 }
 
+function TransactionPageOnLoad(member_table_id, threshold_input_field) {
+    GetMembersPublicKeyOnClick(member_table_id, threshold_input_field);
+}
+
+
 /* BetweenUs functions. */
 
 function GenerateSymmetricKeyOnClick() {
@@ -260,9 +292,6 @@ function EncryptSecretContentOnClick() {
     var sym_key = $("#sym_key").val();
     var cipher_text_buffer = betweenus.SymmetricEncrypt(text_to_encrypt, sym_key);
     var cipher_text_string = Util_uIntArray2Text(cipher_text_buffer);
-    console.log('Plain Text: ', text_to_encrypt);
-    console.log('Key:', sym_key);
-    console.log(cipher_text_string)
     $('#secret_content').val(cipher_text_string);
 }
 
@@ -275,41 +304,72 @@ function DecryptSecretContentOnClick() {
     $('#secret_content').val(plain_text);
 }
 
-function GetMembersPublicKey() {
-    var group_id = Util_QueryString.group_id;
-    $.ajax({
-        type: "GET",
-        url: server + "/groups/get_members_public_keys/" + group_id,
-        dataType:'json',
-        xhrFields: {withCredentials: true},
-        // On success, fill in public keys in the table.
-        success: function(data, status, xhr) {
-            // Fill in Member List table.
-            $("#member_key_table tr:not(:first)").remove(); // Remove all lines beside the header
-            for (var i in data.key_info) {
-                $('#member_key_table tr:last').after('<tr><td>' + data.key_info[i].email +'</td><td>' + data.key_info[i].public_key + '</td>');
-            }
-        },
-        error: function(xhr, status, error) {
-            alert("Error fetching public keys group");
-        }});
-}
+
 
 function CreateNewTransactionOnClick() {
     var group_id = Util_QueryString.group_id;
     window.location.href = "new_transaction.html?group_id=" + group_id;
 }
 
-function KeyToSharesOnClick() {
-    var sym_key = $('#sym_key').val();
-    var members = $('#member_key_table tr').length;
-    console.log(sym_key);
-    var shares = betweenus.SerializedDictionaryToShares(sym_key, members, members - 1, 0, 100);
-    console.log(shares);
-    var placeholder = "lala";
+
+function SubmitNewTransactionOnClick(share_table_id, sym_key_field_id, member_table_id, threshold_field_id, plain_text_field, transaction_name) {
+    var sym_key = $('#' + sym_key_field_id).val();
+    var members = $('#' + member_table_id + ' tr').length - 1;
+    var threshold = parseInt($('#' + threshold_field_id).val());
+    var shares = betweenus.MakeShares(sym_key, members, threshold, 0);
     for (var i in shares) {
-        $('#shamir_secret_table tr:last').after('<tr><td>' + shares[i] +'</td><td>'+ placeholder + '</td>');
+        Util_AppendRowToTable(share_table_id, '<td>' + shares[i] +'</td>');
     }
+    var user_key_info = [];
+    $('#' + member_table_id + ' tr:gt(0)').each(function () {
+        var $tds = $(this).find('td'),
+            name = $tds.eq(0).text(),
+            key = $tds.eq(1).text();
+        user_key_info.push({user: name, public_key: key});
+    });
+    /** Generate data for the JSON **/
+    /* Generate [{user_id: , share:}, {}, ..., {}] list. */
+    var encrypted_share_info = EncryptSharesForUsers(shares, user_key_info);
+    /* Transaction Name */
+    var transaction_name = $('#' + transaction_name).val();
+    /* Create cipher data */
+    var text_to_encrypt = $('#' + plain_text_field).val();
+    var cipher_text_buffer = betweenus.SymmetricEncrypt(text_to_encrypt, sym_key);
+    var cipher_text_string = Util_uIntArray2Text(cipher_text_buffer);
+    /* Group ID */
+    var group_id = Util_QueryString.group_id;
+    var json_data = {
+        group_id: group_id,
+        cipher_data: cipher_text_string,
+        share_threshold: threshold,
+        transaction_name: transaction_name,
+        stash_list: encrypted_share_info
+    }
+}
+
+/** Takes a non encrypt stringified shares and user information (id and key), and creates a list of a dictionary
+ *  to contain the encrypted share info.
+ *
+ * @param shares stringified shares
+ * @param users_key_info a list of {user: , public_key: } dictionaries.
+ * @return a list of {user_id: , share:}
+ */
+function EncryptSharesForUsers(shares, users_key_info) {
+    if (shares.length != users_key_info.length) {
+        console.log('Mismatch in size of shares to size of users.');
+        return null;
+    }
+    var encrypted_shares_info = [];
+    for (var i in shares) {
+        var encrypted_share = MockRSAPublicKeyEncrypt(shares[i], users_key_info[i].public_key);
+        var username = users_key_info[i].user;
+        encrypted_shares_info.push({user_id: username, share: encrypted_share});
+    }
+    return encrypted_shares_info;
+}
+
+function MockRSAPublicKeyEncrypt(data, key) {
+    return data;
 }
 
 /* Javascript Utility Functions */

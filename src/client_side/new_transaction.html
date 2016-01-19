@@ -7,7 +7,7 @@
     <script type='text/javascript' src='index.js'></script>
     <script type='text/javascript' src='crypt_actions.js'></script>
 </head>
-<body onload="TransactionPageOnLoad()";>
+<body onload="TransactionPageOnLoad('member_key_table', 'threshold_input')";>
 <div id="new_transaction_div">
     <h2>Create New Transaction </h2>
     <h3>Transaction Title:</h3>
@@ -26,7 +26,7 @@
         </tr>
     </table>
     <br>
-    <button onclick="GetMembersPublicKey()">Get public keys</button>
+    <button onclick="GetMembersPublicKeyOnClick('member_key_table', 'threshold_input')">Get public keys</button>
 </div>
 
 <!-- Symmetric Encryption Div-->
@@ -44,15 +44,15 @@
 <br>
 <div id="shamir_secret_div">
     <h2>Shamir Secret Sharing</h2>
-    <button onclick="KeyToSharesOnClick();">Key to Shares</button>
+    <button onclick="SubmitNewTransactionOnClick('shamir_secret_table','sym_key','member_key_table','threshold_input', 'secret_content', 'transaction_name');">Submit New Transaction</button>
+    <br><br>
+    <span>Threshold: </span><input type='number' min="2" id="threshold_input"/>
     <br><br>
     <table id="shamir_secret_table">
         <tr>
-            <th>Member ID</th>
-            <th>Member Share</th>
+            <th>Share</th>
         </tr>
     </table>
 </div>
-
 </body>
 </html>
