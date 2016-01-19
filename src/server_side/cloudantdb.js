@@ -78,7 +78,7 @@ var CloudantDBModule = (function() {
             }
         },
         transactions_db_name: 'transactions',
-        shares_db_name: 'shares_stash',
+        shares_stash_db_name: 'shares_stash',
         cloudant_account : {
             account: process.env.cloudant_username,
             password: process.env.cloudant_password
@@ -109,7 +109,7 @@ var CloudantDBModule = (function() {
     var groups_db = cld_db.db.use(db_module_config.groups_db.name);
     var users_db = cld_db.db.use(db_module_config.users_db.name);
     var transactions_db = cld_db.db.use(db_module_config.transactions_db_name);
-    var shares_stash_db = cld_db.db.use(db_module_config.shares_db_name);
+    var shares_stash_db_name = cld_db.db.use(db_module_config.shares_stash_db_name);
 
     /*
      Databases initialization
@@ -133,7 +133,7 @@ var CloudantDBModule = (function() {
                     logger.error("InitUsersDB: %s", err);
                 }
                 else {
-                    logger.info("InitUsersDB: %s" + data);
+                    logger.info("InitUsersDB: %s", data);
                 }
 
             });
@@ -159,32 +159,20 @@ var CloudantDBModule = (function() {
 
     }
     function InitSharesStashDB() {
-        cld_db.db.create(db_module_config.shares_db_name, function () {
-            logger.info(db_module_config.shares_db_name + " database is set");
+        cld_db.db.create(db_module_config.shares_stash_db_name, function () {
+            logger.info(db_module_config.shares_stash_db_name + " database is set");
         });
-
     }
     //End Private Method for initializing databases
 
+    //Transactions Related Functions
 
-    var CreateShare = function(user_id, data, callback_func) {
-        var shares_db = cld_db.db.use(db_module_config.shares_db_name);
-        shares_db.insert(
-            { user_id: user_id, data: data },
-            function(err, data) {
-                if (err) {
-                    logger.error("CreateShare: %s", err.message);
-                }
-                callback_func(err, data);
-            });
-    };
-
-    var CreateTransaction = function(creator_userid, encrypted_data, user_stash_list, group_id, share_threshold, callback_func) {
+    var CreateTransaction = function(creator_userid, transaction_name, encrypted_data, user_stash_list, group_id, share_threshold, callback_func) {
         //TODO: Store shares_stash before creating the transaction and then add it to the new transaction
-        //TODO: add transaction to group
         //user_stash_list - [{user_id:"liranbg@gmail.com", share:"asdasdasdasd"},{},{},...]
         var new_transaction_doc = {
             initiator: creator_userid,
+            transaction_name: transaction_name,
             encrypted_data: encrypted_data,
             group_id: group_id,
             share_threshold: share_threshold,
@@ -194,7 +182,7 @@ var CloudantDBModule = (function() {
         for (var i in user_stash_list) {
             list_of_user_stash_to_insert.push({ group_id:group_id, stash_owner: user_stash_list[i].user_id, stashed_shares: [user_stash_list[i]]});
         }
-        shares_stash_db.bulk({docs: list_of_user_stash_to_insert},{include_docs :true}, function(err, stash_share_body) {
+        shares_stash_db_name.bulk({docs: list_of_user_stash_to_insert},{include_docs :true}, function(err, stash_share_body) {
                 if (err) {
                     logger.error("CreateTransaction: Bulk - %s", err.message);
                     callback_func(err, stash_share_body);
@@ -210,9 +198,20 @@ var CloudantDBModule = (function() {
                             //TODO remove all created stash
                             logger.error("CreateTransaction: Insert - %s", err.message);
                         }
-                        callback_func(err, transaction_body);
+                        groups_db.get(group_id, function (err, group_data) {
+                            if (err) {
+                                logger.error("CreateTransaction: Groups Get - %s", err.message);
+                            }
+                            groups_db.update(group_data,group_data._id, function(err, updated_group) {
+                                if (err) {
+                                    logger.error("CreateTransaction: Groups Update - %s", err.message);
+                                }
+                                callback_func(err, transaction_body);
+                            });
+                        });
 
                     });
+
                 }
             }
         );
@@ -430,10 +429,7 @@ var CloudantDBModule = (function() {
     exports.GetGroupDataByGroupId = GetGroupDataByGroupId;
 
     exports.CreateTransaction = CreateTransaction;
-    exports.CreateShare = CreateShare;
     exports.AddShareToTransaction = AddShareToTransaction;
     exports.AddTransactionToGroup = AddTransactionToGroup;
-
-
 
 } (CloudantDBModule || {}));
