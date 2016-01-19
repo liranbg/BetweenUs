@@ -41,3 +41,37 @@ table, th, td {
     width: 50%;
     height: 100%;
 }
+
+#new_transaction_div {
+    border-radius: 15px 50px 30px 5px;
+    background: aliceblue;
+    padding: 20px;
+    width: 50%;
+    height: 100%;
+}
+
+
+#get_member_keys {
+    border-radius: 15px 50px 30px 5px;
+    background: aliceblue;
+    padding: 20px;
+    width: 50%;
+    height: 100%;
+}
+
+#sym_key_div {
+    border-radius: 15px 50px 30px 5px;
+    background: rosybrown;
+    padding: 20px;
+    width: 50%;
+    height: 100%;
+}
+
+
+#shamir_secret_div {
+    border-radius: 15px 50px 30px 5px;
+    background: yellowgreen;
+    padding: 20px;
+    width: 50%;
+    height: 100%;
+}

@@ -121,7 +121,6 @@ function CreateGroupOnClick() {
 
 function FetchGroupDataOnClick() {
     group_id = document.getElementById("input_group_id").value;
-
     $.ajax({
         type: "GET",
         url: server + "/groups/get_group_info?group_id=" + group_id,
@@ -145,10 +144,33 @@ function FetchGroupDataOnClick() {
             }
         },
         error: function(xhr, status, error) {
-            alert("Error fetching transactions group");
-        }
-    });
+    alert("Error fetching transactions group");
+    }});
 }
+
+// Parse arguments from URL
+var QueryString = function () {
+    // This function is anonymous, is executed immediately and
+    // the return value is assigned to QueryString!
+    var query_string = {};
+    var query = window.location.search.substring(1);
+    var vars = query.split("&");
+    for (var i=0;i<vars.length;i++) {
+        var pair = vars[i].split("=");
+        // If first entry with this name
+        if (typeof query_string[pair[0]] === "undefined") {
+            query_string[pair[0]] = decodeURIComponent(pair[1]);
+            // If second entry with this name
+        } else if (typeof query_string[pair[0]] === "string") {
+            var arr = [ query_string[pair[0]],decodeURIComponent(pair[1]) ];
+            query_string[pair[0]] = arr;
+            // If third or later entry with this name
+        } else {
+            query_string[pair[0]].push(decodeURIComponent(pair[1]));
+        }
+    }
+    return query_string;
+}();
 
 function GroupPageOnLoad() {
     // Make sure we have received arguments.
@@ -156,33 +178,40 @@ function GroupPageOnLoad() {
         alert("Must supply argument for group id");
         return;
     }
-    // Parse arguments from URL
-    var QueryString = function () {
-        // This function is anonymous, is executed immediately and
-        // the return value is assigned to QueryString!
-        var query_string = {};
-        var query = window.location.search.substring(1);
-        var vars = query.split("&");
-        for (var i=0;i<vars.length;i++) {
-            var pair = vars[i].split("=");
-            // If first entry with this name
-            if (typeof query_string[pair[0]] === "undefined") {
-                query_string[pair[0]] = decodeURIComponent(pair[1]);
-                // If second entry with this name
-            } else if (typeof query_string[pair[0]] === "string") {
-                var arr = [ query_string[pair[0]],decodeURIComponent(pair[1]) ];
-                query_string[pair[0]] = arr;
-                // If third or later entry with this name
-            } else {
-                query_string[pair[0]].push(decodeURIComponent(pair[1]));
-            }
-        }
-        return query_string;
-    }();
     // QueryString contains a dictionray of keys and values extract from the URL; <URL>?key=value,key1=value1 etc.
     group_id = QueryString.group_id;
     // Update value in group id field.
     document.getElementById("input_group_id").value = group_id;
     // Run Fetch function, gets the group id from the 'input_group_id'
     FetchGroupDataOnClick();
+}
+
+function TransactionPageOnLoad() {
+    //alert(QueryString.group_id);
+}
+
+function GetMembersPublicKey() {
+    var group_id = QueryString.group_id;
+    $.ajax({
+        type: "GET",
+        url: server + "/groups/get_members_public_keys/" + group_id,
+        dataType:'json',
+        xhrFields: {withCredentials: true},
+        // On success, fill in public keys in the table.
+        success: function(data, status, xhr) {
+            // Fill in Member List table.
+            data = data.data;
+            $("#member_key_table tr:not(:first)").remove(); // Remove all lines beside the header
+            for (var i in data.members) {
+                $('#member_key_table tr:last').after('<tr><td>' + data.key_info[i].email +'</td><td>' + data.key_info[i].public_key + '</td>');
+            }
+        },
+        error: function(xhr, status, error) {
+            alert("Error fetching public keys group");
+        }});
+}
+
+function CreateNewTransactionOnClick() {
+    var group_id = QueryString.group_id;
+    window.location.href = "new_transaction.html?group_id=" + group_id;
 }

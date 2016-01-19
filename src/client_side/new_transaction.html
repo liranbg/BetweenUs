@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>BetweenUs Test Client</title>
+    <link href='index.css' rel='stylesheet'>
+    <script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.11.3.min.js"></script>
+    <script type='text/javascript' src='index.js'></script>
+</head>
+<body onload="TransactionPageOnLoad()";>
+<div id="new_transaction_div">
+    <h2>Create New Transaction </h2>
+    <h3>Transaction Title:</h3>
+    <input type="text" id="transaction_name" placeholder="My awesome secret title"/>
+    <h3>Secret Message:</h3>
+    <textarea rows="10" cols="50">My awesome secret contents</textarea>
+</div>
+
+<!-- Public Keys Div-->
+<br>
+<div id="get_member_keys">
+    <table id="member_key_table">
+        <tr>
+            <th>Member ID</th>
+            <th>Member Public Key</th>
+        </tr>
+    </table>
+    <br>
+    <button onclick="GetMembersPublicKey()">Get public keys</button>
+</div>
+
+<!-- Symmetric Encryption Div-->
+<br>
+<div id="sym_key_div">
+    <h2>Symmetric Key Actions</h2>
+    <button>Generate Symmetric Key</button>
+    <input type="text" id="sym_key"/>
+    <br><br>
+    <button>Encrypt secret contents</button>
+</div>
+
+<!-- Shamir Secret Sharing Div-->
+<br>
+<div id="shamir_secret_div">
+    <h2>Shamir Secret Sharing</h2>
+    <button>Key to Shares</button>
+    <br><br>
+    <table id="shamir_secret_table">
+        <tr>
+            <th>Member ID</th>
+            <th>Member Share</th>
+        </tr>
+    </table>
+</div>
+
+</body>
+</html>
