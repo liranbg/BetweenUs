@@ -162,7 +162,7 @@ var BetweenUsModule = (function() {
      * @param  {number} zeropadding           [Padding.]
      * @return {Object}                       [Object that contains the list of the actual shares in hex string forms.]
      */
-    var SerializedDictionaryToShares = function(serialized_dictionary, shares, threshold, zeropadding) {
+    var MakeShares = function(serialized_dictionary, shares, threshold, zeropadding) {
         _type_assert(serialized_dictionary, _types.string);
         _type_assert(shares, _types.number);
         _type_assert(threshold, _types.number);
@@ -170,11 +170,11 @@ var BetweenUsModule = (function() {
         var share_list = _secrets.share(_secrets.str2hex(serialized_dictionary), shares, threshold, zeropadding);
         for (var share in share_list) {
             var share_component = _secrets.extractShareComponents(share_list[share]);
-            share_list[share] = {
+            share_list[share] = JSON.stringify({
                 bits:share_component.bits,
                 id:share_component.id,
                 data:_secrets.hex2str(share_component.data)
-            };
+            });
         }
         return share_list;
     };
@@ -184,7 +184,7 @@ var BetweenUsModule = (function() {
      * @param  {Object} shares [A list of shares, each share should be an hex string.]
      * @return {string}        [Resolve the shares into the serialized dictionary that contains the encryption data.]
      */
-    var SharesToSerializedDictionary = function(shares) {
+    var CombineShares = function(shares) {
         _type_assert(shares, _types.obj);
         var decompressed_list = [];
         for (var share in shares) {
@@ -199,8 +199,8 @@ var BetweenUsModule = (function() {
     /**
      * BetweenUs Module API
      */
-    exports.SerializedDictionaryToShares = SerializedDictionaryToShares;
-    exports.SharesToSerializedDictionary = SharesToSerializedDictionary;
+    exports.MakeShares = MakeShares;
+    exports.CombineShares = CombineShares;
     exports.GenerateSymmetricKeyDictionary = GenerateSymmetricKeyDictionary;
     exports.SymmetricEncrypt = SymmetricEncrypt;
     exports.SymmetricDecrypt = SymmetricDecrypt;

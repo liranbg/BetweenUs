@@ -107,7 +107,9 @@ logger.log('Cipher text: ' + encrypted_buffer.toString('hex'));
 //Client 1 gets client list to share the secret with. then encryptes each share with client's public key accordingly
 var clients_to_share_with = [client_1, client_2, client_3];
 logger.log('Using Shamir\'s Secret Sharing to split symmetric key into shares.');
-var shares = BetweenUsModule.SerializedDictionaryToShares(symmetric_key, clients_to_share_with.length, 2, 0);
+var shares = BetweenUsModule.MakeShares(symmetric_key, clients_to_share_with.length, 2, 0);
+
+
 logger.log('Done.');
 logger.log('Starting encryption with RSA');
 var assigned_shares = [];
@@ -142,8 +144,8 @@ for (var i in clients_to_share_with) {
 }
 
 //Restoring information from raw shares
-var shares_to_decrypt = [clients_to_share_with[0].owned_share, clients_to_share_with[1].owned_share];
-var from_shares_symmetric_key_dictionary = BetweenUsModule.SharesToSerializedDictionary(shares_to_decrypt);
+var shares_to_decrypt = [JSON.parse(clients_to_share_with[0].owned_share), JSON.parse(clients_to_share_with[1].owned_share)];
+var from_shares_symmetric_key_dictionary = BetweenUsModule.CombineShares(shares_to_decrypt);
 var decrypted_buffer = BetweenUsModule.SymmetricDecrypt(encrypted_buffer, from_shares_symmetric_key_dictionary);
 
 logger.log(decrypted_buffer.toString('utf-8'));
