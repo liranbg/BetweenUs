@@ -1,0 +1,29 @@
+{
+  "id": "couchdb-assigned-id",
+  "rev": "couchdb-revision",
+  "doc": {
+    "metadata": {
+      "scheme": "transaction",
+      "scheme_version": "1.0",
+      "creation_date": "12.21.2015 05:30pm"
+    },
+    "initiator": "Alice",
+    "transaction_name": "Our Secret Transcation",
+    "cipher_text": "RSA Encrypted Data String Representation",
+    "threshold": 2,
+    "stash_list": [
+      {
+        "user_id": "Alice",
+        "stash_id": "shareid123456789"
+      },
+      {
+        "user_id": "Bob",
+        "stash_id": "shareid333450789"
+      },
+      {
+        "user_id": "Charlie",
+        "stash_id": "shareid983456789"
+      }
+    ]
+  }
+}

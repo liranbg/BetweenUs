@@ -1,0 +1,17 @@
+{
+  "id": "couchdb-assigned-id",
+  "rev": "couchdb-revision",
+  "doc": {
+    "metadata": {
+      "scheme": "user",
+      "scheme_version": "1.0",
+      "registeration_date": "21.12.2015 05:30pm",
+      "last_login_date": "30.12.2015 11:09"
+    },
+    "username": "Alice@fictious-names.com",
+    "password": "password",
+    "public_key": "rsa_publickey_string",
+    "groups": [ "group_id_1", "group_id_2", "group_id_3" ],
+    "notifications_stash": "notification_stash_id"
+  }
+}
