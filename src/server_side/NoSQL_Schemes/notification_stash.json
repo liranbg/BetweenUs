@@ -1,0 +1,38 @@
+{
+  "id": "couchdb-assigned-id",
+  "rev": "couchdb-revision",
+  "doc": {
+    "metadata": {
+      "scheme": "notification_stash",
+      "scheme_version": "1.0",
+      "last_updated": "21.12.2015 05:30pm"
+    },
+    "stash_owner": "Alice@fictious-names.com",
+    "notification_list": [
+      {
+        "time": "31.12.2015 12:00am",
+        "group_id": "12345abc",
+        "transaction_id": "tin2o1i4n21",
+        "sender": "Bob@fictious-names.com",
+        "type": "share-request",
+        "status": "pending"
+      },
+      {
+        "time": "30.12.2015 10:00am",
+        "group_id": "12345abc",
+        "transaction_id": "99999abc123",
+        "sender": "Bob@fictious-names.com",
+        "type": "share-response",
+        "status": "committed"
+      },
+      {
+        "time": "30.12.2015 9:01am",
+        "group_id": "12345abc",
+        "transaction_id": "99999abc123",
+        "sender": "Charlie@fictious-names.com",
+        "type": "share-response",
+        "status": "declined"
+      }
+    ]
+  }
+}

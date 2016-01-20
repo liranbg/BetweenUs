@@ -5,11 +5,11 @@
     "metadata": {
       "scheme": "transaction",
       "scheme_version": "1.0",
-      "creation_date": "12.21.2015 05:30pm"
+      "creation_time": "12.21.2015 05:30pm"
     },
     "initiator": "Alice",
     "transaction_name": "Our Secret Transcation",
-    "cipher_text": "RSA Encrypted Data String Representation",
+    "cipher_text": "Symmetric (probably AES) encrypted data, string representation",
     "threshold": 2,
     "stash_list": [
       {

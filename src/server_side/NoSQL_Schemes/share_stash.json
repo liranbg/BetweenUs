@@ -1,0 +1,22 @@
+{
+  "id": "couchdb-assigned-id",
+  "rev": "couchdb-revision",
+  "doc": {
+    "metadata": {
+      "scheme": "share_stash",
+      "scheme_version": "1.0",
+      "creation_time": "21.12.2015 05:30pm"
+    },
+    "stash_owner": "Alice@fictious-names.com",
+    "share_list": [
+      {
+        "share_owner": "Alice@fictious-names.com",
+        "share": "alice_share_encrypted_with_alice_public_key"
+      },
+      {
+        "share_owner": "Bob@fictious-names.com",
+        "share": "bob_share_encrypted_with_alice_public_key"
+      }
+    ]
+  }
+}

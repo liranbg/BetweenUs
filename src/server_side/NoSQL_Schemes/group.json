@@ -1,0 +1,15 @@
+{
+  "id": "couchdb-assigned-id",
+  "rev": "couchdb-revision",
+  "doc": {
+    "metadata": {
+      "scheme": "group",
+      "scheme_version": "1.0",
+      "creation_time": "21.12.2015 05:30pm"
+    },
+    "creator": "Alice@fictious-names.com",
+    "group_name": "My Very First Group",
+    "member_list": [ "Bob", "Charlie" ],
+    "transaction_list": [ "transction_id_19239184u", "transcation_id_214124rqwsa" ]
+  }
+}
