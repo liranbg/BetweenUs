@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>BetweenUs Test Client</title>
+    <link href='index.css' rel='stylesheet'>
+    <script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.11.3.min.js"></script>
+    <script type='text/javascript' src='index.js'></script>
+</head>
+<body onload="TransactionPageOnLoad('input_transaction_id','transaction_info_error')" ;>
+<div id="transaction_information_div">
+    <h2>Transaction Page</h2>
+    <span id="transaction_info_error"></span><br>
+    <input type="text" id="input_transaction_id" placeholder="Transaction ID"/>
+    <button onclick="FetchTransactionDataOnClick('input_transaction_id','transaction_info_error');">Fetch transaction data</button>
+    <br>
+    <h3>Member list</h3>
+    <table id="share_status_list_table">
+        <tr>
+            <th>Share Owner Name</th>
+            <th>Status</th>
+            <th>Request</th>
+        </tr>
+    </table>
+    <br>
+    <br>
+    <h3>Request list</h3>
+    <table id="share_requests_table">
+        <tr>
+            <th>Name</th>
+            <th>Action</th>
+        </tr>
+    </table>
+    <br>
+    <br>
+    <h3>Shares committed list</h3>
+    <table id="share_committed_status">
+        <tr>
+            <th>Name</th>
+            <th>Status</th>
+            <th>Action</th>
+        </tr>
+    </table>
+</div>
+</body>
+</html>

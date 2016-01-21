@@ -276,11 +276,16 @@ function GroupPageOnLoad(group_id_field, member_list_table, transaction_list_tab
     FetchGroupDataOnClick(group_id_field, member_list_table, transaction_list_table, error_span_id);
 }
 
-function TransactionPageOnLoad(member_table_id, threshold_input_field) {
+function NewTransactionPageOnLoad(member_table_id, threshold_input_field) {
     GetMembersPublicKeyOnClick(member_table_id, threshold_input_field);
 }
 
+function TransactionPageOnLoad(transaction_input_field_id, error_field_id) {
+    var transaction_id = Util_QueryString.transaction_id;
+    $("#" + transaction_input_field_id).val(transaction_id);
+}
 
+http://localhost:63342/BetweenUs/src/client_side/transaction.html?transaction_id=1
 /* BetweenUs functions. */
 
 function GenerateSymmetricKeyOnClick() {

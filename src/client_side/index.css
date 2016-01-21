@@ -75,3 +75,11 @@ table, th, td {
     width: 50%;
     height: 100%;
 }
+
+#transaction_information_div  {
+    border-radius: 15px 50px 30px 5px;
+    background: lightgreen;
+    padding: 20px;
+    width: 50%;
+    height: 100%;
+}
