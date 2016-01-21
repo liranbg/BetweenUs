@@ -203,65 +203,55 @@ var CloudantDBModule = (function() {
     //End Private Method for initializing databases
 
     //Transactions Related Functions
-    var GetTransactionById = function(transaction_id, callback_func) {
-        transactions_db.get(transaction_id, function(err, transaction_doc) {
+
+    /***
+     * This function gets a transaction id and returns its data including initiator name and its group name
+     * The return document includes:
+     *      -
+     * @param transaction_id
+     * @param callback_func
+     * @constructor
+     */
+    var GetTransactionInfoById = function(transaction_id, callback_func) {
+        var transaction_data = {};
+        var view_name = db_module_config.transactions_db.api.get_transaction_info_by_id.name;
+        var design_name = db_module_config.transactions_db.api.get_transaction_info_by_id.design_name;
+        transactions_db.view(design_name, view_name, { keys: [transaction_id] }, function (err, transaction_doc) {
             if (err) {
-                logger.error("GetTransactionById: Get - %s", err.message);
-                callback_func(err, transaction_doc);
+                logger.error("GetTransactionInfoById: %s", err.message);
             }
             else {
-                var list_of_user_ids = [];
-                for (var i in transaction_doc.stash_list) {
-                    list_of_user_ids.push(transaction_doc.stash_list[i].user_id);
-                }
-                GetUsersByIdsList(list_of_user_ids, function(err, users_data) {
+                transaction_data.key = transaction_doc.id;
+                transaction_data.name = transaction_doc.rows[0].value.transaction_name;
+                transaction_data.threshold = transaction_doc.rows[0].value.threshold;
+                transaction_data.initiator = {
+                    initiator_id: transaction_doc.rows[0].value.initiator,
+                    initiator_email : ""
+                };
+                var group_id = transaction_doc.rows[0].value.group_id;
+                GetGroupDataByGroupId(group_id, function(err, group_doc) {
                     if (err) {
-                        logger.error("GetTransactionById: GetUsersByIdsList - %s", err.message);
+                        logger.error("GetTransactionInfoById: GetGroupDataByGroupId- %s", err.message);
                     }
                     else {
-                        for (var i = 0; i < users_data.rows.length; ++i) {
-                            var doc = users_data.rows[i].doc;
-                            transaction_doc.stash_list[i].user_email = doc.email;
-                            if (doc._id == transaction_doc.initiator) {
-                                transaction_doc.initiator = {
-                                    user_id: doc._id,
-                                    user_email: doc.email
-                                };
-                            }
-                        }
+                        transaction_data.group_data = {
+                            group_id: group_doc.id,
+                            group_name: group_doc.group_name
+                        };
                     }
-                    transaction_doc.cipher_meta_data = undefined;
-                    GetGroupDataByGroupId(transaction_doc.group_id, function(err, group_data){
+                    GetUsersByIdsList([transaction_data.initiator.initiator_id], function(err, user_doc) {
                         if (err) {
-                            logger.error("GetTransactionById: GetUsersByIdsList - %s", err.message);
+                            logger.error("GetTransactionInfoById: GetUsersByIdsList- %s", err.message);
                         }
                         else {
-                            transaction_doc.group_data = {
-                                group_id: transaction_doc.group_id,
-                                group_name: group_data.group_name
+                            var doc = user_doc.rows[0].doc;
+                            transaction_data.initiator = {
+                                initiator_id: doc._id,
+                                initiator_email: doc.email
                             };
-                            transaction_doc.group_id = undefined;
-
-                            var stash_id_list = [];
-                            for (var i in transaction_doc.stash_list) {
-                                stash_id_list.push(transaction_doc.stash_list[i].stash_id);
-                            }
-                            shares_stash_db.fetch({keys:stash_id_list}, function(err, stash_data) {
-                                if (err) {
-                                    logger.error("GetTransactionById: shares_stash_db_name fetch - %s", err.message);
-                                }
-                                else {
-                                    for (var i in stash_data.rows) {
-                                        var doc = stash_data.rows[i].doc;
-                                        transaction_doc.stash_list[i].stash_data = doc.share_list;
-                                    }
-                                }
-                                callback_func(err, transaction_doc);
-
-                            });
+                            callback_func(err, transaction_data);
                         }
                     });
-                    //TODO: Return Data that contains my own stash (to check if I have this share or not)
                 });
             }
         });
@@ -660,7 +650,7 @@ var CloudantDBModule = (function() {
     exports.GetGroupDataByGroupId = GetGroupDataByGroupId;
 
     exports.CreateTransaction = CreateTransaction;
-    exports.GetTransactionById = GetTransactionById;
+    exports.GetTransactionById = GetTransactionInfoById;
     exports.AddTransactionToGroup = AddTransactionToGroup;
     exports.GetShareStash = GetShareStash;
 
