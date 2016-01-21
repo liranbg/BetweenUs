@@ -49,7 +49,7 @@ var CloudantDBModule = (function() {
                     }
                 }
             }
-        }
+        },
         // { creator: creator, members: user_list, name: group_name, transactions:[] },
     };
 
@@ -175,6 +175,15 @@ var CloudantDBModule = (function() {
             callback_func(err, data);
         });
 
+    };
+
+    var GetTransactionsByIdList  = function(list_of_transaction_id, callback_func) {
+        transactions_db.fetch({keys:list_of_transaction_id}, function(err, data) {
+            if (err) {
+                logger.error("GetTransactionsByIdList: fetch - %s", err.message);
+            }
+            callback_func(err, data);
+        });
     };
 
     var CreateTransaction = function(creator_userid, transaction_name, cipher_data, user_stash_list, group_id, share_threshold, callback_func) {
@@ -431,7 +440,6 @@ var CloudantDBModule = (function() {
                 var users_ids = data.member_list;
                 users_ids.push(data.creator);
 
-                var transactions_ids = data.transaction_list;
                 GetUsersByIdsList(users_ids, function(err, users_data) {
                     if (err) {
                         logger.error("GetGroupDataByGroupId: GetUsersByIdsList: %s", err.message);
@@ -446,13 +454,25 @@ var CloudantDBModule = (function() {
                                 group_data.member_list.push({email:doc.email, user_id: doc._id});
                             }
                         }
-                        //TODO: Add group Transactions
                         group_data.transaction_list = data.transaction_list;
-                        callback_func(err, group_data);
+                        GetTransactionsByIdList(group_data.transaction_list, function(err, transaction_data) {
+                            if (err) {
+                                logger.error("GetGroupDataByGroupId: GetTransactionsByIdList: %s", err.message);
+                            }
+                            else {
+                                group_data.transaction_list = [];
+                                for (var i in transaction_data.rows) {
+                                    group_data.transaction_list.push({
+                                        transaction_id: transaction_data.rows[i].id,
+                                        transaction_name: transaction_data.rows[i].doc.transaction_name
+                                    })
+                                }
+                                callback_func(err, group_data);
+                            }
+                        });
                     }
                 });
             }
-
         });
 
     };
