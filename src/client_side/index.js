@@ -230,6 +230,40 @@ function FetchGroupDataOnClick(group_id_field, member_list_table, transaction_li
     }});
 }
 
+function FetchTransactionDataOnClick(input_transaction_id,transaction_info_error_id,group_name_span_id,
+    transaction_name_span_id,transaction_threshold_span_id,share_status_list_table,
+    share_requests_table,share_committed_status) {
+    var transaction_id = $("#" + input_transaction_id).val();
+    $.ajax({
+        type: "GET",
+        url: server + "/transactions/get_transaction?transaction_id=" + transaction_id,
+        dataType:'json',
+        xhrFields: {withCredentials: true},
+        // On success, fill in public keys in the table.
+        success: function(data, status, xhr) {
+            /* Set transaction text to true */
+            Util_SetSpanText("Transaction data fetched successfully.", true, transaction_info_error_id);
+            /* Getting the value out of the json */
+            var group_name, transaction_name, threshold;
+            var stash;
+            /* Group name */
+            $("#" + group_name_span_id).val("Group name: " + group_name);
+            /* Transaction Name */
+            $("#" + transaction_name_span_id).val("Transaction name: " + transaction_name);
+            /* Threshold */
+            $("#" + transaction_threshold_span_id).val("Transaction name: " + threshold);
+            /* Get Stash contents */
+            for (var i in stash) {
+                var share_owner = stash[i].stash_owner,
+                    status = (stash[i].share.length == 0 ? 'Missing' : 'Present'),
+                    request = (stash[i].share.length == 0 ? '<button>REQUEST</button>' : '<button>CANCEL REQUEST</button>');
+                var table_row = '<td>' + share_owner + '</td><td>' + status + '<td>' + request +' </td>';
+            }
+        },
+        error: function(xhr, status, error) {
+            alert("Error fetching public keys group");
+        }});
+}
 /** Gets the public keys for all users in the group, sets threshold to maximum of members.length.
  *
  * @param member_table_id

@@ -6,12 +6,26 @@
     <script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.11.3.min.js"></script>
     <script type='text/javascript' src='index.js'></script>
 </head>
-<body onload="TransactionPageOnLoad('input_transaction_id','transaction_info_error')" ;>
+<body onload="TransactionPageOnLoad('input_transaction_id','transaction_info_error','group_name_span_id',
+'transaction_name_span_id','transaction_threshold_span_id','share_status_list_table','share_requests_table','share_committed_status')" ;>
 <div id="transaction_information_div">
     <h2>Transaction Page</h2>
     <span id="transaction_info_error"></span><br>
+    <!-- Fetch Transcatoin input and button -->
+    <h3>Fetch Transaction</h3>
     <input type="text" id="input_transaction_id" placeholder="Transaction ID"/>
-    <button onclick="FetchTransactionDataOnClick('input_transaction_id','transaction_info_error');">Fetch transaction data</button>
+    <button onclick="FetchTransactionDataOnClick('input_transaction_id','transaction_info_error','group_name_span_id',
+    'transaction_name_span_id','transaction_threshold_span_id','share_status_list_table',
+    'share_requests_table','share_committed_status');">
+        Fetch transaction data
+    </button>
+    <!-- Group Name -->
+    <h2>Group Details</h2>
+    <span id="group_name_span_id">Group Name: </span><br>
+    <!-- Transaction Name -->
+    <span id="transaction_name_span_id">Transaction Name: </span><br>
+    <!-- Threshold !-->
+    <span id="transaction_threshold_span_id">Threshold: </span><br>
     <br>
     <h3>Member list</h3>
     <table id="share_status_list_table">

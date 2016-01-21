@@ -4,9 +4,6 @@ var CloudantDBModule = (function() {
     var Cloudant = require('cloudant');
     var logger = require('winston');
     require('dotenv').load({path: './.env'}); //load all environments from .env file
-
-
-
     //Databases views definitions
     var views = {
         users_db: {
@@ -50,9 +47,31 @@ var CloudantDBModule = (function() {
                 }
             }
         },
+        transactions_db: {
+            "views": {
+                "get_transaction_info_by_id": {
+                    "map": function (doc) {
+                        if (doc.metadata.scheme == "transaction") {
+                            emit(doc._id, {
+                                transcation_name: doc.transaction_name,
+                                group_id: doc.group_id,
+                                threshold: doc.threshold,
+                                initiator: doc.initiator }
+                            );
+                        }
+                    }
+                },
+                'get_transaction_share_stash': {
+                    "map": function (doc) {
+                        for (var i in doc.stash_list) {
+                            emit({transaction_id: doc._id, user_id:doc.stash_list[i].user_id}, doc.stash_list[i].stash_id);
+                        }
+                    }
+                }
+            }
+        },
         // { creator: creator, members: user_list, name: group_name, transactions:[] },
     };
-
     //Databases configurations
     var db_module_config = {
         users_db: {
@@ -77,17 +96,27 @@ var CloudantDBModule = (function() {
                 }
             }
         },
-        transactions_db_name: 'transactions',
+        transactions_db: {
+            name: 'transactions',
+            api: {
+                get_transaction_info_by_id: {
+                    name: "get_transaction_info_by_id",
+                    design_name: "api"
+                },
+                get_transaction_share_stash: {
+                    name: "get_transaction_share_stash",
+                    design_name: "api"
+                }
+            }
+        },
         shares_stash_db_name: 'shares_stash',
         cloudant_account : {
             account: process.env.cloudant_username,
             password: process.env.cloudant_password
         }
     };
-
     //Database global variables initialization
     var cld_db = Cloudant(db_module_config.cloudant_account);
-
     var extension = function(db) {
         var update = function(obj, key, callback) {
             var db = this;
@@ -108,7 +137,7 @@ var CloudantDBModule = (function() {
 
     var groups_db = cld_db.db.use(db_module_config.groups_db.name);
     var users_db = cld_db.db.use(db_module_config.users_db.name);
-    var transactions_db = cld_db.db.use(db_module_config.transactions_db_name);
+    var transactions_db = cld_db.db.use(db_module_config.transactions_db.name);
     var shares_stash_db_name = cld_db.db.use(db_module_config.shares_stash_db_name);
 
     /*
@@ -153,8 +182,16 @@ var CloudantDBModule = (function() {
         });
     }
     function InitTransactionsDB() {
-        cld_db.db.create(db_module_config.transactions_db_name, function () {
-            logger.info(db_module_config.transactions_db_name + " database is set");
+        cld_db.db.create(db_module_config.transactions_db.name, function () {
+            logger.info(db_module_config.transactions_db.name + " database is set");
+            transactions_db.update(views.transactions_db, '_design/api',function(err, data) {
+                if (err) {
+                    logger.error("InitTransactionDB: %s", err);
+                }
+                else {
+                    logger.info("InitTransactionDB: %s", data);
+                }
+            });
         });
 
     }
