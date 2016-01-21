@@ -222,7 +222,7 @@ var CloudantDBModule = (function() {
             }
             else {
                 transaction_data.key = transaction_doc.id;
-                transaction_data.name = transaction_doc.rows[0].value.transaction_name;
+                transaction_data.name = transaction_doc.rows[0].value.transcation_name;
                 transaction_data.threshold = transaction_doc.rows[0].value.threshold;
                 transaction_data.initiator = {
                     initiator_id: transaction_doc.rows[0].value.initiator,
