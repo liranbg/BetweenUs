@@ -138,7 +138,7 @@ var CloudantDBModule = (function() {
     var groups_db = cld_db.db.use(db_module_config.groups_db.name);
     var users_db = cld_db.db.use(db_module_config.users_db.name);
     var transactions_db = cld_db.db.use(db_module_config.transactions_db.name);
-    var shares_stash_db_name = cld_db.db.use(db_module_config.shares_stash_db_name);
+    var shares_stash_db = cld_db.db.use(db_module_config.shares_stash_db_name);
 
     /*
      Databases initialization
@@ -203,7 +203,6 @@ var CloudantDBModule = (function() {
     //End Private Method for initializing databases
 
     //Transactions Related Functions
-
     var GetTransactionById = function(transaction_id, callback_func) {
         transactions_db.get(transaction_id, function(err, transaction_doc) {
             if (err) {
@@ -247,7 +246,7 @@ var CloudantDBModule = (function() {
                             for (var i in transaction_doc.stash_list) {
                                 stash_id_list.push(transaction_doc.stash_list[i].stash_id);
                             }
-                            shares_stash_db_name.fetch({keys:stash_id_list}, function(err, stash_data) {
+                            shares_stash_db.fetch({keys:stash_id_list}, function(err, stash_data) {
                                 if (err) {
                                     logger.error("GetTransactionById: shares_stash_db_name fetch - %s", err.message);
                                 }
@@ -260,16 +259,12 @@ var CloudantDBModule = (function() {
                                 callback_func(err, transaction_doc);
 
                             });
-
                         }
-
                     });
                     //TODO: Return Data that contains my own stash (to check if I have this share or not)
                 });
             }
-
         });
-
     };
 
     var GetTransactionsByIdList  = function(list_of_transaction_id, callback_func) {
@@ -362,7 +357,7 @@ var CloudantDBModule = (function() {
             };
             list_of_user_stash_to_insert.push(user_stash_doc);
         }
-        shares_stash_db_name.bulk({docs: list_of_user_stash_to_insert}, function(err, stash_share_body) {
+        shares_stash_db.bulk({docs: list_of_user_stash_to_insert}, function(err, stash_share_body) {
             if (err) {
                 logger.error("CreateTransaction: Bulk - %s", err.message);
             }
@@ -373,6 +368,53 @@ var CloudantDBModule = (function() {
             }
             callback_func(err, stash_share_body);
         })};
+
+    /***  GetStashList
+     * FLOW:
+     * Receive input of User_ID, Transaction_ID to act as our unique key in a predefined view.
+     * Query that view with our keys, in order to obtain the relevant Stash ID.
+     * Query the Stash DB to retrieve the Stash document associated with the above ID.
+     *
+     * @param user_id - user id whose stash to find
+     * @param transaction_id - transaction id for the share.
+     * @param callback_func - callback function to pass produced data into.
+     * @constructor
+     */
+    var GetShareStash = function(user_id, transaction_id, callback_func) {
+        var view_name = db_module_config.transactions_db.api.get_transaction_share_stash.name;
+        var design_name = db_module_config.transactions_db.api.get_transaction_share_stash.design_name;
+        /* Initial call to produce a stash ID for the user_id and transaction_id */
+        transactions_db.view(design_name, view_name, { keys: [{transaction_id: transaction_id, user_id: user_id}] }, function (err, data) {
+            if (err) {
+                logger.error("GetStashList: %s", err.message);
+                callback_func(err, data);
+            }
+            else {
+                /* Once here, we have Stash ID, retrieve stash from the database. */
+                var stash_id = data.rows[0].value;
+                GetShareStashByStashID(stash_id, callback_func);
+            }
+        })
+    };
+
+    /*** GetShareStashByStashID
+     * Recieves a stash id, retrieves the shares from the stash and invokes the callback function with the result.
+     *
+     * @param share_stash_id
+     * @param callback_func
+     * @constructor
+     */
+    var GetShareStashByStashID = function(share_stash_id, callback_func) {
+        shares_stash_db.get(share_stash_id, function (err, data) {
+            if (err) {
+                logger.error("GetShareStashByStashID: %s", err.message);
+            }
+            else {
+                var share_list = data.share_list;
+            }
+            callback_func(err, share_list);
+        });
+    };
 
     var AddTransactionToGroup = function(group_id, transaction_doc, callback_func) {
         groups_db.get(group_id, function (err, group_data) {
@@ -389,8 +431,6 @@ var CloudantDBModule = (function() {
                 callback_func(err, data);
             });
         });
-
-
     };
 
     var AddGroupToUser = function(user, group, callback_func) {
@@ -622,5 +662,6 @@ var CloudantDBModule = (function() {
     exports.CreateTransaction = CreateTransaction;
     exports.GetTransactionById = GetTransactionById;
     exports.AddTransactionToGroup = AddTransactionToGroup;
+    exports.GetShareStash = GetShareStash;
 
 } (CloudantDBModule || {}));

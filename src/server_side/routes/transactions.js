@@ -18,12 +18,28 @@ router.get('/get_transaction', function (req, res) {
             res.status(404).json({success:false, error: err.message});
         }
         else {
-
             res.status(200).json({success: true, transaction_data: data});
         }
     });
 });
 
+router.get('/get_share_stash', function (req, res) {
+    //http://localhost:3000/transactions/get_share_stash?transaction_id=64c934206c3d645dc01bbf7fc56e65ef
+    //var user_id = session_util.GetUserId(req.session);
+    var user_id = "1d62c89e16bb3fd19f9e9fa5dd9ddb24";
+    var transaction_id = req.query.transaction_id;
+    if (!transaction_id) {
+        res.status(404).json({success:false, error: "Invalid Input"});
+        return;
+    }
+    database_interface.GetShareStash(user_id, transaction_id, function(err, data) {
+        if (err) {
+            res.status(404).json({success:false, error: err.message});
+        }
+        else {
+            res.status(200).json({success: true, transaction_data: data});
+        }
+    })});
 
 router.post('/create_transaction', function (req, res) {
 
