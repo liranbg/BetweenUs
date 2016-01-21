@@ -95,7 +95,7 @@ var BetweenUsModule = (function() {
 
     /**
      * This function generates two random byte buffers, that act as the symmetric key passphrase and IV.
-     * Then the function seralizes into a string that will later be used for the purpose of decrypting the
+     * Then the function serializes into a string that will later be used for the purpose of decrypting the
      * cipher text.
      * @return {string} [Return a serialized dictionary that contains the AES init data.]
      */
@@ -173,7 +173,7 @@ var BetweenUsModule = (function() {
             share_list[share] = JSON.stringify({
                 bits:share_component.bits,
                 id:share_component.id,
-                data:_secrets.hex2str(share_component.data)
+                data:share_component.data
             });
         }
         return share_list;
@@ -193,16 +193,14 @@ var BetweenUsModule = (function() {
         var hex_string = _secrets.combine(decompressed_list);
         return _secrets.hex2str(hex_string);
     };
-
     var AsymmetricEncrypt = function(share_plain, rsa_key) {
         var data_to_encrypt = JSON.parse(share_plain);
-        //TODO encrypt data before str2hex
-        data_to_encrypt.data = _secrets.str2hex(data_to_encrypt.data);
-
+        data_to_encrypt.data = rsa_key.encrypt(data_to_encrypt.data, 'Base64');
         return (data_to_encrypt);
     };
 
     var AsymmetricDecrypt = function(encrypted_share, rsa_key) {
+        encrypted_share.data = rsa_key.decrypt(encrypted_share.data, 'utf8');
         return encrypted_share;
     };
 
