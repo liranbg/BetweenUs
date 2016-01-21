@@ -6,6 +6,8 @@ var router = express.Router();
 
 router.get('/get_transaction', function (req, res) {
     //http://localhost:3000/transactions/get_transaction?transaction_id=1afb05dfa0de96545a1756a2a309d7f5
+    //var user_id = session_util.GetUserId(req.session);
+    var user_id = "1d62c89e16bb3fd19f9e9fa5dd9ddb24";
     var transaction_id = req.query.transaction_id;
     if (!transaction_id) {
         res.status(404).json({success:false, error: "Invalid Input"});
@@ -16,6 +18,7 @@ router.get('/get_transaction', function (req, res) {
             res.status(404).json({success:false, error: err.message});
         }
         else {
+
             res.status(200).json({success: true, transaction_data: data});
         }
     });

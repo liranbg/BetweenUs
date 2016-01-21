@@ -186,10 +186,50 @@ var CloudantDBModule = (function() {
                         for (var i = 0; i < users_data.rows.length; ++i) {
                             var doc = users_data.rows[i].doc;
                             transaction_doc.stash_list[i].user_email = doc.email;
+                            if (doc._id == transaction_doc.initiator) {
+                                transaction_doc.initiator = {
+                                    user_id: doc._id,
+                                    user_email: doc.email
+                                };
+                            }
                         }
                     }
-                    callback_func(err, transaction_doc);
+                    transaction_doc.cipher_meta_data = undefined;
+                    GetGroupDataByGroupId(transaction_doc.group_id, function(err, group_data){
+                        if (err) {
+                            logger.error("GetTransactionById: GetUsersByIdsList - %s", err.message);
+                        }
+                        else {
+                            transaction_doc.group_data = {
+                                group_id: transaction_doc.group_id,
+                                group_name: group_data.group_name
+                            };
+                            transaction_doc.group_id = undefined;
 
+                            var stash_id_list = [];
+                            for (var i in transaction_doc.stash_list) {
+                                stash_id_list.push(transaction_doc.stash_list[i].stash_id);
+
+                            }
+
+                            shares_stash_db_name.fetch({keys:stash_id_list}, function(err, stash_data) {
+                                if (err) {
+                                    logger.error("GetTransactionById: shares_stash_db_name fetch - %s", err.message);
+                                }
+                                else {
+                                    for (var i in stash_data.rows) {
+                                        var doc = stash_data.rows[i].doc;
+                                        transaction_doc.stash_list[i].stash_data = doc.share_list;
+                                    }
+                                }
+                                callback_func(err, transaction_doc);
+
+                            });
+
+                        }
+
+                    });
+                    //TODO: Return Data that contains my own stash (to check if I have this share or not)
                 });
             }
 
