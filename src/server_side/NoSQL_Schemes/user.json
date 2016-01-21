@@ -8,7 +8,7 @@
       "registration_time": "2016-01-21T09:24:20.989Z", //ISO FORMAT DATE STRING
       "last_login_time": "2016-01-21T09:24:20.989Z" //ISO FORMAT DATE STRING,
     },
-    "username": "Alice@fictious-names.com",
+    "email": "Alice@fictious-names.com",
     "password": "password",
     "public_key": "rsa_publickey_string",
     "groups": [ "group_id_1", "group_id_2", "group_id_3" ],

@@ -40,7 +40,7 @@ function RegisterFormOnClick (email_field_id, password_field_id, public_key_fiel
                     $('#' + output_field_id).val(xhr.responseText)
                 },
                 error: function(xhr, status, error) {
-                    $('#' + output_field_id).val(JSON.parse(xhr.responseText).error);
+                    $('#' + output_field_id).val(JSON.parse(xhr.responseText).error.message);
                 }
             });
         }
@@ -95,7 +95,8 @@ function GetGroupsOnClick(groups_table_id) {
                     var transaction_amt = data.groups[i].value.transactions_length;
                     var member_amt, group_name, group_id;
                     member_amt = data.groups[i].value.members_length; // Members
-                    group_name = data.groups[i].value.name;
+                    group_name = data.groups[i].value.group_name;
+                    console.log(data.groups[i].value);
                     group_id = '<a href ="group.html?group_id=' +  data.groups[i].value.group_id + '">' + data.groups[i].value.group_id + '</a>';
                     // Append row to the table.
                     $('#' + groups_table_id + ' tr:last').after('<tr><td>' + group_id +'</td><td>' + group_name + '</td><td>' + member_amt + '</td><td>' + transaction_amt + '</td></tr>');
@@ -216,8 +217,8 @@ function FetchGroupDataOnClick(group_id_field, member_list_table, transaction_li
             /* Write tables */
             var creator_name = data.creator;
             Util_AppendRowToTable(member_list_table, '<td>' + creator_name.email +'</td><td>' + "Creator" + '</td>');
-            for (var i in data.members) {
-                Util_AppendRowToTable(member_list_table, '<td>' + data.members[i].email +'</td><td>' + "Participant" + '</td>');
+            for (var i in data.member_list) {
+                Util_AppendRowToTable(member_list_table, '<td>' + data.member_list[i].email +'</td><td>' + "Participant" + '</td>');
             }
             for (var i in data.transactions) {
                 Util_AppendRowToTable(member_list_table,'<td>' + data.transactions[i].trans_id +'</td><td>' + data.transactions[i].trans_name + '</td>');

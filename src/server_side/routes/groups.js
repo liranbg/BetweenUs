@@ -106,8 +106,8 @@ router.get('/get_members_public_keys/:group_id', function (req, res) {
             //TODO send user all public keys associated with group id
             //make another db call and send the data as [{user_id:"123", public_key: "dsfsd"},...]
             var users_id_list = [];
-            for (var i = 0; i< group_data.members.length; ++i) {
-                users_id_list.push(group_data.members[i].user_id);
+            for (var i = 0; i< group_data.member_list.length; ++i) {
+                users_id_list.push(group_data.member_list[i].user_id);
             }
             users_id_list.push(group_data.creator.user_id);
             database_interface.GetUsersPublicKeys(users_id_list, function(err, user_data) {

@@ -9,7 +9,10 @@
     },
     "initiator": "Alice",
     "transaction_name": "Our Secret Transcation",
-    "cipher_text": "Symmetric (probably AES) encrypted data, string representation",
+    "cipher_meta_data": {
+      "type": "String",
+      "data": "Symmetric (probably AES) encrypted data, string representation"
+    },
     "threshold": 2,
     "stash_list": [
       {

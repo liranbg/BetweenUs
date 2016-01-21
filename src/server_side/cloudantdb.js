@@ -24,8 +24,8 @@ var CloudantDBModule = (function() {
             "views": {
                 "get_groups_by_user": {
                     "map": function (doc) {
-                        for (var i = 0; i < doc.members.length ;i++) {
-                            emit(doc.members[i], doc);
+                        for (var i = 0; i < doc.member_list.length ;i++) {
+                            emit(doc.member_list[i], doc);
                         }
 
                         if (doc.creator) {
@@ -35,15 +35,15 @@ var CloudantDBModule = (function() {
                 },
                 "get_groups_metadata_by_user": {
                     "map": function(doc) {
-                        for (var i = 0; i < doc.members.length ;i++) {
-                            emit(doc.members[i], {
-                                group_id: doc._id, name: doc.name, transactions_length: doc.transactions.length, members_length: doc.members.length +1 //+1 for creator
+                        for (var i = 0; i < doc.member_list.length ;i++) {
+                            emit(doc.member_list[i], {
+                                group_id: doc._id, group_name: doc.group_name, transactions_length: doc.transaction_list.length, members_length: doc.member_list.length +1 //+1 for creator
                             });
                         }
 
                         if (doc.creator) {
                             emit(doc.creator, {
-                                group_id: doc._id, name: doc.name, transactions_length: doc.transactions.length, members_length: doc.members.length +1 //+1 for creator
+                                group_id: doc._id, group_name: doc.group_name, transactions_length: doc.transaction_list.length, members_length: doc.member_list.length +1 //+1 for creator
                             });
                         }
                     }
@@ -177,16 +177,24 @@ var CloudantDBModule = (function() {
 
     };
 
-    var CreateTransaction = function(creator_userid, transaction_name, chiper_data, user_stash_list, group_id, share_threshold, callback_func) {
+    var CreateTransaction = function(creator_userid, transaction_name, cipher_data, user_stash_list, group_id, share_threshold, callback_func) {
         //TODO: Store shares_stash before creating the transaction and then add it to the new transaction
         //user_stash_list - [{user_id:"123assss", share:"asdasdasdasd"},{},{},...]
         var new_transaction_doc = {
+            metadata: {
+                scheme: "transaction",
+                scheme_version: "1.0",
+                creation_time: (new Date()).toISOString()
+            },
             initiator: creator_userid,
             transaction_name: transaction_name,
-            encrypted_data: chiper_data,
+            cipher_meta_data:{
+                type: "String",
+                data: cipher_data
+            },
             group_id: group_id,
-            share_threshold: share_threshold,
-            shares: []
+            threshold: share_threshold,
+            stash_list: []
         };
         var email_list = [];
         for (var i in user_stash_list) {
@@ -196,8 +204,21 @@ var CloudantDBModule = (function() {
             var list_of_user_stash_to_insert = [];
             for (var i in data.rows) {
                 user_stash_list[i].user_id = data.rows[i].id;
-                list_of_user_stash_to_insert.push({ group_id:group_id, stash_owner: data.rows[i].id, stashed_shares: [user_stash_list[i]]});
+                var user_stash_doc = {
+                    "metadata": {
+                        "scheme": "share_stash",
+                        "scheme_version": "1.0",
+                        "creation_time": (new Date()).toISOString()
+                    },
+                    stash_owner: data.rows[i].id,
+                    "share_list": [
+                        user_stash_list[i]
+                    ],
+                    group_id:group_id
+                };
+                list_of_user_stash_to_insert.push(user_stash_doc);
             }
+            //TODO: Export share stash bulk to different function
             shares_stash_db_name.bulk({docs: list_of_user_stash_to_insert}, function(err, stash_share_body) {
                     if (err) {
                         logger.error("CreateTransaction: Bulk - %s", err.message);
@@ -208,22 +229,17 @@ var CloudantDBModule = (function() {
                         for (var j = 0; j < stash_share_body.length; ++j) {
                             list_of_stash_shares_ids.push({user_id: list_of_user_stash_to_insert[j].stash_owner, stash_id: stash_share_body[j].id});
                         }
-                        new_transaction_doc.shares = list_of_stash_shares_ids;
+                        new_transaction_doc.stash_list = list_of_stash_shares_ids;
                         transactions_db.insert(new_transaction_doc, function(err, transaction_body) {
                             if (err) {
                                 //TODO remove all created stash
                                 logger.error("CreateTransaction: Insert - %s", err.message);
                             }
-                            groups_db.get(group_id, function (err, group_data) {
+                            AddTransactionToGroup(group_id, transaction_body, function(err, data) {
                                 if (err) {
-                                    logger.error("CreateTransaction: Groups Get - %s", err.message);
+                                    logger.error("CreateTransaction: AddTransactionToGroup - %s", err.message);
                                 }
-                                groups_db.update(group_data,group_data._id, function(err, updated_group) {
-                                    if (err) {
-                                        logger.error("CreateTransaction: Groups Update - %s", err.message);
-                                    }
-                                    callback_func(err, transaction_body);
-                                });
+                                callback_func(err, transaction_body);
                             });
 
                         });
@@ -235,33 +251,29 @@ var CloudantDBModule = (function() {
 
     };
 
-    var AddTransactionToGroup = function(group, transaction, callback_func) {
-        var updated_list = group.transactions;
-        updated_list.push(transaction.id);
-        groups_db.insert({_id:group.id, _rev: group.rev, transactions:updated_list}, function(err, data) {
+    var AddTransactionToGroup = function(group_id, transaction_doc, callback_func) {
+        groups_db.get(group_id, function (err, group_data) {
             if (err) {
-                logger.error("AddTransactionToGroup: %s", err.message);
+                logger.error("CreateTransaction: Groups Get - %s", err.message);
+                callback_func(err, group_data);
+                return;
             }
-            callback_func(err, data);
+            var updated_list = group_data.transaction_list;
+            updated_list.push(transaction_doc.id);
+            groups_db.insert({_id:group_data.id, _rev: group_data.rev, transaction_list:updated_list}, function(err, data) {
+                if (err) {
+                    logger.error("AddTransactionToGroup: %s", err.message);
+                }
+                callback_func(err, data);
+            });
         });
 
-    };
 
-    var AddShareToTransaction = function(share, transaction, callback_func) {
-        var transactions_db = cld_db.db.use(db_module_config.transactions_db_name);
-        var updated_list = transaction.shares;
-        updated_list.push(share.id);
-        transactions_db.insert({_id:transaction.id, _rev: transaction.rev, shares:updated_list}, function(err, data) {
-            if (err) {
-                logger.error("AddShareToTransaction: %s", err.message);
-            }
-            callback_func(err, data);
-        });
     };
 
     var AddGroupToUser = function(user, group, callback_func) {
         //updating user's group list
-        user.in_groups.push(group.id);
+        user.groups.push(group.id);
         users_db.insert(user, user.id, function(err, data) {
             if (err) {
                 logger.error("AddGroupToUser: %s", err.message);
@@ -273,8 +285,22 @@ var CloudantDBModule = (function() {
 
     var InsertNewUser = function (password, email, public_key, callback_func) {
         // TODO: Add hashing and possibly a salt for the password [Discuss either here or on server prior to the request].
+        var user_doc = {
+            "metadata": {
+                "scheme": "user",
+                "scheme_version": "1.0",
+                "registration_time": (new Date()).toISOString(), //ISO FORMAT DATE STRING
+                "last_login_time": "" //ISO FORMAT DATE STRING,
+            },
+            "email": email,
+            "password": password,
+            "public_key": public_key,
+            "groups": [  ],
+            "notifications_stash": ""
+
+        };
         users_db.insert(
-            { password: password, in_groups: [], email: email, public_key: public_key }, // Document
+            user_doc, // Document
             function(err, data) {                                 // Callback func
                 if (err) {
                     logger.error("InsertNewUser: %s", err.message);
@@ -285,8 +311,19 @@ var CloudantDBModule = (function() {
 
     var CreateGroup = function (creator, list_of_users_ids, group_name, callback_func) {
         // TODO: Check that group name is complaint to some policy we'll set (max length, forbidden chars etc.) [Discuss either here or on server prior to the request].
+        var group_doc = {
+            "metadata": {
+                "scheme": "group",
+                "scheme_version": "1.0",
+                "creation_time": (new Date()).toISOString()
+            },
+            "creator": creator,
+            "group_name": group_name,
+            "member_list": list_of_users_ids,
+            "transaction_list": [ ]
+        };
         groups_db.insert(
-            { creator: creator, members: list_of_users_ids, name: group_name, transactions:[] },                    // Document
+            group_doc,                    // Document
             function(err, data) {                                                          // Callback func
                 if (err) {
                     logger.error("CreateGroup: %s", err.message);
@@ -359,6 +396,7 @@ var CloudantDBModule = (function() {
 
         });
     };
+
     var GetGroupDataByGroupId = function(group_id, callback_func) {
         groups_db.get(group_id, function (err, data) {
             if (err) {
@@ -367,13 +405,14 @@ var CloudantDBModule = (function() {
             }
             else {
                 var group_data = {};
-                group_data.group_name = data.name;
+                group_data.group_name = data.group_name;
                 group_data.id = data._id;
-                group_data.members = [];
+                group_data.member_list = [];
 
-                var users_ids = data.members;
+                var users_ids = data.member_list;
                 users_ids.push(data.creator);
-                var transactions_ids = data.transactions;
+
+                var transactions_ids = data.transaction_list;
                 GetUsersByIdsList(users_ids, function(err, users_data) {
                     if (err) {
                         logger.error("GetGroupDataByGroupId: GetUsersByIdsList: %s", err.message);
@@ -385,10 +424,11 @@ var CloudantDBModule = (function() {
                                 group_data.creator = { email:doc.email, user_id:doc._id };
                             }
                             else {
-                                group_data.members.push({email:doc.email, user_id: doc._id});
+                                group_data.member_list.push({email:doc.email, user_id: doc._id});
                             }
                         }
-                        group_data.transactions = data.transactions;
+                        //TODO: Add group Transactions
+                        group_data.transaction_list = data.transaction_list;
                         callback_func(err, group_data);
                     }
                 });
@@ -403,7 +443,7 @@ var CloudantDBModule = (function() {
         var doc;
         for (var i = 0; i < users_doc.rows.length; ++i) {
             doc = users_doc.rows[i].value;
-            doc.in_groups.push(group.id);
+            doc.groups.push(group.id);
             docs_to_update.push(doc);
         }
         users_db.bulk({docs: docs_to_update}, function(err, updated_data) {
@@ -448,7 +488,6 @@ var CloudantDBModule = (function() {
 
     exports.CreateTransaction = CreateTransaction;
     exports.GetTransactionById = GetTransactionById;
-    exports.AddShareToTransaction = AddShareToTransaction;
     exports.AddTransactionToGroup = AddTransactionToGroup;
 
 } (CloudantDBModule || {}));
