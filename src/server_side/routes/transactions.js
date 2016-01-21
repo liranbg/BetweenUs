@@ -16,7 +16,7 @@ router.get('/get_transaction', function (req, res) {
             res.status(404).json({success:false, error: err.message});
         }
         else {
-            res.status(200).json({success: true, user_data: data});
+            res.status(200).json({success: true, transaction_data: data});
         }
     });
 });
@@ -24,8 +24,7 @@ router.get('/get_transaction', function (req, res) {
 
 router.post('/create_transaction', function (req, res) {
 
-    //var initiator = session_util.GetUserId(req.session);
-    var initiator = "18070c0660cf6b7f6a75f46860ca9104"; //Nadav's user id
+    var initiator = session_util.GetUserId(req.session);
     var data = JSON.parse(req.body.json_data);
     var chiper_data = data.cipher_data;
     var stash_list = data.stash_list; //[{user_id:"123123", share:"asdasdasdasd"},{},{},...]

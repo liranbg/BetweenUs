@@ -168,11 +168,31 @@ var CloudantDBModule = (function() {
     //Transactions Related Functions
 
     var GetTransactionById = function(transaction_id, callback_func) {
-        transactions_db.get(transaction_id, function(err, data) {
+        transactions_db.get(transaction_id, function(err, transaction_doc) {
             if (err) {
                 logger.error("GetTransactionById: Get - %s", err.message);
+                callback_func(err, transaction_doc);
             }
-            callback_func(err, data);
+            else {
+                var list_of_user_ids = [];
+                for (var i in transaction_doc.stash_list) {
+                    list_of_user_ids.push(transaction_doc.stash_list[i].user_id);
+                }
+                GetUsersByIdsList(list_of_user_ids, function(err, users_data) {
+                    if (err) {
+                        logger.error("GetTransactionById: GetUsersByIdsList - %s", err.message);
+                    }
+                    else {
+                        for (var i = 0; i < users_data.rows.length; ++i) {
+                            var doc = users_data.rows[i].doc;
+                            transaction_doc.stash_list[i].user_email = doc.email;
+                        }
+                    }
+                    callback_func(err, transaction_doc);
+
+                });
+            }
+
         });
 
     };
@@ -286,9 +306,8 @@ var CloudantDBModule = (function() {
                 callback_func(err, group_data);
                 return;
             }
-            var updated_list = group_data.transaction_list;
-            updated_list.push(transaction_doc.id);
-            groups_db.insert({_id:group_data.id, _rev: group_data.rev, transaction_list:updated_list}, function(err, data) {
+            group_data.transaction_list.push(transaction_doc.id);
+            groups_db.update(group_data, group_data._id, function(err, data) {
                 if (err) {
                     logger.error("AddTransactionToGroup: %s", err.message);
                 }
