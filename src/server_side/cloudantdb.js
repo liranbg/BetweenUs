@@ -209,9 +209,7 @@ var CloudantDBModule = (function() {
                             var stash_id_list = [];
                             for (var i in transaction_doc.stash_list) {
                                 stash_id_list.push(transaction_doc.stash_list[i].stash_id);
-
                             }
-
                             shares_stash_db_name.fetch({keys:stash_id_list}, function(err, stash_data) {
                                 if (err) {
                                     logger.error("GetTransactionById: shares_stash_db_name fetch - %s", err.message);

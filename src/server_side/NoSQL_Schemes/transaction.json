@@ -13,6 +13,7 @@
       "type": "String",
       "data": "Symmetric (probably AES) encrypted data, string representation"
     },
+    "group_id": "5ad824afac098982aeb776d598452dc3",
     "threshold": 2,
     "stash_list": [
       {
