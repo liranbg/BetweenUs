@@ -53,7 +53,7 @@ var CloudantDBModule = (function() {
                     "map": function (doc) {
                         if (doc.metadata.scheme == "transaction") {
                             emit(doc._id, {
-                                transcation_name: doc.transaction_name,
+                                transaction_name: doc.transaction_name,
                                 group_id: doc.group_id,
                                 threshold: doc.threshold,
                                 initiator: doc.initiator }
@@ -221,8 +221,10 @@ var CloudantDBModule = (function() {
                 logger.error("GetTransactionInfoById: %s", err.message);
             }
             else {
+                console.log(transaction_data.name = transaction_doc.rows[0]);
+                console.log(transaction_data.name = transaction_doc.rows[0].value);
                 transaction_data.key = transaction_doc.id;
-                transaction_data.name = transaction_doc.rows[0].value.transcation_name;
+                transaction_data.transaction_name = transaction_doc.rows[0].value.transaction_name;
                 transaction_data.threshold = transaction_doc.rows[0].value.threshold;
                 transaction_data.initiator = {
                     initiator_id: transaction_doc.rows[0].value.initiator,
