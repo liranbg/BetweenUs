@@ -220,8 +220,8 @@ function FetchGroupDataOnClick(group_id_field, member_list_table, transaction_li
             for (var i in data.member_list) {
                 Util_AppendRowToTable(member_list_table, '<td>' + data.member_list[i].email +'</td><td>' + "Participant" + '</td>');
             }
-            for (var i in data.transactions) {
-                Util_AppendRowToTable(member_list_table,'<td>' + data.transactions[i].trans_id +'</td><td>' + data.transactions[i].trans_name + '</td>');
+            for (var i in data.transaction_list) {
+                Util_AppendRowToTable(transaction_list_table,'<td>' + data.transaction_list[i].transaction_id +'</td><td>' + data.transaction_list[i].transaction_name + '</td>');
             }
             Util_SetSpanText("Transaction and members fetched successfully.", true, error_span_id);
         },
