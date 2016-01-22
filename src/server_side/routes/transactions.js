@@ -32,7 +32,7 @@ router.get('/get_share_stash', function (req, res) {
         res.status(404).json({success:false, error: "Invalid Input"});
         return;
     }
-    database_interface.GetShareStash(user_id, transaction_id, function(err, data) {
+    database_interface.GetShareStash(user_id, transaction_id, true, function(err, data) {
         if (err) {
             res.status(404).json({success:false, error: err.message});
         }

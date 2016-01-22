@@ -268,15 +268,18 @@ function FetchTransactionDataOnClick(input_transaction_id,transaction_info_error
         xhrFields: {withCredentials: true},
         // On success, fill in public keys in the table.
         success: function(data, status, xhr) {
+            /* Clean table */
+            Util_ClearTable(share_status_list_table);
             /* Set transaction text to true */
             Util_SetSpanText("Transaction share stash fetched successfully.", true, transaction_info_error_id);
             /* Getting the value out of the json */
             var stash = data.transaction_data;
             for (var i in stash) {
-                var share_owner = stash[i].user_id,
+                var share_owner_email = stash[i].email,
+                    share_owner_id = '<input type="hidden" id="' + share_owner_email +' value="' + stash[i].user_id +'"/>',// Push the ID in the username field.
                     status = (stash[i].share.length == 0 ? 'Missing' : 'Present'),
                     request = (stash[i].share.length == 0 ? '<button>REQUEST</button>' : '');
-                var table_row = '<td>' + share_owner + '</td><td>' + status + '<td>' + request +' </td>';
+                var table_row = '<td>' + share_owner_id + share_owner_email + '</td><td>' + status + '<td>' + request +' </td>';
                 Util_AppendRowToTable(share_status_list_table, table_row);
             }
         },
@@ -284,6 +287,8 @@ function FetchTransactionDataOnClick(input_transaction_id,transaction_info_error
             alert("Error fetching public keys group");
         }});
 }
+
+
 /** Gets the public keys for all users in the group, sets threshold to maximum of members.length.
  *
  * @param member_table_id
