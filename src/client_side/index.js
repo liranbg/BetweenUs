@@ -3,13 +3,13 @@
 var server = "http://localhost:3000";
 
 /* Requirements:
-    * libraries:
-        -  jquery
-        -  crypto_actions.js
-    * notes:
-        -  ajax requests that requires authentication must be sent with:
-            'xhrFields: {withCredentials: true}'
-           as one of the parameters, otherwise a CORS issue will arise.
+ * libraries:
+ -  jquery
+ -  crypto_actions.js
+ * notes:
+ -  ajax requests that requires authentication must be sent with:
+ 'xhrFields: {withCredentials: true}'
+ as one of the parameters, otherwise a CORS issue will arise.
  */
 
 
@@ -31,19 +31,19 @@ function RegisterFormOnClick (email_field_id, password_field_id, public_key_fiel
     var password =  $("#" + password_field_id).val();
     var public_key = $("#" + public_key_field_id).val();
     var json_data = {email: email, password: password, public_key: public_key };
-            $.ajax({
-                type: "POST",
-                url: server + "/users/register_user",
-                data: json_data,
-                dataType:'json',
-                success: function(data, status, xhr) {
-                    $('#' + output_field_id).val(xhr.responseText)
-                },
-                error: function(xhr, status, error) {
-                    $('#' + output_field_id).val(JSON.parse(xhr.responseText).error.message);
-                }
-            });
+    $.ajax({
+        type: "POST",
+        url: server + "/users/register_user",
+        data: json_data,
+        dataType:'json',
+        success: function(data, status, xhr) {
+            $('#' + output_field_id).val(xhr.responseText)
+        },
+        error: function(xhr, status, error) {
+            $('#' + output_field_id).val(JSON.parse(xhr.responseText).error.message);
         }
+    });
+}
 
 /** Authorization to the server.
  *
@@ -84,23 +84,23 @@ function LoginFormOnClick (email_field_id, password_field_id, output_field_id) {
  * @return None
  */
 function GetGroupsOnClick(groups_table_id) {
-        $.ajax({
-            type: "GET",
-            url: server + "/groups/get_groups",
-            dataType:'json',
-            xhrFields: {withCredentials: true},
-            success: function(data, status, xhr) {
-                Util_ClearTable(groups_table_id);
-                for (var i in data.groups) {
-                    var transaction_amt = data.groups[i].value.transactions_length;
-                    var member_amt, group_name, group_id;
-                    member_amt = data.groups[i].value.members_length; // Members
-                    group_name = data.groups[i].value.group_name;
-                    console.log(data.groups[i].value);
-                    group_id = '<a href ="group.html?group_id=' +  data.groups[i].value.group_id + '">' + data.groups[i].value.group_id + '</a>';
-                    // Append row to the table.
-                    $('#' + groups_table_id + ' tr:last').after('<tr><td>' + group_id +'</td><td>' + group_name + '</td><td>' + member_amt + '</td><td>' + transaction_amt + '</td></tr>');
-                }
+    $.ajax({
+        type: "GET",
+        url: server + "/groups/get_groups",
+        dataType:'json',
+        xhrFields: {withCredentials: true},
+        success: function(data, status, xhr) {
+            Util_ClearTable(groups_table_id);
+            for (var i in data.groups) {
+                var transaction_amt = data.groups[i].value.transactions_length;
+                var member_amt, group_name, group_id;
+                member_amt = data.groups[i].value.members_length; // Members
+                group_name = data.groups[i].value.group_name;
+                console.log(data.groups[i].value);
+                group_id = '<a href ="group.html?group_id=' +  data.groups[i].value.group_id + '">' + data.groups[i].value.group_id + '</a>';
+                // Append row to the table.
+                $('#' + groups_table_id + ' tr:last').after('<tr><td>' + group_id +'</td><td>' + group_name + '</td><td>' + member_amt + '</td><td>' + transaction_amt + '</td></tr>');
+            }
         },
         error: function(xhr, status, error) {
             console.log(xhr.responseText);
@@ -228,13 +228,14 @@ function FetchGroupDataOnClick(group_id_field, member_list_table, transaction_li
         },
         error: function(xhr, status, error) {
             Util_SetSpanText("Error while fetching member and transaction info.", false, error_span_id);
-    }});
+        }});
 }
 
 function FetchTransactionDataOnClick(input_transaction_id,transaction_info_error_id,group_name_span_id,
-    transaction_name_span_id,transaction_threshold_span_id,share_status_list_table,
-    share_requests_table,share_committed_status) {
+                                     transaction_name_span_id,transaction_threshold_span_id,share_status_list_table,
+                                     share_requests_table,share_committed_status) {
     var transaction_id = $("#" + input_transaction_id).val();
+    /** GET TRANSACTION META DETAILS **/
     $.ajax({
         type: "GET",
         url: server + "/transactions/get_transaction?transaction_id=" + transaction_id,
@@ -245,20 +246,38 @@ function FetchTransactionDataOnClick(input_transaction_id,transaction_info_error
             /* Set transaction text to true */
             Util_SetSpanText("Transaction data fetched successfully.", true, transaction_info_error_id);
             /* Getting the value out of the json */
-            var group_name, transaction_name, threshold;
-            var stash;
+            var group_name = data.transaction_data.group_data.group_name,
+                transaction_name = data.transaction_data.name,
+                threshold = data.transaction_data.threshold;
             /* Group name */
-            $("#" + group_name_span_id).val("Group name: " + group_name);
+            $("#" + group_name_span_id).html("Group name: " + group_name);
             /* Transaction Name */
-            $("#" + transaction_name_span_id).val("Transaction name: " + transaction_name);
+            $("#" + transaction_name_span_id).html("Transaction name: " + transaction_name);
             /* Threshold */
-            $("#" + transaction_threshold_span_id).val("Transaction name: " + threshold);
-            /* Get Stash contents */
+            $("#" + transaction_threshold_span_id).html("Transaction name: " + threshold);
+        },
+        error: function(xhr, status, error) {
+            alert("Error fetching public keys group");
+        }});
+
+    /** GET TRANSACTION SHARE STASH FOR USER **/
+    $.ajax({
+        type: "GET",
+        url: server + "/transactions/get_share_stash?transaction_id=" + transaction_id,
+        dataType:'json',
+        xhrFields: {withCredentials: true},
+        // On success, fill in public keys in the table.
+        success: function(data, status, xhr) {
+            /* Set transaction text to true */
+            Util_SetSpanText("Transaction share stash fetched successfully.", true, transaction_info_error_id);
+            /* Getting the value out of the json */
+            var stash = data.transaction_data;
             for (var i in stash) {
-                var share_owner = stash[i].stash_owner,
+                var share_owner = stash[i].user_id,
                     status = (stash[i].share.length == 0 ? 'Missing' : 'Present'),
-                    request = (stash[i].share.length == 0 ? '<button>REQUEST</button>' : '<button>CANCEL REQUEST</button>');
+                    request = (stash[i].share.length == 0 ? '<button>REQUEST</button>' : '');
                 var table_row = '<td>' + share_owner + '</td><td>' + status + '<td>' + request +' </td>';
+                Util_AppendRowToTable(share_status_list_table, table_row);
             }
         },
         error: function(xhr, status, error) {
@@ -321,12 +340,12 @@ function TransactionPageOnLoad(transaction_input_field_id, error_field_id) {
 }
 
 http://localhost:63342/BetweenUs/src/client_side/transaction.html?transaction_id=1
-/* BetweenUs functions. */
+    /* BetweenUs functions. */
 
-function GenerateSymmetricKeyOnClick() {
-    var sym_key = betweenus.GenerateSymmetricKeyDictionary();
-    $('#sym_key').val(sym_key);
-}
+    function GenerateSymmetricKeyOnClick() {
+        var sym_key = betweenus.GenerateSymmetricKeyDictionary();
+        $('#sym_key').val(sym_key);
+    }
 
 function EncryptSecretContentOnClick() {
     var text_to_encrypt = $('#secret_content').val();

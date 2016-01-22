@@ -390,7 +390,7 @@ var CloudantDBModule = (function() {
     };
 
     /*** GetShareStashByStashID
-     * Recieves a stash id, retrieves the shares from the stash and invokes the callback function with the result.
+     * Receives a stash id, retrieves the shares from the stash and invokes the callback function with the result.
      *
      * @param share_stash_id
      * @param callback_func
@@ -408,6 +408,7 @@ var CloudantDBModule = (function() {
         });
     };
 
+    
     var AddTransactionToGroup = function(group_id, transaction_doc, callback_func) {
         groups_db.get(group_id, function (err, group_data) {
             if (err) {
