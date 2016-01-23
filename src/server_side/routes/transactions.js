@@ -149,7 +149,6 @@ router.post('/commit_share', function(req,res) {
                                     }
                                     else {
                                         res.status(201).json({success:false, error: "Done"});
-
                                     }
                                 }
                             );
