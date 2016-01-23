@@ -109,7 +109,11 @@ var CloudantDBModule = (function() {
                 }
             }
         },
+        notification_stash_db: {
+            name: "notification_stash"
+        },
         shares_stash_db_name: 'shares_stash',
+
         cloudant_account : {
             account: process.env.cloudant_username,
             password: process.env.cloudant_password
@@ -139,6 +143,7 @@ var CloudantDBModule = (function() {
     var users_db = cld_db.db.use(db_module_config.users_db.name);
     var transactions_db = cld_db.db.use(db_module_config.transactions_db.name);
     var shares_stash_db = cld_db.db.use(db_module_config.shares_stash_db_name);
+    var notification_stash_db = cld_db.db.use(db_module_config.notification_stash_db.name);
 
     /*
      Databases initialization
@@ -152,6 +157,8 @@ var CloudantDBModule = (function() {
         InitSharesStashDB();
         logger.info("Initializing TransactionsDB");
         InitTransactionsDB();
+        logger.info("Initializing NotificationsStashDB");
+        InitNotificationsStashDB();
     };
     //Private Method for initializing databases
     function InitUsersDB() {
@@ -199,6 +206,12 @@ var CloudantDBModule = (function() {
         cld_db.db.create(db_module_config.shares_stash_db_name, function () {
             logger.info(db_module_config.shares_stash_db_name + " database is set");
         });
+    }
+    function InitNotificationsStashDB() {
+        cld_db.db.create(db_module_config.notification_stash_db.name, function () {
+            logger.info(db_module_config.notification_stash_db.name + " database is set");
+        });
+
     }
     //End Private Method for initializing databases
 
@@ -440,7 +453,7 @@ var CloudantDBModule = (function() {
         });
     };
 
-    
+
     var AddTransactionToGroup = function(group_id, transaction_doc, callback_func) {
         groups_db.get(group_id, function (err, group_data) {
             if (err) {
@@ -483,16 +496,28 @@ var CloudantDBModule = (function() {
             "password": password,
             "public_key": public_key,
             "groups": [  ],
-            "notifications_stash": ""
-
+            "notifications_stash": []
         };
         users_db.insert(
             user_doc, // Document
-            function(err, data) {                                 // Callback func
+            function(err, user_inserted_doc) {                                 // Callback func
                 if (err) {
                     logger.error("InsertNewUser: %s", err.message);
+                    callback_func(err, user_inserted_doc);
                 }
-                callback_func(err, data);
+                else {
+                    CreateNotificationStash(user_inserted_doc.id, function(err, notification_body) {
+                        if (err) {
+                            logger.error("InsertNewUser: CreateNotificationStash - %s", err.message);
+                            callback_func(err, user_inserted_doc);
+                        }
+                        else {
+                            user_doc.notifications_stash.push(notification_body.id);
+                            users_db.update(user_doc, user_inserted_doc.id, callback_func);
+                        }
+                    });
+                }
+
             });
     };
 
@@ -669,6 +694,39 @@ var CloudantDBModule = (function() {
         });
     };
 
+    var CreateNotificationStash = function(user_id, callback_func) {
+        var notification_body = {
+            metadata: {
+                scheme: "notification_stash",
+                scheme_version: "1.0",
+                last_updated: (new Date()).toISOString()
+            },
+            user_id: user_id,
+            notification_list: [ ]
+        };
+        notification_stash_db.insert(notification_body, function(err, new_notification_body) {
+            if (err) {
+                logger.error("CreateNotificationStash: insert - %s", err.message);
+            }
+            callback_func(err, new_notification_body);
+        });
+
+    };
+
+
+    var RequestShareFromUser = function(transaction_id, stash_owner_user_id, wanted_share_user_id, callback_func) {
+
+
+    };
+
+    var ApproveRequestShareFromUser = function(transaction_id, stash_owner_user_id, wanted_share_user_id, callback_func) {
+
+    };
+
+    var DeclineRequestShareFromUser = function(transaction_id, stash_owner_user_id, wanted_share_user_id, callback_func) {
+
+    };
+
     exports.InitDataBases = InitDataBases;
     exports.InsertNewUser =InsertNewUser;
 
@@ -688,5 +746,10 @@ var CloudantDBModule = (function() {
     exports.GetTransactionById = GetTransactionInfoById;
     exports.AddTransactionToGroup = AddTransactionToGroup;
     exports.GetShareStash = GetShareStash;
+
+    exports.CreateNotificationStash = CreateNotificationStash;
+    exports.RequestShareFromUser = RequestShareFromUser;
+    exports.ApproveRequestShareFromUser = ApproveRequestShareFromUser;
+    exports.DeclineRequestShareFromUser = DeclineRequestShareFromUser;
 
 } (CloudantDBModule || {}));

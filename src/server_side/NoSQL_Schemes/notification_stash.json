@@ -7,7 +7,7 @@
       "scheme_version": "1.0",
       "last_updated": "2016-01-21T09:24:20.989Z" //ISO FORMAT DATE STRING
     },
-    "stash_owner": "Alice@fictious-names.com",
+    "user_id": "Alice@fictious-names.com",
     "notification_list": [
       {
         "time": "2016-01-21T08:24:20.989Z", //ISO FORMAT DATE STRING
