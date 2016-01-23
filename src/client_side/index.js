@@ -431,7 +431,7 @@ function AcceptRequestOnClick(transaction_id, target_user) {
 
 function _CommitShareToServer(share, target_user_public_key, target_user_id, transaction_id) {
     var encrypted_share = _mock_rsa_public_encrypt(share, target_user_public_key);
-    var data = {target_user_id: target_user_id, encrypted_share: encrypted_share, transaction_id: transaction_id};
+    var data = {target_user_id: target_user_id, encrypted_share: JSON.stringify(encrypted_share), transaction_id: transaction_id};
     $.ajax({
         type: "POST",
         url: server + "/transactions/commit_share",

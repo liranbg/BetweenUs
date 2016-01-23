@@ -117,7 +117,6 @@ router.get('/get_my_share', function(req, res) {
 
 });
 
-
 router.post('/commit_share', function(req,res) {
     var user_id = session_util.GetUserId(req.session);
     var transaction_id = req.body.transaction_id;
@@ -138,17 +137,17 @@ router.post('/commit_share', function(req,res) {
             for (var i in transaction_doc.stash_list) {
                 var doc = transaction_doc.stash_list[i];
                 if (doc.user_id == target_user_id) {
-                    database_interface.GetShareStashByStashID(doc.stash_id, function(err, stash) {
+                    database_interface.GetShareStashDocByStashID(doc.stash_id, function(err, stash) {
                         if (err) {
-                            res.status(404).json({success:false, error: "Invalid Stash Id"});
+                            res.status(404).json({success:false, error: err.message});
                         }
                         else {
                             database_interface.CommitShareToUser(stash, encrypted_share, user_id, function(err, stash) {
                                     if (err) {
-                                        res.status(404).json({success:false, error: "Invalid Stash Id"});
+                                        res.status(404).json({success:false, error: "Share committing error"});
                                     }
                                     else {
-                                        res.status(201).json({success:false, error: "Done"});
+                                        res.status(201).json({success:true, message: "Done"});
                                     }
                                 }
                             );
