@@ -453,6 +453,15 @@ var CloudantDBModule = (function() {
         });
     };
 
+    var GetShareStashDocByStashID = function(share_stash_id, callback_func) {
+        shares_stash_db.get(share_stash_id, function (err, data) {
+            if (err) {
+                logger.error("GetShareStashByStashID: %s", err.message);
+            }
+            callback_func(err, data);
+        });
+    };
+
 
     var AddTransactionToGroup = function(group_id, transaction_doc, callback_func) {
         groups_db.get(group_id, function (err, group_data) {
@@ -802,12 +811,14 @@ var CloudantDBModule = (function() {
     };
 
     var CommitShareToUser = function(stash_doc, share, source_user_id, callback_func) {
-        for (var i in stash_doc) {
-            if (stash_doc[i].user_id == source_user_id) {
-                stash_doc.share = share;
+        for (var i in stash_doc.share_list) {
+            if (stash_doc.share_list[i].user_id == source_user_id) {
+                stash_doc.share_list[i].share = share;
                 shares_stash_db.update(stash_doc, stash_doc._id, callback_func);
+                return;
             }
         }
+        callback_func({message:"no user id in share list"}, null);
     };
 
     var DeclineRequestShareFromUser = function(transaction_id, stash_owner_user_id, wanted_share_user_id, callback_func) {
@@ -835,6 +846,7 @@ var CloudantDBModule = (function() {
     exports.AddTransactionToGroup = AddTransactionToGroup;
     exports.GetShareStash = GetShareStash;
     exports.GetShareStashByStashID = GetShareStashByStashID;
+    exports.GetShareStashDocByStashID = GetShareStashDocByStashID;
 
     exports.CreateNotificationStash = CreateNotificationStash;
     exports.GetNotificationStash = GetNotificationStash;
