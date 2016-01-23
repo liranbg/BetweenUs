@@ -233,7 +233,7 @@ function FetchGroupDataOnClick(group_id_field, member_list_table, transaction_li
 
 function FetchTransactionDataOnClick(input_transaction_id,transaction_info_error_id,group_name_span_id,
                                      transaction_name_span_id,transaction_threshold_span_id,share_status_list_table,
-                                     share_requests_table,share_committed_status) {
+                                     threshold_reached_span_id,share_committed_status) {
     var transaction_id = $("#" + input_transaction_id).val();
     /** GET TRANSACTION META DETAILS **/
     $.ajax({
@@ -255,11 +255,17 @@ function FetchTransactionDataOnClick(input_transaction_id,transaction_info_error
             $("#" + transaction_name_span_id).html("Transaction Name: " + transaction_name);
             /* Threshold */
             $("#" + transaction_threshold_span_id).html("Threshold: " + threshold);
+            GetTransactionShareStash(share_status_list_table, transaction_info_error_id, transaction_id, threshold, threshold_reached_span_id);
         },
         error: function(xhr, status, error) {
             alert("Error fetching public keys group");
         }});
 
+
+}
+
+function GetTransactionShareStash(share_stash_table_id, transaction_info_error_id, transaction_id, transaction_threshold, threshold_reached_span_id)
+{
     /** GET TRANSACTION SHARE STASH FOR USER **/
     $.ajax({
         type: "GET",
@@ -269,27 +275,36 @@ function FetchTransactionDataOnClick(input_transaction_id,transaction_info_error
         // On success, fill in public keys in the table.
         success: function(data, status, xhr) {
             /* Clean table */
-            Util_ClearTable(share_status_list_table);
+            var share_amt = 0;
+            Util_ClearTable(share_stash_table_id);
             /* Set transaction text to true */
             Util_SetSpanText("Transaction share stash fetched successfully.", true, transaction_info_error_id);
             /* Getting the value out of the json */
             var stash = data.transaction_data;
+            console.log(data);
             for (var i in stash) {
+                share_amt += (stash[i].share.length == 0 ? 0 : 1);
                 var share_owner_email = stash[i].email,
-                    status = (stash[i].share.length == 0 ? 'Missing' : 'Present'),
+                    status = (stash[i].share.length == 0 ? 'Missing': 'Present'),
                     button_id = share_owner_email + "Button",
                     request = (stash[i].share.length == 0 ? '<button id="'+ button_id +'" onclick=\'RequestShareOnClick("' + transaction_id+ '", "' + stash[i].user_id + '", "' + button_id + '");\'>Request Share</button>' : '');
                 var table_row = '<td>' + share_owner_email + '</td><td>' + status + '<td>' + request +' </td>';
-                Util_AppendRowToTable(share_status_list_table, table_row);
+                Util_AppendRowToTable(share_stash_table_id, table_row);
             }
+            if (share_amt >= transaction_threshold) {
+                console.log("calling...");
+                RequestShareStash(threshold_reached_span_id);
+            }
+
         },
         error: function(xhr, status, error) {
             alert("Error fetching public keys group");
         }});
-
 }
 
-
+function RequestShareStash(threshold_reached_span_id) {
+    $("#" + threshold_reached_span_id).html("You have enough shares! <br><button onclick='alert(\"fuck you liran!\");'>Decrypt Secret</button>");
+}
 /** Gets the public keys for all users in the group, sets threshold to maximum of members.length.
  *
  * @param member_table_id
