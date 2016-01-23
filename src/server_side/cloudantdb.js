@@ -290,7 +290,6 @@ var CloudantDBModule = (function() {
             email_list.push(user_stash_list[i].user_id);
         }
         GetUsersByEmailList(email_list, function(err, data) {
-            var list_of_user_stash_to_insert = [];
             for (var i in data.rows) {
                 user_stash_list[i].user_id = data.rows[i].id;
             }
@@ -301,7 +300,6 @@ var CloudantDBModule = (function() {
                     callback_func(err, stash_share_body);
                 }
                 else {
-                    console.log(stash_share_body);
                     var list_of_stash_shares_ids = [];
                     for (var j = 0; j < stash_share_body.length; ++j) {
                         list_of_stash_shares_ids.push({user_id: stash_share_body[j].stash_owner, stash_id: stash_share_body[j].id});
@@ -333,6 +331,19 @@ var CloudantDBModule = (function() {
         //user_stash_list - [{user_id:"123assss", share:"asdasdasdasd"},{},{},...]
         var list_of_user_stash_to_insert = [];
         for (var i in user_stash_list) {
+            var share_list = [];
+            for (var j in user_stash_list) {
+                var share_obj = {};
+                share_obj.user_id = user_stash_list[j].user_id;
+                if (j == i) {
+                    share_obj.share = user_stash_list[i].share;
+                }
+                else {
+                    share_obj.share = "";
+
+                }
+                share_list.push(share_obj);
+            }
             var user_stash_doc = {
                 metadata: {
                     scheme: "share_stash",
@@ -340,9 +351,8 @@ var CloudantDBModule = (function() {
                     creation_time: (new Date()).toISOString()
                 },
                 stash_owner: user_stash_list[i].user_id,
-                share_list: [
-                    user_stash_list[i]
-                ],
+                share_list: share_list
+                ,
                 group_id:group_id
             };
             list_of_user_stash_to_insert.push(user_stash_doc);

@@ -250,11 +250,11 @@ function FetchTransactionDataOnClick(input_transaction_id,transaction_info_error
                 transaction_name = data.transaction_data.transaction_name,
                 threshold = data.transaction_data.threshold;
             /* Group name */
-            $("#" + group_name_span_id).html("Group name: " + group_name);
+            $("#" + group_name_span_id).html("Group Name: " + group_name);
             /* Transaction Name */
-            $("#" + transaction_name_span_id).html("Transaction name: " + transaction_name);
+            $("#" + transaction_name_span_id).html("Transaction Name: " + transaction_name);
             /* Threshold */
-            $("#" + transaction_threshold_span_id).html("Transaction name: " + threshold);
+            $("#" + transaction_threshold_span_id).html("Threshold: " + threshold);
         },
         error: function(xhr, status, error) {
             alert("Error fetching public keys group");
@@ -276,7 +276,7 @@ function FetchTransactionDataOnClick(input_transaction_id,transaction_info_error
             var stash = data.transaction_data;
             for (var i in stash) {
                 var share_owner_email = stash[i].email,
-                    share_owner_id = '<input type="hidden" id="' + share_owner_email +' value="' + stash[i].user_id +'"/>',// Push the ID in the username field.
+                    share_owner_id = '<input type="hidden" id="' + share_owner_email +'" value="' + stash[i].user_id +'"/>',// Push the ID in the username field.
                     status = (stash[i].share.length == 0 ? 'Missing' : 'Present'),
                     request = (stash[i].share.length == 0 ? '<button>REQUEST</button>' : '');
                 var table_row = '<td>' + share_owner_id + share_owner_email + '</td><td>' + status + '<td>' + request +' </td>';
