@@ -25,7 +25,7 @@ router.get('/get_notifications_for_transaction', function(req, res, next) {
                 if (err) {
                     console.log("GetUsersByIdsList error", err.message);
                 }
-                for (var j in users_data) {
+                for (var j in users_data.rows) {
                     list_of_responses[j].sender = {
                         user_id: users_data.rows[j].doc._id,
                         user_email: users_data.rows[j].doc.email
