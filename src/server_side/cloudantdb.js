@@ -462,7 +462,6 @@ var CloudantDBModule = (function() {
         });
     };
 
-
     var AddTransactionToGroup = function(group_id, transaction_doc, callback_func) {
         groups_db.get(group_id, function (err, group_data) {
             if (err) {
@@ -731,6 +730,9 @@ var CloudantDBModule = (function() {
         });
     };
 
+    var GetNotificationStashForTransaction = function(notification_stash_id, transaction_id, callback_func) {
+
+    };
 
     var RequestShareFromUser = function(transaction_id, stash_owner_user_id, dst_user_id, callback_func) {
         /**

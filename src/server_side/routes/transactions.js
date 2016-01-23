@@ -117,6 +117,21 @@ router.get('/get_my_share', function(req, res) {
 
 });
 
+router.get('/get_cipher_data', function(req, res) {
+    //http://localhost:3000/transactions/get_cipher_data?transaction_id=24461a3e2b275e168c7f7f428a0ff0d6
+    var user_id = session_util.GetUserId(req.session);
+    var transaction_id = req.query.transaction_id;
+    database_interface.GetTransactionsByIdList([transaction_id], function(err, transactions) {
+        if (err) {
+            res.status(404).json({success:false, error: "Invalid Input"});
+        }
+        else {
+            var transaction_doc = transactions.rows[0].doc;
+            res.status(200).json({success:true, cipher: transaction_doc.cipher_meta_data});
+        }
+    });
+});
+
 router.get('/get_all_shares', function(req, res) {
     //http://localhost:3000/transactions/get_all_shares?transaction_id=ad32d847cbfab0eedfd959debf6e4bd3
     var user_id = session_util.GetUserId(req.session);
@@ -185,6 +200,7 @@ router.post('/commit_share', function(req,res) {
                                         res.status(404).json({success:false, error: "Share committing error"});
                                     }
                                     else {
+                                        //TODO update notification to be "committed"
                                         res.status(201).json({success:true, message: "Done"});
                                     }
                                 }
@@ -196,6 +212,8 @@ router.post('/commit_share', function(req,res) {
         }
     });
 });
+
+
 
 
 module.exports = router;
