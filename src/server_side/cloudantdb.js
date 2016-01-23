@@ -753,8 +753,8 @@ var CloudantDBModule = (function() {
                         var dst_user_doc = user_data.rows[1].doc;
                         var found_src_dst = 0;
                         for (var i in transaction_body.stash_list) {
-                            if ((transaction_body.stash_list.user_id == src_user_doc._id) ||
-                                (transaction_body.stash_list.user_id == dst_user_doc._id)) {
+                            if ((transaction_body.stash_list[i].user_id == src_user_doc._id) ||
+                                (transaction_body.stash_list[i].user_id == dst_user_doc._id)) {
                                 found_src_dst++;
                             }
                         }
@@ -789,7 +789,7 @@ var CloudantDBModule = (function() {
                                     status: "pending"
                                 };
                                 notification_body.notification_list.push(notification_item_doc);
-                                notification_stash_db.update(notification_body, notification_body.id, callback_func);
+                                notification_stash_db.update(notification_body, notification_body._id, callback_func);
                             }
                         })
                     }

@@ -321,7 +321,7 @@ function GetMembersPublicKeyOnClick(member_table_id, threshold_input_field) {
 function RequestShareOnClick(transaction_id, user_id, request_share_button_id) {
     $.ajax({
         type: "GET",
-        url: server + "/transactions/request_share?transaction_id=" + transcation_id + "&share_owner=" + user_id,
+        url: server + "/transactions/request_share?transaction_id=" + transaction_id + "&share_owner=" + user_id,
         dataType:'json',
         xhrFields: {withCredentials: true},
         // On success, fill in public keys in the table.
