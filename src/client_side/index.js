@@ -480,7 +480,7 @@ function _CommitShareToServer(share, target_user_public_key, target_user_id, tra
         },
         error: function(xhr, status, error) {
         }});
-}
+}ע
 
 function _mock_get_private_key()
 {
