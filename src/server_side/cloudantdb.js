@@ -783,7 +783,7 @@ var CloudantDBModule = (function() {
                                 var notification_item_doc = {
                                     time: (new Date()).toISOString(),
                                     group_id: transaction_body.group_id,
-                                    transaction_id: transaction_body.id,
+                                    transaction_id: transaction_body._id,
                                     sender: src_user_doc._id,
                                     type: "share-request",
                                     status: "pending"
