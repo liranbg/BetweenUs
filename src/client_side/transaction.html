@@ -16,7 +16,7 @@
     <input type="text" id="input_transaction_id" placeholder="Transaction ID"/>
     <button onclick="FetchTransactionDataOnClick('input_transaction_id','transaction_info_error','group_name_span_id',
     'transaction_name_span_id','transaction_threshold_span_id','share_status_list_table',
-    'threshold_suffiecent_span','share_committed_status');">
+    'threshold_suffiecent_span','secret_output_window');">
         Fetch transaction data
     </button>
     <!-- Group Name -->
@@ -37,6 +37,8 @@
     </table>
     <br>
     <span id="threshold_suffiecent_span"></span>
+    <br>
+    <textarea id="secret_output_window" rows="10" cols="50" hidden="true"></textarea>
     <br>
     <h3>Request list</h3>
     <button id="get_requests_button" onclick="GetRequestsOnClick('input_transaction_id', 'share_requests_table')">Show pending requests</button>

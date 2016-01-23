@@ -233,7 +233,7 @@ function FetchGroupDataOnClick(group_id_field, member_list_table, transaction_li
 
 function FetchTransactionDataOnClick(input_transaction_id,transaction_info_error_id,group_name_span_id,
                                      transaction_name_span_id,transaction_threshold_span_id,share_status_list_table,
-                                     threshold_reached_span_id,share_committed_status) {
+                                     threshold_reached_span_id,secret_output_textarea_id) {
     var transaction_id = $("#" + input_transaction_id).val();
     /** GET TRANSACTION META DETAILS **/
     $.ajax({
@@ -255,7 +255,7 @@ function FetchTransactionDataOnClick(input_transaction_id,transaction_info_error
             $("#" + transaction_name_span_id).html("Transaction Name: " + transaction_name);
             /* Threshold */
             $("#" + transaction_threshold_span_id).html("Threshold: " + threshold);
-            GetTransactionShareStash(share_status_list_table, transaction_info_error_id, transaction_id, threshold, threshold_reached_span_id);
+            GetTransactionShareStash(share_status_list_table, transaction_info_error_id, transaction_id, threshold, threshold_reached_span_id, secret_output_textarea_id);
         },
         error: function(xhr, status, error) {
             alert("Error fetching public keys group");
@@ -264,7 +264,7 @@ function FetchTransactionDataOnClick(input_transaction_id,transaction_info_error
 
 }
 
-function GetTransactionShareStash(share_stash_table_id, transaction_info_error_id, transaction_id, transaction_threshold, threshold_reached_span_id)
+function GetTransactionShareStash(share_stash_table_id, transaction_info_error_id, transaction_id, transaction_threshold, threshold_reached_span_id, secret_output_textarea_id)
 {
     /** GET TRANSACTION SHARE STASH FOR USER **/
     $.ajax({
@@ -292,8 +292,7 @@ function GetTransactionShareStash(share_stash_table_id, transaction_info_error_i
                 Util_AppendRowToTable(share_stash_table_id, table_row);
             }
             if (share_amt >= transaction_threshold) {
-                console.log("calling...");
-                RequestShareStash(threshold_reached_span_id);
+                RequestShareStashEnableButton(threshold_reached_span_id, transaction_id, secret_output_textarea_id);
             }
 
         },
@@ -302,9 +301,48 @@ function GetTransactionShareStash(share_stash_table_id, transaction_info_error_i
         }});
 }
 
-function RequestShareStash(threshold_reached_span_id) {
-    $("#" + threshold_reached_span_id).html("You have enough shares! <br><button onclick='alert(\"fuck you liran!\");'>Decrypt Secret</button>");
+function RequestShareStashEnableButton(threshold_reached_span_id, transaction_id, secret_output_textarea_id) {
+    var func_call = 'RequestAndResolveShareStash("{0}", "{1}")'.format(transaction_id, secret_output_textarea_id);
+    $("#" + threshold_reached_span_id).html("You have enough shares! <br><button onclick='" + func_call + "'>Decrypt Secret</button>");
 }
+
+/** RequestAndResolveShareStash
+ * FLOW:
+ * 1. Request the entire stash from the server for the transaction_id.
+ * 2. For each share, decrypt it using private key.
+ * 3. Take all the decrypted shares and combine them with SSS.
+ * 4. Display output in the textarea element.
+ *
+ * @param transaction_id
+ * @param secret_output_textarea_id
+ * @constructor
+ */
+function RequestAndResolveShareStash(transaction_id, secret_output_textarea_id) {
+    $("#" + secret_output_textarea_id).prop("hidden", false);
+    $.ajax({
+        type: "GET",
+        url: server + "/transactions/get_all_shares?transaction_id=" + transaction_id,
+        dataType:'json',
+        xhrFields: {withCredentials: true},
+        success: function(data, status, xhr) {
+            var prvt_key = _mock_get_private_key();
+            var decrypted_shares = [];
+            var encrypted_shares = data.shares_list;
+            /* Decrypt all shares */
+            for (var i in encrypted_shares) {
+                var share = encrypted_shares[i];
+                share.data = _mock_rsa_decrypt(share.data, prvt_key);
+                decrypted_shares.push(share);
+            }
+            var symmetric_key = betweenus.CombineShares(decrypted_shares);
+            console.log(symmetric_key);
+        },
+        error: function(xhr, status, error) {
+
+        }});
+
+}
+
 /** Gets the public keys for all users in the group, sets threshold to maximum of members.length.
  *
  * @param member_table_id
