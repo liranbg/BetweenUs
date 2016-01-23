@@ -353,9 +353,9 @@ function GetRequestsOnClick(transaction_field_id, request_table_id)
                     request_type = request_list[i].type;
                 /* Accept and Decline buttons creation. */
                 var accept_button_id = requesting_user + "_accept_request",
-                    accept_button = '<button id="' + accept_button_id + '">Accept</button>';
+                    accept_button = '<button id="{0}" onclick="AcceptRequestOnClick(\'{1}\',\'{2}\');">Accept</button>'.format(accept_button_id, trans_id,request_list[i].sender.user_id);
                 var decline_button_id = requesting_user + "_decline_request",
-                    decline_button = '<button id="' + decline_button_id + '">Decline</button>';
+                    decline_button = '<button id="{0}" onclick="DeclineRequestOnClick(\'{1}\',\'{2}\');">Decline</button>'.format(decline_button_id, trans_id,request_list[i].sender.user_id);
                 var action_row = accept_button + decline_button;
                 /* Prepare and append Row HTML */
                 var table_row = '<td>' + requesting_user + '</td><td>' + request_type + '</td><td>' +
@@ -366,6 +366,79 @@ function GetRequestsOnClick(transaction_field_id, request_table_id)
         error: function(xhr, status, error) {
             alert("Error fetching requests.");
         }});
+}
+
+/** This function handles the flow of getting the share and comitting it to the user.
+ *  FLOW:
+ *  1. Get own share from the server.
+ *  2. Decrypt it with user private key.
+ *  3. Request target_user public key from server.
+ *  4. Encrypt own decrypted share with target_user public key.
+ *  5. Commit share to server.
+ *
+ * @param transaction_id
+ * @param target_user
+ * @constructor
+ */
+function AcceptRequestOnClick(transaction_id, target_user) {
+    $.ajax({
+        type: "GET",
+        url: server + "/transactions/get_my_share?transaction_id=" + transaction_id,
+        dataType:'json',
+        xhrFields: {withCredentials: true},
+        success: function(data, status, xhr) {
+            /* Decrypt share */
+            var prv_key = _mock_get_private_key();
+            var encrypted_share = data.share;
+            var decrypted_share = _mock_rsa_decrypt(encrypted_share, prv_key);
+            /* Once we have the decrypted share in our lap,
+             make another call to the server to get the target_user public_key */
+            $.ajax({
+                type: "GET",
+                url: server + "/users/get_public_key?user_id=" + target_user,
+                dataType: 'json',
+                xhrFields: {withCredentials: true},
+                success: function (data, status, xhr) {
+                    var target_user_pub_key = data.public_key;
+                    _CommitShareToServer(decrypted_share, target_user_pub_key, target_user, transaction_id);
+                },
+                error: function (xhr, status, error) {
+                    alert("Error occured while sending the request.");
+                }
+            });
+        },
+        error: function(xhr, status, error) {
+            alert("Error occured while sending the request.");
+        }});
+}
+
+function _CommitShareToServer(share, target_user_public_key, target_user_id, transaction_id) {
+    var encrypted_share = _mock_rsa_public_encrypt(share, target_user_public_key);
+    var data = {target_user_id: target_user_id, encrypted_share: encrypted_share};
+    $.ajax({
+        type: "POST",
+        url: server + "/transactions/commit_share?transaction_id=" + transaction_id,
+        dataType:'json',
+        data: data,
+        xhrFields: {withCredentials: true},
+        success: function(data, status, xhr) {
+        },
+        error: function(xhr, status, error) {
+        }});
+}
+
+function _mock_get_private_key()
+{
+    return 'private_key';
+}
+
+function _mock_rsa_public_encrypt(input, public_key) {
+    return input;
+}
+
+function _mock_rsa_decrypt(input, private_key)
+{
+    return input;
 }
 
 /* On Page Load Functions */
@@ -397,7 +470,6 @@ function TransactionPageOnLoad(transaction_input_field_id, error_field_id) {
 
 http://localhost:63342/BetweenUs/src/client_side/transaction.html?transaction_id=1
     /* BetweenUs functions. */
-
     function GenerateSymmetricKeyOnClick() {
         var sym_key = betweenus.GenerateSymmetricKeyDictionary();
         $('#sym_key').val(sym_key);
@@ -410,7 +482,6 @@ function EncryptSecretContentOnClick() {
     var cipher_text_string = Util_uIntArray2Text(cipher_text_buffer);
     $('#secret_content').val(cipher_text_string);
 }
-
 
 function DecryptSecretContentOnClick() {
     var text_to_decrypt = $('#secret_content').val();
@@ -606,3 +677,12 @@ var Util_QueryString = function () {
     return query_string;
 }();
 
+String.prototype.format = String.prototype.f = function() {
+    var s = this,
+        i = arguments.length;
+
+    while (i--) {
+        s = s.replace(new RegExp('\\{' + i + '\\}', 'gm'), arguments[i]);
+    }
+    return s;
+};
