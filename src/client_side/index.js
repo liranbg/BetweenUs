@@ -355,7 +355,8 @@ function SolveTransactionWithSymmetricKey(transaction_id, symmetric_key, secret_
         success: function(data, status, xhr) {
             console.log("Getting cipher data success");
             var cipher_text = data.cipher.data,
-                output_text = betweenus.SymmetricDecrypt(cipher_text, symmetric_key);
+                output_text = betweenus.SymmetricDecrypt(Util_Text2uIntArray(cipher_text), symmetric_key);
+            output_text = Util_uIntArray2Text(output_text);
             $("#" + secret_output_textarea_id).val(output_text);
         },
         error: function(xhr, status, error) {
@@ -543,7 +544,6 @@ function TransactionPageOnLoad(transaction_input_field_id, error_field_id) {
     $("#" + transaction_input_field_id).val(transaction_id);
 }
 
-http://localhost:63342/BetweenUs/src/client_side/transaction.html?transaction_id=1
     /* BetweenUs functions. */
     function GenerateSymmetricKeyOnClick() {
         var sym_key = betweenus.GenerateSymmetricKeyDictionary();
