@@ -247,7 +247,7 @@ function FetchTransactionDataOnClick(input_transaction_id,transaction_info_error
             Util_SetSpanText("Transaction data fetched successfully.", true, transaction_info_error_id);
             /* Getting the value out of the json */
             var group_name = data.transaction_data.group_data.group_name,
-                transaction_name = data.transaction_data.name,
+                transaction_name = data.transaction_data.transaction_name,
                 threshold = data.transaction_data.threshold;
             /* Group name */
             $("#" + group_name_span_id).html("Group name: " + group_name);

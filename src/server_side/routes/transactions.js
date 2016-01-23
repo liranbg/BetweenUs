@@ -42,7 +42,6 @@ router.get('/get_share_stash', function (req, res) {
     })});
 
 router.post('/create_transaction', function (req, res) {
-
     var initiator = session_util.GetUserId(req.session);
     var data = JSON.parse(req.body.json_data);
     var chiper_data = data.cipher_data;

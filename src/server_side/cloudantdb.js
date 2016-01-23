@@ -221,8 +221,6 @@ var CloudantDBModule = (function() {
                 logger.error("GetTransactionInfoById: %s", err.message);
             }
             else {
-                console.log(transaction_data.name = transaction_doc.rows[0]);
-                console.log(transaction_data.name = transaction_doc.rows[0].value);
                 transaction_data.key = transaction_doc.id;
                 transaction_data.transaction_name = transaction_doc.rows[0].value.transaction_name;
                 transaction_data.threshold = transaction_doc.rows[0].value.threshold;
