@@ -390,7 +390,9 @@ function AcceptRequestOnClick(transaction_id, target_user) {
             /* Decrypt share */
             var prv_key = _mock_get_private_key();
             var encrypted_share = data.share;
-            var decrypted_share = _mock_rsa_decrypt(encrypted_share, prv_key);
+            /* Decrypt the .data component */
+            var decrypted_share = encrypted_share; // Same data, different names for flow clarity.
+            decrypted_share.data = _mock_rsa_decrypt(encrypted_share.data, prv_key);
             /* Once we have the decrypted share in our lap,
              make another call to the server to get the target_user public_key */
             $.ajax({
@@ -414,10 +416,10 @@ function AcceptRequestOnClick(transaction_id, target_user) {
 
 function _CommitShareToServer(share, target_user_public_key, target_user_id, transaction_id) {
     var encrypted_share = _mock_rsa_public_encrypt(share, target_user_public_key);
-    var data = {target_user_id: target_user_id, encrypted_share: encrypted_share};
+    var data = {target_user_id: target_user_id, encrypted_share: encrypted_share, transaction_id: transaction_id};
     $.ajax({
         type: "POST",
-        url: server + "/transactions/commit_share?transaction_id=" + transaction_id,
+        url: server + "/transactions/commit_share,
         dataType:'json',
         data: data,
         xhrFields: {withCredentials: true},
