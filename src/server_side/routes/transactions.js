@@ -12,7 +12,7 @@ router.get('/get_transaction', function (req, res) {
         res.status(404).json({success:false, error: "Invalid Input"});
         return;
     }
-    database_interface.GetTransactionById(transaction_id, function(err, data) {
+    database_interface.GetTransactionInfoById(transaction_id, function(err, data) {
         if (err) {
             res.status(404).json({success:false, error: err.message});
         }
@@ -42,13 +42,13 @@ router.get('/get_share_stash', function (req, res) {
 router.post('/create_transaction', function (req, res) {
     var initiator = session_util.GetUserId(req.session);
     var data = JSON.parse(req.body.json_data);
-    var chiper_data = data.cipher_data;
+    var cipher_data = data.cipher_data;
     var stash_list = data.stash_list; //[{user_id:"123123", share:"asdasdasdasd"},{},{},...]
     var group_id = data.group_id;
     var transaction_name = data.transaction_name;
     var share_threshold = data.share_threshold;
 
-    database_interface.CreateTransaction(initiator, transaction_name, chiper_data, stash_list, group_id, share_threshold, function(err,data) {
+    database_interface.CreateTransaction(initiator, transaction_name, cipher_data, stash_list, group_id, share_threshold, function(err,data) {
         if (err) {
             res.json({success:true, error:err.message});
         }
@@ -79,6 +79,87 @@ router.get('/request_share', function(req,res) {
 
 });
 
+router.get('/get_my_share', function(req, res) {
+    //http://localhost:3000/transactions/get_my_share?transaction_id=ad32d847cbfab0eedfd959debf6e4bd3
+    var user_id = session_util.GetUserId(req.session);
+    var transaction_id = req.query.transaction_id;
+    if (!transaction_id) {
+        res.status(404).json({success:false, error: "Invalid Input"});
+        return;
+    }
+    database_interface.GetTransactionsByIdList([transaction_id], function(err, transactions) {
+        if (err) {
+            res.status(404).json({success:false, error: "Invalid Input"});
+        }
+        else {
+            var transaction_doc = transactions.rows[0].doc;
+            for (var i in transaction_doc.stash_list) {
+                var doc = transaction_doc.stash_list[i];
+                if (doc.user_id == user_id) {
+                    database_interface.GetShareStashByStashID(doc.stash_id, function(err, stash) {
+                        if (err) {
+                            res.status(404).json({success:false, error: "Invalid Stash Id"});
+                        }
+                        else {
+                            for (var i in stash) {
+                                if (stash[i].user_id == user_id) {
+                                    res.status(200).json({success:true, share: stash[i].share});
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+        }
+    });
+
+
+
+});
+
+
+router.post('/commit_share', function(req,res) {
+    var user_id = session_util.GetUserId(req.session);
+    var transaction_id = req.body.transaction_id;
+    var target_user_id = req.body.target_user_id;
+    var encrypted_share = JSON.parse(req.body.encrypted_share);
+
+    if ((!transaction_id) || (!target_user_id) || (!encrypted_share)) {
+        res.status(404).json({success:false, error: "Invalid Input"});
+        return;
+    }
+
+    database_interface.GetTransactionsByIdList([transaction_id], function(err, transactions) {
+        if (err) {
+            res.status(404).json({success:false, error: "Invalid Input"});
+        }
+        else {
+            var transaction_doc = transactions.rows[0].doc;
+            for (var i in transaction_doc.stash_list) {
+                var doc = transaction_doc.stash_list[i];
+                if (doc.user_id == target_user_id) {
+                    database_interface.GetShareStashByStashID(doc.stash_id, function(err, stash) {
+                        if (err) {
+                            res.status(404).json({success:false, error: "Invalid Stash Id"});
+                        }
+                        else {
+                            database_interface.CommitShareToUser(stash, encrypted_share, user_id, function(err, stash) {
+                                    if (err) {
+                                        res.status(404).json({success:false, error: "Invalid Stash Id"});
+                                    }
+                                    else {
+                                        res.status(201).json({success:false, error: "Done"});
+
+                                    }
+                                }
+                            );
+                        }
+                    });
+                }
+            }
+        }
+    });
+});
 
 
 module.exports = router;

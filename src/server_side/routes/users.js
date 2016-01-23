@@ -102,4 +102,18 @@ router.post('/login', function (req, res) {
     });
 });
 
+
+router.get('/get_public_key', function(req, res) {
+    var user_id = req.query.user_id;
+    database_interface.GetUsersPublicKeys([user_id], function(err, body) {
+        if (err) {
+            res.status(404).json({success:false, error: err.message});
+        }
+        else {
+            res.status(200).json({success: true, public_key: body[0].public_key});
+        }
+    })
+
+});
+
 module.exports = router;

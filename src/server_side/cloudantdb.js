@@ -801,18 +801,18 @@ var CloudantDBModule = (function() {
 
     };
 
-    var ApproveRequestShareFromUser = function(transaction_id, stash_owner_user_id, wanted_share_user_id, callback_func) {
-
-
+    var CommitShareToUser = function(stash_doc, share, source_user_id, callback_func) {
+        for (var i in stash_doc) {
+            if (stash_doc[i].user_id == source_user_id) {
+                stash_doc.share = share;
+                shares_stash_db.update(stash_doc, stash_doc._id, callback_func);
+            }
+        }
     };
 
     var DeclineRequestShareFromUser = function(transaction_id, stash_owner_user_id, wanted_share_user_id, callback_func) {
 
     };
-
-    function AddNotificatoinToUser() {
-
-    }
 
     exports.InitDataBases = InitDataBases;
     exports.InsertNewUser =InsertNewUser;
@@ -830,14 +830,16 @@ var CloudantDBModule = (function() {
     exports.GetGroupDataByGroupId = GetGroupDataByGroupId;
 
     exports.CreateTransaction = CreateTransaction;
-    exports.GetTransactionById = GetTransactionInfoById;
+    exports.GetTransactionInfoById = GetTransactionInfoById;
+    exports.GetTransactionsByIdList = GetTransactionsByIdList;
     exports.AddTransactionToGroup = AddTransactionToGroup;
     exports.GetShareStash = GetShareStash;
+    exports.GetShareStashByStashID = GetShareStashByStashID;
 
     exports.CreateNotificationStash = CreateNotificationStash;
     exports.GetNotificationStash = GetNotificationStash;
     exports.RequestShareFromUser = RequestShareFromUser;
-    exports.ApproveRequestShareFromUser = ApproveRequestShareFromUser;
+    exports.CommitShareToUser = CommitShareToUser;
     exports.DeclineRequestShareFromUser = DeclineRequestShareFromUser;
 
 } (CloudantDBModule || {}));
