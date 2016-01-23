@@ -6,8 +6,7 @@ var router = express.Router();
 
 router.get('/get_transaction', function (req, res) {
     //http://localhost:3000/transactions/get_transaction?transaction_id=1afb05dfa0de96545a1756a2a309d7f5
-    //var user_id = session_util.GetUserId(req.session);
-    var user_id = "1d62c89e16bb3fd19f9e9fa5dd9ddb24";
+    var user_id = session_util.GetUserId(req.session);
     var transaction_id = req.query.transaction_id;
     if (!transaction_id) {
         res.status(404).json({success:false, error: "Invalid Input"});
@@ -25,8 +24,7 @@ router.get('/get_transaction', function (req, res) {
 
 router.get('/get_share_stash', function (req, res) {
     //http://localhost:3000/transactions/get_share_stash?transaction_id=64c934206c3d645dc01bbf7fc56e65ef
-    //var user_id = session_util.GetUserId(req.session);
-    var user_id = "1d62c89e16bb3fd19f9e9fa5dd9ddb24";
+    var user_id = session_util.GetUserId(req.session);
     var transaction_id = req.query.transaction_id;
     if (!transaction_id) {
         res.status(404).json({success:false, error: "Invalid Input"});
@@ -63,8 +61,7 @@ router.post('/create_transaction', function (req, res) {
 router.get('/request_share', function(req,res) {
     //http://localhost:3000/transactions/request_share?transaction_id=ad32d847cbfab0eedfd959debf6e4bd3&share_owner=5ad824afac098982aeb776d5983d7a7f
     //^^ Alice asks bob
-    //var user_id = session_util.GetUserId(req.session);
-    var user_id = "1d62c89e16bb3fd19f9e9fa5dd9ddb24";
+    var user_id = session_util.GetUserId(req.session);
     var transaction_id = req.query.transaction_id;
     var share_owner = req.query.share_owner;
     if ((!transaction_id) || (!share_owner)) {

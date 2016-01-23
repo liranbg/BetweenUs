@@ -720,7 +720,6 @@ var CloudantDBModule = (function() {
             }
             callback_func(err, notification_body);
         });
-
     };
 
 
@@ -803,6 +802,7 @@ var CloudantDBModule = (function() {
     };
 
     var ApproveRequestShareFromUser = function(transaction_id, stash_owner_user_id, wanted_share_user_id, callback_func) {
+
 
     };
 

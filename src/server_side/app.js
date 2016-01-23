@@ -9,7 +9,8 @@ const
     database_interface = require('./cloudantdb'),
     users = require('./routes/users'),
     groups = require('./routes/groups'),
-    transactions = require('./routes/transactions');
+    transactions = require('./routes/transactions'),
+    notifications = require('./routes/notifications');
 
 
 var app = express();
@@ -31,6 +32,7 @@ app.use(cookieParser());
 app.use('/users', users);
 app.use('/groups', groups);
 app.use('/transactions', transactions);
+app.use('/notifications', notifications);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
