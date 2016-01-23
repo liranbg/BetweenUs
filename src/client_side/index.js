@@ -331,11 +331,12 @@ function RequestAndResolveShareStash(transaction_id, secret_output_textarea_id) 
             /* Decrypt all shares */
             for (var i in encrypted_shares) {
                 var share = encrypted_shares[i];
+                if (share.length == 0) continue;
                 share.data = _mock_rsa_decrypt(share.data, prvt_key);
                 decrypted_shares.push(share);
             }
             var symmetric_key = betweenus.CombineShares(decrypted_shares);
-            console.log(symmetric_key);
+            $("#" + secret_output_textarea_id).val("Symmetric Key: " + symmetric_key);
         },
         error: function(xhr, status, error) {
 
@@ -480,7 +481,7 @@ function _CommitShareToServer(share, target_user_public_key, target_user_id, tra
         },
         error: function(xhr, status, error) {
         }});
-}ע
+}
 
 function _mock_get_private_key()
 {
