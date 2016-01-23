@@ -334,6 +334,41 @@ function RequestShareOnClick(transaction_id, user_id, request_share_button_id) {
         }});
 }
 
+function GetRequestsOnClick(transaction_field_id, request_table_id)
+{
+    var trans_id = $("#" + transaction_field_id).val();
+    $.ajax({
+        type: "GET",
+        url: server + "/notifications/get_notifications_for_transaction?transaction_id=" + trans_id,
+        dataType:'json',
+        xhrFields: {withCredentials: true},
+        // On success, fill in public keys in the table.
+        success: function(data, status, xhr) {
+            alert("Success!");
+            Util_ClearTable(request_table_id);
+            var request_list = data;
+            for (var i in request_list) {
+                if (request_list[i].status != 'pending')
+                    continue;
+                var requesting_user = request_list[i].sender.user_email,
+                    request_type = request_list.type;
+                /* Accept and Decline buttons creation. */
+                var accept_button_id = requesting_user + "_accept_request",
+                    accept_button = '<button id="' + accept_button_id + '">Accept</button>';
+                var decline_button_id = requesting_user + "_decline_request",
+                    decline_button = '<button id="' + decline_button_id + '">Decline</button>';
+                var action_row = accept_button + decline_button;
+                /* Prepare and append Row HTML */
+                var table_row = '<td>' + requesting_user + '</td><td>' + request_type + '</td><td>' +
+                    action_row + '</td>';
+                Util_AppendRowToTable(request_table_id, table_row);
+            }
+        },
+        error: function(xhr, status, error) {
+            alert("Error fetching requests.");
+        }});
+}
+
 /* On Page Load Functions */
 
 /** Handles fetching the data on load for the user to see.
