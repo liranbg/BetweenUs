@@ -346,13 +346,12 @@ function GetRequestsOnClick(transaction_field_id, request_table_id)
         success: function(data, status, xhr) {
             alert("Success!");
             Util_ClearTable(request_table_id);
-            var request_list = data;
+            var request_list = data.notifications;;
             for (var i in request_list) {
                 if (request_list[i].status != 'pending')
                     continue;
                 var requesting_user = request_list[i].sender.user_email,
-                    request_type = request_list.type;
-                /* Accept and Decline buttons creation. */
+ע                /* Accept and Decline buttons creation. */
                 var accept_button_id = requesting_user + "_accept_request",
                     accept_button = '<button id="' + accept_button_id + '">Accept</button>';
                 var decline_button_id = requesting_user + "_decline_request",
