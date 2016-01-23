@@ -117,6 +117,44 @@ router.get('/get_my_share', function(req, res) {
 
 });
 
+router.get('/get_all_shares', function(req, res) {
+    //http://localhost:3000/transactions/get_all_shares?transaction_id=ad32d847cbfab0eedfd959debf6e4bd3
+    var user_id = session_util.GetUserId(req.session);
+    var transaction_id = req.query.transaction_id;
+    if (!transaction_id) {
+        res.status(404).json({success:false, error: "Invalid Input"});
+        return;
+    }
+    database_interface.GetTransactionsByIdList([transaction_id], function(err, transactions) {
+        if (err) {
+            res.status(404).json({success:false, error: "Invalid Input"});
+        }
+        else {
+            var transaction_doc = transactions.rows[0].doc;
+            for (var i in transaction_doc.stash_list) {
+                var doc = transaction_doc.stash_list[i];
+                if (doc.user_id == user_id) {
+                    database_interface.GetShareStashByStashID(doc.stash_id, function(err, stash) {
+                        if (err) {
+                            res.status(404).json({success:false, error: "Invalid Stash Id"});
+                        }
+                        else {
+                            var list_of_shares = [];
+                            for (var i in stash) {
+                                list_of_shares.push(stash[i].share);
+                            }
+                            res.status(200).json({success:true, shares_list: list_of_shares});
+                        }
+                    });
+                }
+            }
+        }
+    });
+
+
+
+});
+
 router.post('/commit_share', function(req,res) {
     var user_id = session_util.GetUserId(req.session);
     var transaction_id = req.body.transaction_id;
