@@ -335,6 +335,7 @@ function RequestAndResolveShareStash(transaction_id, secret_output_textarea_id) 
                 decrypted_shares.push(share);
             }
             var symmetric_key = betweenus.CombineShares(decrypted_shares);
+            SolveTransactionWithSymmetricKey(transaction_id, symmetric_key, secret_output_textarea_id);
             $("#" + secret_output_textarea_id).val("Symmetric Key: " + symmetric_key);
 
         },
