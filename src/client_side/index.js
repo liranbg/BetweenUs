@@ -318,7 +318,6 @@ function RequestShareStashEnableButton(threshold_reached_span_id, transaction_id
  * @constructor
  */
 function RequestAndResolveShareStash(transaction_id, secret_output_textarea_id) {
-    $("#" + secret_output_textarea_id).prop("hidden", false);
     $.ajax({
         type: "GET",
         url: server + "/transactions/get_all_shares?transaction_id=" + transaction_id,
@@ -337,11 +336,30 @@ function RequestAndResolveShareStash(transaction_id, secret_output_textarea_id) 
             }
             var symmetric_key = betweenus.CombineShares(decrypted_shares);
             $("#" + secret_output_textarea_id).val("Symmetric Key: " + symmetric_key);
+
         },
         error: function(xhr, status, error) {
 
         }});
 
+}
+
+function SolveTransactionWithSymmetricKey(transaction_id, symmetric_key, secret_output_textarea_id) {
+    $("#" + secret_output_textarea_id).prop("hidden", false);
+    $.ajax({
+        type: "GET",
+        url: server + "/transactions/get_cipher_data?transaction_id=" + transaction_id,
+        dataType:'json',
+        xhrFields: {withCredentials: true},
+        success: function(data, status, xhr) {
+            console.log("Getting cipher data success");
+            var cipher_text = data.cipher.data,
+                output_text = betweenus.SymmetricDecrypt(cipher_text, symmetric_key);
+            $("#" + secret_output_textarea_id).val(output_text);
+        },
+        error: function(xhr, status, error) {
+            alert("Error fetching cipher data.");
+        }});
 }
 
 /** Gets the public keys for all users in the group, sets threshold to maximum of members.length.
