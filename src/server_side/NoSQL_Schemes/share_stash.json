@@ -5,7 +5,7 @@
     "metadata": {
       "scheme": "share_stash",
       "scheme_version": "1.0",
-      "creation_time": "2016-01-21T09:24:20.989Z" //ISO FORMAT DATE STRING
+      "creation_time": "2016-01-21T09:24:20.989Z"
     },
     "stash_owner": "Alice@fictious-names.com",
     "group_id": "GroupId",
@@ -17,6 +17,10 @@
       {
         "share_owner": "Bob@fictious-names.com",
         "share": "bob_share_encrypted_with_alice_public_key"
+      },
+      {
+        "share_owner": "Charlie@fictious-names.com",
+        "share": ""
       }
     ]
   }

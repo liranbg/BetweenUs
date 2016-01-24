@@ -5,8 +5,8 @@
     "metadata": {
       "scheme": "user",
       "scheme_version": "1.0",
-      "registration_time": "2016-01-21T09:24:20.989Z", //ISO FORMAT DATE STRING
-      "last_login_time": "2016-01-21T09:24:20.989Z" //ISO FORMAT DATE STRING,
+      "registration_time": "2016-01-21T09:24:20.989Z",
+      "last_login_time": "2016-01-21T09:24:20.989Z"
     },
     "email": "Alice@fictious-names.com",
     "password": "password",

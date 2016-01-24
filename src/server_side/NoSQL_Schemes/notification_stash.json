@@ -5,12 +5,12 @@
     "metadata": {
       "scheme": "notification_stash",
       "scheme_version": "1.0",
-      "last_updated": "2016-01-21T09:24:20.989Z" //ISO FORMAT DATE STRING
+      "last_updated": "2016-01-21T09:24:20.989Z"
     },
     "user_id": "Alice@fictious-names.com",
     "notification_list": [
       {
-        "time": "2016-01-21T08:24:20.989Z", //ISO FORMAT DATE STRING
+        "time": "2016-01-21T08:24:20.989Z",
         "group_id": "12345abc",
         "transaction_id": "tin2o1i4n21",
         "sender": "Bob@fictious-names.com",
@@ -18,7 +18,7 @@
         "status": "pending"
       },
       {
-        "time": "2016-01-21T09:24:20.989Z", //ISO FORMAT DATE STRING
+        "time": "2016-01-21T09:24:20.989Z",
         "group_id": "12345abc",
         "transaction_id": "99999abc123",
         "sender": "Bob@fictious-names.com",
@@ -26,7 +26,7 @@
         "status": "committed"
       },
       {
-        "time": "2016-01-21T19:24:20.989Z", //ISO FORMAT DATE STRING
+        "time": "2016-01-21T19:24:20.989Z",
         "group_id": "12345abc",
         "transaction_id": "99999abc123",
         "sender": "Charlie@fictious-names.com",
