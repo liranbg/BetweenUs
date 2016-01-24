@@ -15,7 +15,6 @@
 
 #register_login_parent_div {
     border-radius: 15px 50px 30px 5px;
-    background: grey;
     padding: 20px;
     width: 600px;
     height: 400px;
@@ -82,4 +81,16 @@ table, th, td {
     padding: 20px;
     width: 50%;
     height: 100%;
+}
+
+#loader-img
+{
+    position: fixed;
+    left: 30%;
+    top: 50%;
+    width: 20%;
+    height: 20%;
+    z-index: 9999;
+    background: url('gears.gif') 50% 50% no-repeat transparent;
+    content: "Fetching data from server";
 }
