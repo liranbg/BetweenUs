@@ -48,13 +48,54 @@ router.post('/create_transaction', function (req, res) {
     var transaction_name = data.transaction_name;
     var share_threshold = data.share_threshold;
 
-    database_interface.CreateTransaction(initiator, transaction_name, cipher_data, stash_list, group_id, share_threshold, function(err,data) {
+    var email_list = [];
+    for (var i in stash_list) {
+        email_list.push(stash_list[i].user_id);
+    }
+
+    database_interface.GetUsersByEmailList(email_list, function(err, data) {
+        //TODO in client side, if we send a list of user name we can avoid using this function
         if (err) {
-            res.json({success:true, error:err.message});
+            res.status(400).json({success:false, error:err.message});
+            return;
         }
-        else {
-            res.json({success:true, data:data});
+        else if (data.rows.length != email_list.length) {
+            //Did not fetch all users
+            res.status(400).json({success:false, error:"Input error in email list"});
+            return;
         }
+        for (var i in data.rows) {
+            //Replace user email in user id
+            stash_list[i].user_id = data.rows[i].id;
+        }
+        database_interface.CreateStashList(stash_list, group_id, function(err, stash_share_body) {
+            if (err) {
+                res.status(400).json({success:false, error:"Input error in email list"});
+            }
+            else {
+                var list_of_stash_shares_ids = [];
+                for (var j = 0; j < stash_share_body.length; ++j) {
+                    list_of_stash_shares_ids.push({user_id: stash_share_body[j].stash_owner, stash_id: stash_share_body[j].id});
+                }
+                database_interface.CreateTransaction(initiator, transaction_name, cipher_data, list_of_stash_shares_ids, group_id, share_threshold, function(err,transaction_body) {
+                    if (err) {
+                        res.status(400).json({success:false, error:err.message});
+                        return;
+                    }
+                    else {
+                        database_interface.AddTransactionToGroup(group_id, transaction_body, function (err, data) {
+                            if (err) {
+                                //TODO Need to make check the transaction added to the group. if no we must revert all
+                                res.status(400).json({success:false, error:err.message});
+                            }
+                            else {
+                                res.status(201).json({success:true, data:data});
+                            }
+                        });
+                    }
+                });
+            }
+        });
     });
 });
 
