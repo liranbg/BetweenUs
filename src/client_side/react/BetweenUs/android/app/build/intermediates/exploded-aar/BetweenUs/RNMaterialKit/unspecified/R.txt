@@ -1,0 +1,23 @@
+int array mk_spinner_stroke_colors 0x7f020000
+int attr mk_spinnerAniDuration 0x7f010002
+int attr mk_spinnerStrokeColors 0x7f010000
+int attr mk_spinnerStrokeWidth 0x7f010001
+int attr mk_tickFillColor 0x7f010003
+int attr mk_tickInset 0x7f010004
+int color mdl_indigo 0x7f030000
+int color mdl_palette_blue_400 0x7f030001
+int color mdl_palette_green_500 0x7f030002
+int color mdl_palette_red_500 0x7f030003
+int color mdl_palette_yellow_600 0x7f030004
+int dimen mk_spinner_height 0x7f040000
+int dimen mk_spinner_stroke_width 0x7f040001
+int dimen mk_spinner_width 0x7f040002
+int dimen mk_tick_inset 0x7f040003
+int integer mk_spinner_ani_duration 0x7f050000
+int[] styleable MKSpinner { 0x7f010000, 0x7f010001, 0x7f010002 }
+int styleable MKSpinner_mk_spinnerAniDuration 2
+int styleable MKSpinner_mk_spinnerStrokeColors 0
+int styleable MKSpinner_mk_spinnerStrokeWidth 1
+int[] styleable TickView { 0x7f010003, 0x7f010004 }
+int styleable TickView_mk_tickFillColor 0
+int styleable TickView_mk_tickInset 1

@@ -33,8 +33,7 @@ build/Release
 # https://docs.npmjs.com/misc/faq#should-i-check-my-node-modules-folder-into-git
 src/node_modules
 src/server_side/node_modules
-src/client_side/react-native/node_modules
-src/client_side/react-native/.idea
+src/client_side/react/BetweenUs/node_modules
 
 # Optional npm cache directory
 .npm
