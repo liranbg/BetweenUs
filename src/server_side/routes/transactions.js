@@ -23,7 +23,7 @@ router.get('/get_transaction', function (req, res) {
 });
 
 router.get('/get_share_stash', function (req, res) {
-    //http://localhost:3000/transactions/get_share_stash?transaction_id=64c934206c3d645dc01bbf7fc56e65ef
+    //http://localhost:3000/transactions/get_share_stash?transaction_id=549b28dde0a96df05e8d1426ad6e6aed
     var user_id = session_util.GetUserId(req.session);
     var transaction_id = req.query.transaction_id;
     if (!transaction_id) {

@@ -66,7 +66,11 @@ router.get('/get_groups', function (req, res) {
                 res.json({success: false, error: err.message});
             }
             else {
-                res.json({success: true, groups: data.rows});
+                var group_data = [];
+                for (var i = 0; i < data.rows.length; ++i) {
+                    group_data.push(data.rows[i].value)
+                }
+                res.json({success: true, groups: group_data});
             }
 
         });

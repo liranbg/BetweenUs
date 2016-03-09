@@ -68,7 +68,7 @@ router.post('/register_user', function(req, res) {
                     });
                 }
                 else {
-                    res.status(200).json({success: false, message: "Email already exists" , data: data});
+                    res.status(400).json({success: false, message: "Email already exists"});
                 }
             }
         });
