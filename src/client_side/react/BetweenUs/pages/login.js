@@ -1,7 +1,7 @@
 'use strict';
 import React, {View, Text, StyleSheet, TouchableHighlight, Image, TextInput,ScrollView} from 'react-native'
 var LoginInputStyles = require("../styles/email_password.js");
-//var Icon = require('react-native-vector-icons/Ionicons');
+var Icon = require('react-native-vector-icons/Ionicons');
 var MK = require('react-native-material-kit');
 var ServerAPI = require('../api/server_interaction');
 const { MKButton, MKColor,MKTextField } = MK;

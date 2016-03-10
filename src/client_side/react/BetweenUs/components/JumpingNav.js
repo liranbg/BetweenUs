@@ -1,5 +1,5 @@
 'use strict';
-//var Icon = require('react-native-vector-icons/Ionicons');
+var Icon = require('react-native-vector-icons/Ionicons');
 var AllGroupsScene = require('../pages/groups');
 var GroupScene = require("../pages/group");
 var TransactionScene = require("../pages/transaction");

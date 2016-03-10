@@ -1,7 +1,7 @@
 import React, {View, Text, TextInput, StyleSheet, TouchableHighlight} from 'react-native'
 var GLOBAL = require('../env');
 var LoginInputStyles = require("../styles/email_password.js");
-//var Icon = require('react-native-vector-icons/Ionicons');
+var Icon = require('react-native-vector-icons/Ionicons');
 var MK = require('react-native-material-kit');
 const { MKButton, MKColor, } = MK;
 

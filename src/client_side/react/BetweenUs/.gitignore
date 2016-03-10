@@ -29,6 +29,6 @@ project.xcworkspace
 local.properties
 
 # node.js
-android.rar
+#
 node_modules/
 npm-debug.log
