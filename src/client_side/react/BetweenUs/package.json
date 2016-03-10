@@ -8,7 +8,6 @@
   "dependencies": {
     "react-native": "^0.21.0",
     "react-native-button": "^1.4.2",
-    "react-native-material-kit": "^0.3.0",
-    "react-native-spinkit": "0.0.7"
+    "react-native-material-kit": "^0.3.0"
   }
 }
