@@ -34,6 +34,9 @@ build/Release
 src/node_modules
 src/server_side/node_modules
 src/client_side/react/BetweenUs/node_modules
+src/client_side/react/BetweenUs/android/.gradle
+src/client_side/react/BetweenUs/android/build
+src/client_side/react/BetweenUs/android/app/build
 
 # Optional npm cache directory
 .npm
