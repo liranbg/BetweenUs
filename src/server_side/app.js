@@ -6,7 +6,7 @@ const
     cookieParser = require('cookie-parser'),
     bodyParser = require('body-parser'),
     cors = require('cors'),
-    database_interface = require('./cloudantdb'),
+    database_interface = require('./cloudant_interaction'),
     users = require('./routes/users'),
     groups = require('./routes/groups'),
     transactions = require('./routes/transactions'),
@@ -67,9 +67,7 @@ var server = app.listen(3000, function () {
     var host = "localhost";
     var port = server.address().port;
     console.log('BetweenUs is up & listening at http://%s:%s', host, port);
-    console.log("Initializing Database");
-    database_interface.InitDataBases();
-
+    database_interface.G
 });
 
 module.exports = app;

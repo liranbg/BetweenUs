@@ -1,5 +1,5 @@
 var express = require('express');
-var database_interface = require('../cloudantdb');
+var database_interface = require('../cloudant_interaction');
 var session_util = require('../utils/session');
 var router = express.Router();
 
@@ -80,26 +80,16 @@ router.post('/register_user', function(req, res) {
 router.post('/login', function (req, res) {
     var email = req.body.email;
     var password = req.body.password;
-    database_interface.GetUserByEmail(email, function(err, data) {
-        if (err) {
-            res.status(400).send({success: false, error: err});
-        }
-        else {
-            if (data.rows.length == 0) {
-                res.status(404).send({success: false,  message: "Username does not exists"});
-            }
-            else {
-                var doc = data.rows[0];
-                if ((doc.value.email == email) && (doc.value.password == password)) {
-                    session_util.InitUserSession(req.session, doc.value.email, doc.id);
-                    res.status(201).send({success: true, message: "Authenticated successfully", data: doc});
-                }
-                else {
-                    res.status(200).send({success: false, message: "Wrong password"});
-                }
-            }
-        }
-    });
+
+    database_interface.CheckLogin(email, password)
+        .then((result) => {
+            session_util.InitUserSession(req.session, result.email, result._id);
+            res.status(200).send({success: true, message: "Authenticated successfully", data: result});
+        })
+        .catch((err) => {
+            res.status(401).send({success: false, message: "Wrong password"});
+
+        });
 });
 
 

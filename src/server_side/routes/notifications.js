@@ -1,8 +1,7 @@
 var express = require('express');
-var database_interface = require('../cloudantdb');
+var database_interface = require('../cloudant_interaction');
 var session_util = require('../utils/session');
 var router = express.Router();
-
 /* GET users listing. */
 router.get('/get_notifications_for_transaction', function(req, res, next) {
     //http://localhost:3000/notifications/get_notifications_for_transaction?transaction_id=ad32d847cbfab0eedfd959debf6e4bd3
