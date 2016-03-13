@@ -27,8 +27,6 @@ var Groups = React.createClass({
         ServerAPI.GetGroups()
             .then((ResponseJSON) => {
                 var ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
-                //for (var i = 0; i< ResponseJSON.groups.length)
-                //var groups = [];
                 this.setState({dataSource: ds.cloneWithRows(ResponseJSON.groups)});
             }).catch((error) => {
             console.warn(error);
@@ -37,7 +35,7 @@ var Groups = React.createClass({
     AddGroupRow(rowData) {
         //<Text style={{flex:0.6, fontWeight:'bold', marginRight: 5}}>{rowData.group_id}</Text>
         //<Text style={{flex:0.1, fontWeight:'bold', marginRight: 5}}>{rowData.transaction_length}</Text>
-        var data = {group_id:rowData.group_id, group_name:rowData.group_name};
+        var data = {group_id:rowData._id, group_name:rowData.group_name};
         return (
             <View style={{flexDirection: 'row', borderBottomWidth: 0.5, borderBottomColor:'#AFBDC4', marginBottom: 10}}>
                 <MKButton

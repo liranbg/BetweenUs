@@ -100,12 +100,11 @@ function GetGroupsOnClick(groups_table_id) {
         success: function(data, status, xhr) {
             Util_ClearTable(groups_table_id);
             for (var i in data.groups) {
-                var transaction_amt = data.groups[i].value.transactions_length;
+                var transaction_amt = data.groups[i].transaction_list.length;
                 var member_amt, group_name, group_id;
-                member_amt = data.groups[i].value.members_length; // Members
-                group_name = data.groups[i].value.group_name;
-                console.log(data.groups[i].value);
-                group_id = '<a href ="group.html?group_id=' +  data.groups[i].value.group_id + '">' + data.groups[i].value.group_id + '</a>';
+                member_amt = data.groups[i].member_list.length+1; // Members
+                group_name = data.groups[i].group_name;
+                group_id = '<a href ="group.html?group_id=' +  data.groups[i]._id + '">' + data.groups[i]._id + '</a>';
                 // Append row to the table.
                 $('#' + groups_table_id + ' tr:last').after('<tr><td>' + group_id +'</td><td>' + group_name + '</td><td>' + member_amt + '</td><td>' + transaction_amt + '</td></tr>');
             }
