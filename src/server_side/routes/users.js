@@ -84,10 +84,10 @@ router.post('/login', function (req, res) {
     database_interface.CheckLogin(email, password)
         .then((result) => {
             session_util.InitUserSession(req.session, result.email, result._id);
-            res.status(200).send({success: true, message: "Authenticated successfully", data: result});
+            res.status(200).json({success: true, message: "Authenticated successfully", data: result});
         })
         .catch((err) => {
-            res.status(401).send({success: false, message: "Wrong password"});
+            res.status(401).json({success: false, message: "Wrong password"});
 
         });
 });

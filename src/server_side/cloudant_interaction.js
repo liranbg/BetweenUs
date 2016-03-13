@@ -27,7 +27,6 @@ class ServerInteraction {
                         for (var i = 0; i < doc.member_list.length; i++) {
                             emit(doc.member_list[i], doc);
                         }
-
                         if (doc.creator) {
                             emit(doc.creator, doc);
                         }
@@ -95,27 +94,17 @@ class ServerInteraction {
             groups_db: {
                 api: {
                     name: '_design/api',
-                    get_groups_by_user: {
-                        name: "get_groups_by_user",
-                        design_name: "api"
-                    },
-                    get_groups_metadata_by_user: {
-                        name: "get_groups_metadata_by_user",
-                        design_name: "api"
-                    }
+                    get_groups_by_user: "api/get_groups_by_user",
+                    get_groups_metadata_by_user: "api/get_groups_metadata_by_user"
+
                 }
             },
             transactions_db: {
                 api: {
                     name: '_design/api',
-                    get_transaction_info_by_id: {
-                        name: "get_transaction_info_by_id",
-                        design_name: "api"
-                    },
-                    get_transaction_share_stash: {
-                        name: "get_transaction_share_stash",
-                        design_name: "api"
-                    }
+                    get_transaction_info_by_id: "api/get_transaction_info_by_id",
+                    get_transaction_share_stash: "api/get_transaction_share_stash"
+
                 }
             }
         };
@@ -272,6 +261,40 @@ class ServerInteraction {
         });
     }
 
+    /**
+     * This function returns all groups information for a given user_id
+     * @param user_id
+     * @constructor
+     */
+    GetGroupsForUserId(user_id) {
+        return new Promise((resolve, reject) => {
+            this.groups_db.query(this._db_module_config.groups_db.api.get_groups_by_user, {
+                    key: user_id,
+                    include_docs: true
+                })
+                .then((result) => {
+                    resolve(result.rows);
+                })
+                .catch((err) => {
+                    reject(err);
+                });
+        });
+
+    }
+
+    GetGroupDataByGroupId(group_id) {
+        //TODO need to follow old get group data
+        return new Promise((resolve, reject) => {
+            this.groups_db.get(group_id)
+                .then((result) => {
+                    resolve(result);
+                })
+                .catch((err) => {
+                    reject(err);
+                });
+        });
+
+    }
 }
 
 module.exports = ServerInteraction.instance;

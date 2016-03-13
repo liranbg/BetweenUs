@@ -61,19 +61,18 @@ router.get('/get_groups', function (req, res) {
         res.json({success:false})
     }
     else {
-        database_interface.GetAllMyGroups(user_id, function(err, data) {
-            if (err) {
-                res.json({success: false, error: err.message});
-            }
-            else {
+        database_interface.GetGroupsForUserId(user_id)
+            .then((result) => {
                 var group_data = [];
-                for (var i = 0; i < data.rows.length; ++i) {
-                    group_data.push(data.rows[i].value)
+                for (var i = 0; i < result.length; ++i) {
+                    group_data.push(result[i].value)
                 }
-                res.json({success: true, groups: group_data});
-            }
+                res.status(200).json({success: true, groups: group_data});
+            })
+            .catch((err) => {
+                res.status(401).json({success: false, message: err});
 
-        });
+            });
     }
 });
 
@@ -85,15 +84,13 @@ router.get('/get_group_info', function (req, res) {
     }
     else {
         var group_id = req.query.group_id;
-        database_interface.GetGroupDataByGroupId(group_id, function(err, data) {
-            if (err) {
-                res.json({success: false, error: err.message});
-            }
-            else {
-                res.json({success: true, data: data});
-            }
-
-        });
+        database_interface.GetGroupDataByGroupId(group_id)
+            .then((result) => {
+                res.status(200).json({success: true, data: result});
+            })
+            .catch((err) => {
+                res.status(401).json({success: false, error: err.message});
+            });
     }
 });
 
