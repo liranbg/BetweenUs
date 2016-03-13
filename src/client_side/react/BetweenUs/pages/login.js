@@ -30,8 +30,8 @@ var LogIn = React.createClass({
         ServerAPI.Login(this.state.email,this.state.password).then((ResponseJSON) => {
             this.setState({
                 loginState: 'success',
-                groups:ResponseJSON.data.value.groups,
-                user_id:ResponseJSON.data.id
+                groups:ResponseJSON.groups,
+                user_id:ResponseJSON.data._id
             });
             this.props.navigator.push({id: 'logged_in'});
         });
