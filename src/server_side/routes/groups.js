@@ -80,17 +80,13 @@ router.get('/get_groups', function (req, res) {
 router.get('/get_group_info', function (req, res) {
     var user_id = session_util.GetUserId(req.session);
     if (!user_id) {
-        res.json({success:false})
+        res.status(401).json({success:false, message:"You must be logged in"});
     }
     else {
         var group_id = req.query.group_id;
         database_interface.GetGroupDataByGroupId(group_id)
-            .then((result) => {
-                res.status(200).json({success: true, data: result});
-            })
-            .catch((err) => {
-                res.status(401).json({success: false, error: err.message});
-            });
+            .then((result) => { res.status(200).json({success: true, data: result}); })
+            .catch((err) => { res.status(401).json({success: false, error: err.message}); });
     }
 });
 

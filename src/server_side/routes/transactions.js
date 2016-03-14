@@ -12,14 +12,13 @@ router.get('/get_transaction', function (req, res) {
         res.status(404).json({success:false, error: "Invalid Input"});
         return;
     }
-    database_interface.GetTransactionInfoById(transaction_id, function(err, data) {
-        if (err) {
-            res.status(404).json({success:false, error: err.message});
-        }
-        else {
-            res.status(200).json({success: true, transaction_data: data});
-        }
-    });
+    database_interface.GetTransactionAllInfoById(user_id, transaction_id)
+        .then((result) => {
+            res.status(200).json({success: true, transaction_data: result});
+        })
+        .catch((err) => {
+            res.status(401).json({success: false, error: err.message});
+        });
 });
 
 router.get('/get_share_stash', function (req, res) {
@@ -30,14 +29,16 @@ router.get('/get_share_stash', function (req, res) {
         res.status(404).json({success:false, error: "Invalid Input"});
         return;
     }
-    database_interface.GetShareStash(user_id, transaction_id, true, function(err, data) {
-        if (err) {
-            res.status(404).json({success:false, error: err.message});
-        }
-        else {
-            res.status(200).json({success: true, transaction_data: data});
-        }
-    })});
+    database_interface.GetShareStash(user_id, transaction_id, true)
+        .then((result) => {
+            res.status(200).json({success: true, transaction_data: result});
+        })
+        .catch((err) => {
+            console.log(err.message);
+            res.status(401).json({success: false, error: err.message});
+
+        });
+});
 
 router.post('/create_transaction', function (req, res) {
     var initiator = session_util.GetUserId(req.session);
