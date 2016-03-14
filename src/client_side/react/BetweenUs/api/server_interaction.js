@@ -58,5 +58,35 @@ class BetweenUsServer {
 
         });
     }
+    static fetchTransactionData(transaction_id) {
+        return new Promise(function(resolve, reject)
+        {
+            fetch(GLOBAL.DB_SERVER + "/transactions/get_transaction?transaction_id=" + transaction_id,
+                {
+                    method: 'GET',
+                    headers:
+                    {
+                        'Accept': 'application/json'
+                    }
+                })
+                .then((response) => resolve(response.json()))
+                .catch((error) => {reject(error); });
+        });
+    }
+    static fetchTransactionSharesData(transaction_id) {
+        return new Promise(function(resolve, reject)
+        {
+            fetch(GLOBAL.DB_SERVER + "/transactions/get_share_stash?transaction_id=" + transaction_id,
+                {
+                    method: 'GET',
+                    headers:
+                    {
+                        'Accept': 'application/json'
+                    }
+                })
+                .then((response) => resolve(response.json()))
+                .catch((error) => {reject(error); });
+            });
+    }
 }
 module.exports = BetweenUsServer;

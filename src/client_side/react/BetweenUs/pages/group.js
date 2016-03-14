@@ -29,7 +29,11 @@ var Groups = React.createClass({
         if (this.props.data !== undefined)
         {
             this.setState(this.props.data);
-            this.fetchGroupData();
+            this.props.navigator.push({id:"transaction", data:{
+                transaction_id: "549b28dde0a96df05e8d1426ad6e6aed",
+                transaction_name: "Prototype Transaction"
+            }});
+            //this.fetchGroupData();
         }
     },
     fetchGroupData() {

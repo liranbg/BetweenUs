@@ -21,7 +21,8 @@ var Groups = React.createClass({
         })
     },
     componentDidMount: function() {
-        this.fetchGroupData();
+        this.props.navigator.push({id:"group", data:{group_id:"e6d4824ba908e09959e5ac63289e800d", group_name:"ProtoType Group"}});
+        //this.fetchGroupData();
     },
     fetchGroupData: function() {
         ServerAPI.GetGroups()
@@ -29,8 +30,9 @@ var Groups = React.createClass({
                 var ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
                 this.setState({dataSource: ds.cloneWithRows(ResponseJSON.groups)});
             }).catch((error) => {
-            console.warn(error);
         });
+        //TODO auto clicker
+
     },
     AddGroupRow(rowData) {
         //<Text style={{flex:0.6, fontWeight:'bold', marginRight: 5}}>{rowData.group_id}</Text>

@@ -1,17 +1,13 @@
 import React, {View, Text, StyleSheet, TouchableHighlight, ListView} from 'react-native'
-var GLOBAL = require('../env');
+var ServerAPI = require('../api/server_interaction');
 var Button = require('react-native-button');
+var betweenUs = require('../api/betweenus');
 
 var Transaction = React.createClass({
 
     getInitialState() {
         var members_ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1.user_id !== r2.user_id});
-        var member_list = [
-            {
-                share:"",
-                email:""
-            }
-        ];
+        var member_list = [];
         return( {
             transaction_id: "",
             transaction_name: "",
@@ -31,43 +27,31 @@ var Transaction = React.createClass({
     componentDidMount: function() {
         if (this.props.data !== undefined)
         {
-            this.setState({transaction_name: this.props.data.transaction_name,
-            transaction_id: this.props.data.transaction_id});
-            this.fetchTransactionData();
+            this.setState({
+                transaction_name: this.props.data.transaction_name,
+                transaction_id: this.props.data.transaction_id
+            });
+            this.fetchTransactionData(); //TODO unmark when finish with transaction page
+
         }
     },
     fetchTransactionData() {
-        fetch(GLOBAL.DB_SERVER + "/transactions/get_transaction?transaction_id=" + this.props.data.transaction_id,
-            {
-                method: 'GET',
-                headers:
-                {
-                    'Accept': 'application/json'
-                }
-            })
-            .then((response) => response.json())
-            .then((ResponseJSON) => {
-                this.setState(ResponseJSON.transaction_data);
-            }).catch((error) => {
-            console.warn(error);
-        });
-        this.fetchTransactionSharesData();
-    },
-    fetchTransactionSharesData() {
-        fetch(GLOBAL.DB_SERVER + "/transactions/get_share_stash?transaction_id=" + this.props.data.transaction_id,
-            {
-                method: 'GET',
-                headers:
-                {
-                    'Accept': 'application/json'
-                }
-            })
-            .then((response) => response.json())
-            .then((ResponseJSON) => {
-                //console.warn(JSON.stringify(ResponseJSON.transaction_data));
-                var members_ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1.user_id !== r2.user_id});
-                this.setState({transaction_share_data: members_ds.cloneWithRows(ResponseJSON.transaction_data)});
-            }).catch((error) => {
+        Promise.all([
+            ServerAPI.fetchTransactionData(this.props.data.transaction_id),
+            ServerAPI.fetchTransactionSharesData(this.props.data.transaction_id)
+        ]).then((all)=> {
+            console.warn(all);
+            var members_ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1.user_id !== r2.user_id});
+            all[0].transaction_data.transaction_share_data = members_ds.cloneWithRows(all[[1]].transaction_data);
+            this.setState(all[0].transaction_data);
+            var all_shares = betweenUs.CombineShares([
+                all[1].transaction_data[0].share,
+                all[1].transaction_data[2].share
+            ]);
+
+            console.warn(all_shares);
+            //betweenUs.SymmetricDecrypt(encrypted_buffer, all_shares);
+        }).catch((error) => {
             console.warn(error);
         });
     },

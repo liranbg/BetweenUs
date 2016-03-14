@@ -18,9 +18,7 @@ var LogIn = React.createClass({
         };
     },
     componentDidMount: function() {
-        //ECECED
-        //E8E8E9
-        //this.clickToLogIn();
+        this.clickToLogIn();
     },
     clickToRegister: function() {
         this.props.navigator.push({id: 'register'});

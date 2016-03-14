@@ -8,9 +8,9 @@ import React, {    BackAndroid,Navigator, StyleSheet, ScrollView, Text, Touchabl
 
 
 var INITIAL_ROUTES = [
+    {id: 'transaction'},
     {id: 'groups'},
     {id: 'group'},
-    {id: 'transaction'},
     {id: 'a'}
 
 ];
@@ -63,7 +63,8 @@ var JumpingNav = React.createClass({
                 response = (<GroupScene data={route.data} navigator={nav}/>);
                 break;
             case 'transaction':
-                response = (<TransactionScene data={route.data} navigator={nav}/>);
+                //response = (<TransactionScene data={route.data} navigator={nav}/>);
+                response = (<TransactionScene data={{transaction_id: "549b28dde0a96df05e8d1426ad6e6aed",transaction_name: "Prototype Transaction" }} navigator={nav}/>);
                 break;
             default:
                 response = (<Text>Default</Text>);
