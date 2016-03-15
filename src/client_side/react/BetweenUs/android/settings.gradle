@@ -3,5 +3,7 @@ rootProject.name = 'BetweenUs'
 include ':app'
 include ':RNMaterialKit'
 include ':react-native-vector-icons'
+include ':randombytes', ':app'
 project(':RNMaterialKit').projectDir = file('../node_modules/react-native-material-kit/android')
 project(':react-native-vector-icons').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-vector-icons/android')
+project(':randombytes').projectDir = new File(rootProject.projectDir, '../node_modules/react-native-randombytes/app')

@@ -84,7 +84,7 @@ var BetweenUs = React.createClass({
     render() {
         return (
             <Navigator
-                initialRoute={{ id: 'logged_in' }}
+                initialRoute={{ id: 'login' }}
                 renderScene={this.renderScene}
             />
         )}
