@@ -424,6 +424,7 @@ class ServerInteraction {
         return new Promise((resolve, reject) => {
             this.transactions_db.get(transaction_id)
                 .then((transaction_doc) => {
+                    transaction_data.cipher_meta_data = transaction_doc.cipher_meta_data;
                     transaction_data.id = transaction_doc._id;
                     transaction_data.transaction_name = transaction_doc.transaction_name;
                     transaction_data.threshold = transaction_doc.threshold;
