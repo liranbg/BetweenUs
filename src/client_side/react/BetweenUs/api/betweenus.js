@@ -1,6 +1,10 @@
-'use strict';
+//'use strict';
 var _crypto = require("crypto-js");
 var _secrets = require("./secrets.js");
+_secrets.init();
+_secrets.setRNG("asyncRandomBytes");
+//_secrets.setRNG(function(bits){});
+
 
 class BetweenUsSSS {
 
@@ -82,7 +86,8 @@ class BetweenUsSSS {
         BetweenUsSSS._type_assert(shares_amount, "number");
         BetweenUsSSS._type_assert(threshold, "number");
         BetweenUsSSS._type_assert(zeropadding, "number");
-        return _secrets.share(symmetric_key, shares_amount, threshold, zeropadding);
+        var async = true;
+        return _secrets.share(symmetric_key, shares_amount, threshold, zeropadding, async);
     };
 
     /**
