@@ -374,7 +374,6 @@ var CloudantDBModule = (function() {
         )
     };
 
-
     /***  GetStashList
      * FLOW:
      * Receive input of User_ID, Transaction_ID to act as our unique key in a predefined view.

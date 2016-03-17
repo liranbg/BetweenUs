@@ -6,10 +6,10 @@ require('dotenv').load({path: './.env'}); //load all environments from .env file
 let _singleton = Symbol();
 
 class ServerInteraction {
-
     constructor(singletonToken) {
         if(_singleton != singletonToken) throw "Cannot construct singleton"; //ensure singleton
         this._views = {
+            /* In PouchDB we need to apply toString on the map, since the module excepts a string and not an object. */
             users_db: {
                 get_user_doc_by_email: {
                     map: function (doc) {
@@ -94,7 +94,6 @@ class ServerInteraction {
                     name: '_design/api',
                     get_groups_by_user: "api/get_groups_by_user",
                     get_groups_metadata_by_user: "api/get_groups_metadata_by_user"
-
                 }
             },
             transactions_db: {
@@ -102,13 +101,11 @@ class ServerInteraction {
                     name: '_design/api',
                     get_transaction_info_by_id: "api/get_transaction_info_by_id",
                     get_transaction_share_stash: "api/get_transaction_share_stash"
-
                 }
             }
         };
         this._InitialDataBasesConnectionVariables();
         this._InitDataBases();
-
     }
 
     static get instance() {
@@ -120,14 +117,16 @@ class ServerInteraction {
     }
 
     _InitialDataBasesConnectionVariables() {
+        /* TODO: Check if we can remove the need for multiple connections */
         this.users_db = new PouchDB('https://betweenus.cloudant.com/users', { auth: this._db_module_config.auth });
         this.groups_db = new PouchDB('https://betweenus.cloudant.com/groups', { auth: this._db_module_config.auth });
         this.transactions_db = new PouchDB('https://betweenus.cloudant.com/transactions', { auth: this._db_module_config.auth });
         this.notification_stash_db = new PouchDB('https://betweenus.cloudant.com/notification_stash', { auth: this._db_module_config.auth });
         this.shares_stash_db = new PouchDB('https://betweenus.cloudant.com/shares_stash', { auth: this._db_module_config.auth });
-
     }
+
     _InitDataBases() {
+        /* TODO: Check for database existence. create if doesn't exist. */
         Promise.all([
             this._InitUsersDB(),
             this._InitGroupsDB(),
@@ -144,6 +143,7 @@ class ServerInteraction {
 
 
     }
+
     _InitUsersDB() {
         return new Promise((resolve, reject) => {
             this.users_db.get(this._db_module_config.users_db.api.name)
@@ -153,16 +153,15 @@ class ServerInteraction {
                     this.users_db.post({
                         views: this._views.users_db,
                         _id: this._db_module_config.users_db.api.name
-                    }).then((doca)=> {
+                    }).then((doc)=> {
                         resolve("UsersDB indexes has been created successfully");
-                    }).catch((erra)=> {
+                    }).catch((err)=> {
                         reject("Error on creating UsersDB indexes");
                     });
                 });
-
         });
-
     }
+
     _InitGroupsDB() {
         return new Promise((resolve, reject) => {
             this.groups_db.get(this._db_module_config.groups_db.api.name)
@@ -180,8 +179,8 @@ class ServerInteraction {
                 });
 
         });
-
     }
+
     _InitTransactionsDB() {
         return new Promise((resolve, reject) => {
             this.transactions_db.get(this._db_module_config.transactions_db.api.name)
@@ -197,15 +196,15 @@ class ServerInteraction {
                         reject("Error on creating TransactionsDB indexes");
                     });
                 });
-
         });
-
     }
+
     _InitSharesStashDB() {
         return new Promise(function(resolve, reject) {
             resolve("Done");
         });
     }
+
     _InitNotificationsStashDB() {
         return new Promise(function(resolve, reject) {
             resolve("Done");
@@ -224,10 +223,11 @@ class ServerInteraction {
                     include_docs: true
                 })
                 .then((result) => {
+                    /* TODO: Make sure rows is of length 1. otherwise return error. */
                     resolve(result.rows[0].value);
                 })
                 .catch((err) => {
-                    reject("Wrong Password");
+                    reject("User not found.");
                 })
         });
     }
@@ -247,13 +247,10 @@ class ServerInteraction {
                     if (doc.password == password)
                         resolve(doc);
                     else
-                        reject("Wrong Password");
-
+                        reject("Bad credentials.");
                 })
                 .catch((err)=> {
-                    //probably user not found. changed the error
-                    reject("Wrong Password");
-
+                    reject("Bad Credential.");
                 });
         });
     }
@@ -369,7 +366,6 @@ class ServerInteraction {
                     reject(err);
                 });
         });
-
     }
 
     /**
@@ -414,12 +410,12 @@ class ServerInteraction {
                user_id: '251535b0e57a94f4382d50a6ac9eff9d' },
              { email: 'alice', user_id: 'cddf14e4e0ce7fd1f3fb2f8d66fef344' } ],
           my_stash: 'd05ab2d51d8a84864e91c642c19c47b3' }
-     * @param requested_user_id
+     * @param requesting_user_id
      * @param transaction_id
      * @returns {Promise}
      * @constructor
      */
-    GetTransactionAllInfoById(requested_user_id, transaction_id) {
+    GetTransactionAllInfoById(requesting_user_id, transaction_id) {
         var transaction_data = {};
         return new Promise((resolve, reject) => {
             this.transactions_db.get(transaction_id)
@@ -436,7 +432,7 @@ class ServerInteraction {
                     transaction_data.members_list = [];
                     for (var i = 0; i < transaction_doc.stash_list.length; ++i) {
                         var stash = transaction_doc.stash_list[i];
-                        if (stash.user_id == requested_user_id) {
+                        if (stash.user_id == requesting_user_id) {
                             transaction_data.my_stash = stash.stash_id;
                         }
                         transaction_data.members_list.push(stash.user_id);
@@ -461,9 +457,7 @@ class ServerInteraction {
                 .catch((err) => {
                     reject(err);
                 });
-
         });
-
     }
 
     /**
@@ -517,7 +511,6 @@ class ServerInteraction {
                     reject(err);
                 });
         });
-
     }
 
     /**
@@ -534,11 +527,7 @@ class ServerInteraction {
                     reject(err);
                 });
         });
-
     }
-
-
-
 }
 
 module.exports = ServerInteraction.instance;

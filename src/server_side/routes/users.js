@@ -73,7 +73,6 @@ router.post('/register_user', function(req, res) {
             }
         });
     }
-
 });
 
 
@@ -88,7 +87,6 @@ router.post('/login', function (req, res) {
         })
         .catch((err) => {
             res.status(401).json({success: false, message: "Wrong password"});
-
         });
 });
 
