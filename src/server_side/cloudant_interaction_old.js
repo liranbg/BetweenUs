@@ -386,45 +386,45 @@ var CloudantDBModule = (function() {
      * @param convert_ids_to_name - if this is true, another query is executed to include a readable name in the response.
      * @constructor
      */
-    var GetShareStash = function(user_id, transaction_id, convert_ids_to_name, callback_func) {
-        var view_name = db_module_config.transactions_db.api.get_transaction_share_stash.name;
-        var design_name = db_module_config.transactions_db.api.get_transaction_share_stash.design_name;
-        /* Initial call to produce a stash ID for the user_id and transaction_id */
-        transactions_db.view(design_name, view_name, { keys: [{transaction_id: transaction_id, user_id: user_id}] }, function (err, data) {
-            if (err) {
-                logger.error("GetStashList: %s", err.message);
-                callback_func(err, data);
-            }
-            else {
-                /* Once here, we have Stash ID, retrieve stash from the database. */
-                var stash_id = data.rows[0].value;
-                if (!convert_ids_to_name)
-                {
-                    /* If here, just return the query as-is */
-                    GetShareStashByStashID(stash_id, callback_func);
-                }
-                else
-                {
-                    /* Else, run another query to obtain usernames from user-ids. THIS COSTS ANOTHER QUERY! */
-                    GetShareStashByStashID(stash_id, function(err, data) {
-                        var user_ids = [];
-                        for (var i in data) {
-                            user_ids.push(data[i].user_id);
-                        }
-                        /* Now user_ids contain a list of the ids extracted from the 'data' variable in the same order */
-                        GetUsersByIdsList(user_ids, function(err, id_to_username_data) {
-                            /* id_to_username_data is a list of 'user' entities doc, wrapped in a 'rows' key. */
-                            var docs = id_to_username_data.rows;
-                            for (var i in docs) {
-                                data[i].email = docs[i].doc.email;
-                            }
-                            callback_func(err, data);
-                        })
-                    });
-                }
-            }
-        })
-    };
+    //var GetShareStash = function(user_id, transaction_id, convert_ids_to_name, callback_func) {
+    //    var view_name = db_module_config.transactions_db.api.get_transaction_share_stash.name;
+    //    var design_name = db_module_config.transactions_db.api.get_transaction_share_stash.design_name;
+    //    /* Initial call to produce a stash ID for the user_id and transaction_id */
+    //    transactions_db.view(design_name, view_name, { keys: [{transaction_id: transaction_id, user_id: user_id}] }, function (err, data) {
+    //        if (err) {
+    //            logger.error("GetStashList: %s", err.message);
+    //            callback_func(err, data);
+    //        }
+    //        else {
+    //            /* Once here, we have Stash ID, retrieve stash from the database. */
+    //            var stash_id = data.rows[0].value;
+    //            if (!convert_ids_to_name)
+    //            {
+    //                /* If here, just return the query as-is */
+    //                GetShareStashByStashID(stash_id, callback_func);
+    //            }
+    //            else
+    //            {
+    //                /* Else, run another query to obtain usernames from user-ids. THIS COSTS ANOTHER QUERY! */
+    //                GetShareStashByStashID(stash_id, function(err, data) {
+    //                    var user_ids = [];
+    //                    for (var i in data) {
+    //                        user_ids.push(data[i].user_id);
+    //                    }
+    //                    /* Now user_ids contain a list of the ids extracted from the 'data' variable in the same order */
+    //                    GetUsersByIdsList(user_ids, function(err, id_to_username_data) {
+    //                        /* id_to_username_data is a list of 'user' entities doc, wrapped in a 'rows' key. */
+    //                        var docs = id_to_username_data.rows;
+    //                        for (var i in docs) {
+    //                            data[i].email = docs[i].doc.email;
+    //                        }
+    //                        callback_func(err, data);
+    //                    })
+    //                });
+    //            }
+    //        }
+    //    })
+    //};
 
     /*** GetShareStashByStashID
      * Receives a stash id, retrieves the shares from the stash and invokes the callback function with the result.
@@ -835,7 +835,7 @@ var CloudantDBModule = (function() {
     exports.GetTransactionInfoById = GetTransactionInfoById;
     exports.GetTransactionsByIdList = GetTransactionsDocsByIdList;
     exports.AddTransactionToGroup = AddTransactionToGroup;
-    exports.GetShareStash = GetShareStash;
+    //exports.GetShareStash = GetShareStash;
     exports.GetShareStashByStashID = GetShareStashByStashID;
     exports.GetShareStashDocByStashID = GetShareStashDocByStashID;
 

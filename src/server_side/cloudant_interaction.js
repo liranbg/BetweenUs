@@ -487,11 +487,21 @@ class ServerInteraction {
      * @constructor
      */
     GetShareStash(user_id, transaction_id, convert_ids_to_name) {
+
         return new Promise((resolve, reject) => {
+            var nuser_id = user_id,
+                ntransaction_id = transaction_id;
             this.transactions_db.query(this._db_module_config.transactions_db.api.get_transaction_share_stash, {
                     keys: [{transaction_id: transaction_id, user_id: user_id}]
                 })
-                .then((result) => this.GetShareStashByStashID(result.rows[0].value))
+                .then((result) => {
+                    if (result.rows.length == 0) {
+                        reject("No stash found for transaction id: " +  ntransaction_id + " associated with user id: " + nuser_id);
+                    }
+                    else {
+                        this.GetShareStashByStashID(result.rows[0].value)
+                    }
+                })
                 .then((result) => {
                     if (convert_ids_to_name) {
                         var user_ids = [];

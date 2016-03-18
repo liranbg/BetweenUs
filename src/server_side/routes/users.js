@@ -3,6 +3,7 @@ var database_interface = require('../cloudant_interaction');
 var session_util = require('../utils/session');
 var validation_util = require('../utils/validation')
 var router = express.Router();
+var errors_util = require('../utils/errors');
 
 /*** GET route for '/users/get_user' url.
  *
@@ -30,7 +31,7 @@ router.get('/get_user', function(req, res, next) {
     var user_email = session_util.GetUserEmail(req.session);
     if (!user_email)
     {
-        res.status(401).json({success: false, error: "Must be authenticated to perform this action."});
+        errors_util.ReturnNotLoggedInError(res);
     }
     else {
         database_interface.GetUserByEmail(user_email)
@@ -38,8 +39,7 @@ router.get('/get_user', function(req, res, next) {
                 res.status(200).json({success: true, user_data: data});
             })
             .catch((err) => {
-                /* 401 -> Unauthorized. */
-                res.status(401).json({success: false, error: "Bad credentials."});
+                res.status(401).json({success: false, error: err});
             });
     }
 });
@@ -48,7 +48,7 @@ router.get('/user_exists', function(req, res, next) {
     var user_email = session_util.GetUserEmail(req.session);
     if (!user_email)
     {
-        res.status(401).json({success: false, error: "Must be authenticated to perform this action."});
+        errors_util.ReturnNotLoggedInError(res);
     }
     else {
         var user_email = req.query.user_email;
@@ -102,7 +102,7 @@ router.post('/login', function (req, res) {
             res.status(200).json({success: true, message: "Authenticated successfully", data: result});
         })
         .catch((err) => {
-            res.status(401).json({success: false, message: "Wrong password"});
+            res.status(401).json({success: false, message: "Bad credentials."});
         });
 });
 
@@ -124,7 +124,7 @@ router.get('/get_public_key', function(req, res) {
     /* Verify that user is logged in, AKA there is a stored session. */
     if (requesting_user_id == null)
     {
-        res.status(401).json({success: false, error: "Must be authenticated to perform this action."});
+        errors_util.ReturnNotLoggedInError(res);
     }
     else
     {
@@ -141,7 +141,8 @@ router.get('/get_public_key', function(req, res) {
         }
         else
         {
-            res.status(404).json({success: false, error: "Missing parameter: user_id."});
+            errors_util.ReturnRequestMissingParamteres(res);
+
         }
     }
 });

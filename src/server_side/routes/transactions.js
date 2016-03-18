@@ -1,43 +1,59 @@
 var express = require('express');
 var database_interface = require('../cloudant_interaction');
 var session_util = require('../utils/session');
+var errors_util = require('../utils/errors');
 var router = express.Router();
 
 
 router.get('/get_transaction', function (req, res) {
-    //http://localhost:3000/transactions/get_transaction?transaction_id=1afb05dfa0de96545a1756a2a309d7f5
+    // http://localhost:3000/transactions/get_transaction?transaction_id=549b28dde0a96df05e8d1426ad6e6aed
+    /* Verify that user is logged in to perform this action. */
     var user_id = session_util.GetUserId(req.session);
-    var transaction_id = req.query.transaction_id;
-    if (!transaction_id) {
-        res.status(404).json({success:false, error: "Invalid Input"});
-        return;
+    if (user_id == null) {
+        errors_util.ReturnNotLoggedInError(res);
     }
-    database_interface.GetTransactionAllInfoById(user_id, transaction_id)
-        .then((result) => {
-            res.status(200).json({success: true, transaction_data: result});
-        })
-        .catch((err) => {
-            res.status(401).json({success: false, error: err.message});
-        });
+    else {
+        /* Make sure the transcation_id field is provided in the GET query. */
+        if (req.hasOwnProperty('query') && req.query.hasOwnProperty('transaction_id')) {
+            var transaction_id = req.query.transaction_id;
+            database_interface.GetTransactionAllInfoById(user_id, transaction_id)
+                .then((result) => {
+                    res.status(200).json({success: true, transaction_data: result});
+                })
+                .catch((err) => {
+                    res.status(401).json({success: false, error: err.message});
+                });
+        }
+        else {
+            errors_util.ReturnRequestMissingParamteres(res);
+        }
+    }
 });
 
 router.get('/get_share_stash', function (req, res) {
     //http://localhost:3000/transactions/get_share_stash?transaction_id=549b28dde0a96df05e8d1426ad6e6aed
     var user_id = session_util.GetUserId(req.session);
-    var transaction_id = req.query.transaction_id;
-    if (!transaction_id) {
-        res.status(404).json({success:false, error: "Invalid Input"});
-        return;
+    if (user_id == null) {
+        errors_util.ReturnNotLoggedInError(res);
     }
-    database_interface.GetShareStash(user_id, transaction_id, true)
-        .then((result) => {
-            res.status(200).json({success: true, transaction_data: result});
-        })
-        .catch((err) => {
-            console.log(err.message);
-            res.status(401).json({success: false, error: err.message});
+    else {
+        /* Make sure the transcation_id field is provided in the GET query. */
+        if (req.hasOwnProperty('query') && req.query.hasOwnProperty('transaction_id')) {
+            var transaction_id = req.query.transaction_id;
+            database_interface.GetShareStash(user_id, transaction_id, true)
+                .then((result) => {
+                    res.status(200).json({success: true, transaction_data: result});
+                })
+                .catch((err) => {
+                    console.log(err);
+                    res.status(401).json({success: false, error: err});
 
-        });
+                });
+        }
+        else {
+            errors_util.ReturnRequestMissingParamteres(res);
+        }
+    }
 });
 
 router.post('/create_transaction', function (req, res) {
