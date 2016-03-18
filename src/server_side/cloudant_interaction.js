@@ -223,7 +223,9 @@ class ServerInteraction {
                     include_docs: true
                 })
                 .then((result) => {
-                    /* TODO: Make sure rows is of length 1. otherwise return error. */
+                    if (result.rows.length == 0) {
+                        reject("User not found.");
+                    }
                     resolve(result.rows[0].value);
                 })
                 .catch((err) => {

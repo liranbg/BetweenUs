@@ -555,17 +555,17 @@ var CloudantDBModule = (function() {
 
         });
     };
-
-    var GetUserByEmail = function(email, callback_func) {
-        var view_name = db_module_config.users_db.api.get_user_doc_by_email.name;
-        var design_name = db_module_config.users_db.api.get_user_doc_by_email.design_name;
-        users_db.view(design_name, view_name, { keys: [email] }, function (err, data) {
-            if (err) {
-                logger.error("GetUserByEmail: %s", err.message);
-            }
-            callback_func(err, data);
-        });
-    };
+    //
+    //var GetUserByEmail = function(email, callback_func) {
+    //    var view_name = db_module_config.users_db.api.get_user_doc_by_email.name;
+    //    var design_name = db_module_config.users_db.api.get_user_doc_by_email.design_name;
+    //    users_db.view(design_name, view_name, { keys: [email] }, function (err, data) {
+    //        if (err) {
+    //            logger.error("GetUserByEmail: %s", err.message);
+    //        }
+    //        callback_func(err, data);
+    //    });
+    //};
 
     var GetUsersByEmailList = function(email_list, callback_func) {
         var view_name = db_module_config.users_db.api.get_user_doc_by_email.name;
@@ -821,7 +821,7 @@ var CloudantDBModule = (function() {
     exports.IsUserExists = IsUserExists;
     exports.AddGroupToUser = AddGroupToUser;
     exports.AddUsersToGroup = AddUsersToGroup;
-    exports.GetUserByEmail = GetUserByEmail;
+    //exports.GetUserByEmail = GetUserByEmail;
     exports.GetUsersByEmailList = GetUsersByEmailList;
     exports.GetUsersByIdsList = GetUsersByIdsList;
     exports.GetUsersPublicKeys = GetUsersPublicKeys;
