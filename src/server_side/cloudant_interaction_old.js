@@ -300,79 +300,79 @@ var CloudantDBModule = (function() {
         });
     };
 
-    var CreateTransaction = function (creator_userid, transaction_name, cipher_data, user_stash_list, group_id, share_threshold, callback_func) {
-        //TODO: Store shares_stash before creating the transaction and then add it to the new transaction
-        //user_stash_list - [{user_id:"123assss", share:"asdasdasdasd"},{},{},...]
-        var new_transaction_doc = {
-            metadata: {
-                scheme: "transaction",
-                scheme_version: "1.0",
-                creation_time: (new Date()).toISOString()
-            },
-            initiator: creator_userid,
-            transaction_name: transaction_name,
-            cipher_meta_data: {
-                type: "String",
-                data: cipher_data
-            },
-            group_id: group_id,
-            threshold: share_threshold,
-            stash_list: user_stash_list
-        };
+    //var CreateTransaction = function (creator_userid, transaction_name, cipher_data, user_stash_list, group_id, share_threshold, callback_func) {
+    //    //TODO: Store shares_stash before creating the transaction and then add it to the new transaction
+    //    //user_stash_list - [{user_id:"123assss", share:"asdasdasdasd"},{},{},...]
+    //    var new_transaction_doc = {
+    //        metadata: {
+    //            scheme: "transaction",
+    //            scheme_version: "1.0",
+    //            creation_time: (new Date()).toISOString()
+    //        },
+    //        initiator: creator_userid,
+    //        transaction_name: transaction_name,
+    //        cipher_meta_data: {
+    //            type: "String",
+    //            data: cipher_data
+    //        },
+    //        group_id: group_id,
+    //        threshold: share_threshold,
+    //        stash_list: user_stash_list
+    //    };
+    //
+    //    transactions_db.insert(new_transaction_doc, function (err, transaction_body) {
+    //        if (err) {
+    //            //TODO remove all created stash
+    //            logger.error("CreateTransaction: Insert - %s", err.message);
+    //        }
+    //        callback_func(err, transaction_body);
+    //    });
+    //
+    //};
 
-        transactions_db.insert(new_transaction_doc, function (err, transaction_body) {
-            if (err) {
-                //TODO remove all created stash
-                logger.error("CreateTransaction: Insert - %s", err.message);
-            }
-            callback_func(err, transaction_body);
-        });
-
-    };
-
-    var CreateStashList = function (user_stash_list, group_id, callback_func) {
-        //user_stash_list - [{user_id:"123assss", share:"asdasdasdasd"},{},{},...]
-        var list_of_user_stash_to_insert = [];
-        for (var i in user_stash_list) {
-            var share_list = [];
-            for (var j in user_stash_list) {
-                var share_obj = {};
-                share_obj.user_id = user_stash_list[j].user_id;
-                if (j == i) {
-                    share_obj.share = user_stash_list[i].share;
-                }
-                else {
-                    share_obj.share = "";
-
-                }
-                share_list.push(share_obj);
-            }
-            var user_stash_doc = {
-                metadata: {
-                    scheme: "share_stash",
-                    scheme_version: "1.0",
-                    creation_time: (new Date()).toISOString()
-                },
-                stash_owner: user_stash_list[i].user_id,
-                share_list: share_list
-                ,
-                group_id: group_id
-            };
-            list_of_user_stash_to_insert.push(user_stash_doc);
-        }
-        shares_stash_db.bulk({docs: list_of_user_stash_to_insert}, function (err, stash_share_body) {
-                if (err) {
-                    logger.error("CreateTransaction: Bulk - %s", err.message);
-                }
-                else {
-                    for (var i in stash_share_body) {
-                        stash_share_body[i].stash_owner = list_of_user_stash_to_insert[i].stash_owner;
-                    }
-                }
-                callback_func(err, stash_share_body);
-            }
-        )
-    };
+    //var CreateStashList = function (user_stash_list, group_id, callback_func) {
+    //    //user_stash_list - [{user_id:"123assss", share:"asdasdasdasd"},{},{},...]
+    //    var list_of_user_stash_to_insert = [];
+    //    for (var i in user_stash_list) {
+    //        var share_list = [];
+    //        for (var j in user_stash_list) {
+    //            var share_obj = {};
+    //            share_obj.user_id = user_stash_list[j].user_id;
+    //            if (j == i) {
+    //                share_obj.share = user_stash_list[i].share;
+    //            }
+    //            else {
+    //                share_obj.share = "";
+    //
+    //            }
+    //            share_list.push(share_obj);
+    //        }
+    //        var user_stash_doc = {
+    //            list_of_user_stash_to_insert.push(user_stash_doc);
+    //    }
+    //            metadata: {
+    //                scheme: "share_stash",
+    //                scheme_version: "1.0",
+    //                creation_time: (new Date()).toISOString()
+    //            },
+    //            stash_owner: user_stash_list[i].user_id,
+    //            share_list: share_list
+    //            ,
+    //            group_id: group_id
+    //        };
+    //    shares_stash_db.bulk({docs: list_of_user_stash_to_insert}, function (err, stash_share_body) {
+    //            if (err) {
+    //                logger.error("CreateTransaction: Bulk - %s", err.message);
+    //            }
+    //            else {
+    //                for (var i in stash_share_body) {
+    //                    stash_share_body[i].stash_owner = list_of_user_stash_to_insert[i].stash_owner;
+    //                }
+    //            }
+    //            callback_func(err, stash_share_body);
+    //        }
+    //    )
+    //};
 
     /***  GetStashList
      * FLOW:
@@ -454,22 +454,22 @@ var CloudantDBModule = (function() {
         });
     };
 
-    var AddTransactionToGroup = function(group_id, transaction_doc, callback_func) {
-        groups_db.get(group_id, function (err, group_data) {
-            if (err) {
-                logger.error("CreateTransaction: Groups Get - %s", err.message);
-                callback_func(err, group_data);
-                return;
-            }
-            group_data.transaction_list.push(transaction_doc.id);
-            groups_db.update(group_data, group_data._id, function(err, data) {
-                if (err) {
-                    logger.error("AddTransactionToGroup: %s", err.message);
-                }
-                callback_func(err, data);
-            });
-        });
-    };
+    //var AddTransactionToGroup = function(group_id, transaction_doc, callback_func) {
+    //    groups_db.get(group_id, function (err, group_data) {
+    //        if (err) {
+    //            logger.error("CreateTransaction: Groups Get - %s", err.message);
+    //            callback_func(err, group_data);
+    //            return;
+    //        }
+    //        group_data.transaction_list.push(transaction_doc.id);
+    //        groups_db.update(group_data, group_data._id, function(err, data) {
+    //            if (err) {
+    //                logger.error("AddTransactionToGroup: %s", err.message);
+    //            }
+    //            callback_func(err, data);
+    //        });
+    //    });
+    //};
 
     var AddGroupToUser = function(user, group, callback_func) {
         //updating user's group list
@@ -567,16 +567,16 @@ var CloudantDBModule = (function() {
     //    });
     //};
 
-    var GetUsersByEmailList = function(email_list, callback_func) {
-        var view_name = db_module_config.users_db.api.get_user_doc_by_email.name;
-        var design_name = db_module_config.users_db.api.get_user_doc_by_email.design_name;
-        users_db.view(design_name, view_name, { keys: email_list }, function (err, data) {
-            if (err) {
-                logger.error("GetUserByEmail: %s", err.message);
-            }
-            callback_func(err, data);
-        });
-    };
+    //var GetUsersByEmailList = function(email_list, callback_func) {
+    //    var view_name = db_module_config.users_db.api.get_user_doc_by_email.name;
+    //    var design_name = db_module_config.users_db.api.get_user_doc_by_email.design_name;
+    //    users_db.view(design_name, view_name, { keys: email_list }, function (err, data) {
+    //        if (err) {
+    //            logger.error("GetUserByEmail: %s", err.message);
+    //        }
+    //        callback_func(err, data);
+    //    });
+    //};
 
     var GetUsersByIdsList = function(ids_list, callback_func) {
         users_db.fetch({ keys: ids_list }, function (err, data) {
@@ -609,57 +609,57 @@ var CloudantDBModule = (function() {
     //    });
     //};
 
-    var GetGroupDataByGroupId = function(group_id, callback_func) {
-        groups_db.get(group_id, function (err, data) {
-            if (err) {
-                logger.error("GetGroupDataByGroupId: %s", err.message);
-                callback_func(err, data);
-            }
-            else {
-                var group_data = {};
-                group_data.group_name = data.group_name;
-                group_data.id = data._id;
-                group_data.member_list = [];
-
-                var users_ids = data.member_list;
-                users_ids.push(data.creator);
-
-                GetUsersByIdsList(users_ids, function(err, users_data) {
-                    if (err) {
-                        logger.error("GetGroupDataByGroupId: GetUsersByIdsList: %s", err.message);
-                    }
-                    else {
-                        for (var i = 0; i < users_data.rows.length; ++i) {
-                            var doc = users_data.rows[i].doc;
-                            if (doc._id == data.creator) {
-                                group_data.creator = { email:doc.email, user_id:doc._id };
-                            }
-                            else {
-                                group_data.member_list.push({email:doc.email, user_id: doc._id});
-                            }
-                        }
-                        group_data.transaction_list = data.transaction_list;
-                        GetTransactionsDocsByIdList(group_data.transaction_list, function(err, transaction_data) {
-                            if (err) {
-                                logger.error("GetGroupDataByGroupId: GetTransactionsDocsByIdList: %s", err.message);
-                            }
-                            else {
-                                group_data.transaction_list = [];
-                                for (var i in transaction_data.rows) {
-                                    group_data.transaction_list.push({
-                                        transaction_id: transaction_data.rows[i].id,
-                                        transaction_name: transaction_data.rows[i].doc.transaction_name
-                                    })
-                                }
-                                callback_func(err, group_data);
-                            }
-                        });
-                    }
-                });
-            }
-        });
-
-    };
+    //var GetGroupDataByGroupId = function(group_id, callback_func) {
+    //    groups_db.get(group_id, function (err, data) {
+    //        if (err) {
+    //            logger.error("GetGroupDataByGroupId: %s", err.message);
+    //            callback_func(err, data);
+    //        }
+    //        else {
+    //            var group_data = {};
+    //            group_data.group_name = data.group_name;
+    //            group_data.id = data._id;
+    //            group_data.member_list = [];
+    //
+    //            var users_ids = data.member_list;
+    //            users_ids.push(data.creator);
+    //
+    //            GetUsersByIdsList(users_ids, function(err, users_data) {
+    //                if (err) {
+    //                    logger.error("GetGroupDataByGroupId: GetUsersByIdsList: %s", err.message);
+    //                }
+    //                else {
+    //                    for (var i = 0; i < users_data.rows.length; ++i) {
+    //                        var doc = users_data.rows[i].doc;
+    //                        if (doc._id == data.creator) {
+    //                            group_data.creator = { email:doc.email, user_id:doc._id };
+    //                        }
+    //                        else {
+    //                            group_data.member_list.push({email:doc.email, user_id: doc._id});
+    //                        }
+    //                    }
+    //                    group_data.transaction_list = data.transaction_list;
+    //                    GetTransactionsDocsByIdList(group_data.transaction_list, function(err, transaction_data) {
+    //                        if (err) {
+    //                            logger.error("GetGroupDataByGroupId: GetTransactionsDocsByIdList: %s", err.message);
+    //                        }
+    //                        else {
+    //                            group_data.transaction_list = [];
+    //                            for (var i in transaction_data.rows) {
+    //                                group_data.transaction_list.push({
+    //                                    transaction_id: transaction_data.rows[i].id,
+    //                                    transaction_name: transaction_data.rows[i].doc.transaction_name
+    //                                })
+    //                            }
+    //                            callback_func(err, group_data);
+    //                        }
+    //                    });
+    //                }
+    //            });
+    //        }
+    //    });
+    //
+    //};
 
     var AddUsersToGroup = function(users_doc, group, callback_func) {
         var docs_to_update = [];
@@ -822,19 +822,19 @@ var CloudantDBModule = (function() {
     exports.AddGroupToUser = AddGroupToUser;
     exports.AddUsersToGroup = AddUsersToGroup;
     //exports.GetUserByEmail = GetUserByEmail;
-    exports.GetUsersByEmailList = GetUsersByEmailList;
+    //exports.GetUsersByEmailList = GetUsersByEmailList;
     exports.GetUsersByIdsList = GetUsersByIdsList;
     //exports.GetUsersPublicKeys = GetUsersPublicKeys;
 
     exports.CreateGroup = CreateGroup;
     exports.GetAllMyGroups = GetAllMyGroups;
-    exports.GetGroupDataByGroupId = GetGroupDataByGroupId;
+    //exports.GetGroupDataByGroupId = GetGroupDataByGroupId;
 
-    exports.CreateTransaction = CreateTransaction;
-    exports.CreateStashList = CreateStashList;
+    //exports.CreateTransaction = CreateTransaction;
+    //exports.CreateStashList = CreateStashList;
     exports.GetTransactionInfoById = GetTransactionInfoById;
     exports.GetTransactionsByIdList = GetTransactionsDocsByIdList;
-    exports.AddTransactionToGroup = AddTransactionToGroup;
+    //exports.AddTransactionToGroup = AddTransactionToGroup;
     //exports.GetShareStash = GetShareStash;
     exports.GetShareStashByStashID = GetShareStashByStashID;
     exports.GetShareStashDocByStashID = GetShareStashDocByStashID;

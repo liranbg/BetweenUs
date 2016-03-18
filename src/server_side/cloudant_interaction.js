@@ -303,21 +303,26 @@ class ServerInteraction {
      */
     GetGroupDataByGroupId(group_id) {
         //TODO need to follow old get group data
+        console.log("In GetGroupDataByGroupId");
         var group_data = {};
         return new Promise((resolve, reject) => {
             this.groups_db.get(group_id)
                 .then((result) => {
                     group_data.group_name = result.group_name;
                     group_data.id = result._id;
+                    console.log("lalal1");
                     group_data.member_list = [];
                     group_data.creator = result.creator;
                     group_data.transaction_list = result.transaction_list;
+                    console.log("lalal2");
                     var users_ids = result.member_list;
                     users_ids.push(result.creator);
-                    return users_ids;
+                    console.log("lalal3");
+                    console.log("resolving with", users_ids);
+                    return this.GetUsersByListOfIds(users_ids)
                 })
-                .then((list_of_user_ids) => this.GetUsersByListOfIds(list_of_user_ids))
                 .then((result) => {
+                    console.log(result);
                     for (var i = 0; i < result.length; ++i) {
                         var doc = result[i].doc;
                         if (doc._id == group_data.creator) {
@@ -327,10 +332,15 @@ class ServerInteraction {
                             group_data.member_list.push({email:doc.email, user_id: doc._id});
                         }
                     }
+                    console.log("Returning trasnaction list...: ", group_data.transaction_list);
                     return group_data.transaction_list;
                 })
-                .then((list_of_transaction_ids) => this.GetTransactionsByListOfIds(list_of_transaction_ids))
+                .then((list_of_transaction_ids) => {
+                    console.log("next then...", list_of_transaction_ids);
+                    return this.GetTransactionsByListOfIds(list_of_transaction_ids)
+                })
                 .then((transaction_data) => {
+                    console.log("transaction data:", transaction_data);
                     group_data.transaction_list = [];
                     for (var i in transaction_data) {
                         group_data.transaction_list.push({
@@ -362,6 +372,7 @@ class ServerInteraction {
                     keys: list_of_users_ids
                 })
                 .then((result) => {
+                    console.log("Returning results...");
                     resolve(result.rows);
                 })
                 .catch((err) => {
@@ -619,39 +630,132 @@ class ServerInteraction {
         });
     };
 
+    /***
+     *
+     * @param user_ids_list list of objects: [{user_id: doc._id, email:doc.email, public_key:doc.public_key}]
+     * @returns {Promise}
+     * @constructor
+     */
      GetUsersPublicKeys(user_ids_list) {
         // This function returns a list of objects contains for each email its public key
          var public_keys = [];
-         console.log("GetUsersPublicKeys: Creating new promise... ID:", user_ids_list);
          return new Promise((resolve, reject) => {
              this.users_db.allDocs({ keys: user_ids_list, include_docs: true})
                  .then((data) => {
-                     console.log("Query was success");
-                     console.log(data.rows[0]);
                      for (var i in data.rows) {
-                         public_keys.push(data.rows[i].doc.public_key);
+                         var doc = data.rows[i].doc;
+                         public_keys.push({user_id: doc._id, email:doc.email,public_key:doc.public_key});
                      }
                      resolve(public_keys);
                  })
                  .catch((err) => reject(err));
          });
+    };
 
+    /***
+     * This function recieves an email list and should return a document list back.
+     * @param email_list
+     * @returns {Promise}
+     * @constructor
+     */
+    GetUsersByEmailList(email_list) {
+        return new Promise((resolve, reject) => {
+            console.log("GetUsersByEmailList: ", email_list);
+            this.users_db.query(this._db_module_config.users_db.api.get_user_doc_by_email, {
+                    keys: email_list,
+                    include_docs: true
+                })
+                .then((data) => {
+                    console.log("succes,, ", data);
+                    resolve(data)
+                })
+                .catch((err) => {
+                    console.log("error, ", err)
+                    reject(err)
+                });
+        });
+    };
 
+    CreateStashList(user_stash_list, group_id) {
+        return new Promise((resolve, reject) => {
+            var list_of_user_stash_to_insert = [];
+            for (var i in user_stash_list) {
+                var share_list = [];
+                /* Fill up the share stash for user 'i' */
+                for (var j in user_stash_list) {
+                    /* insert user 'j' share data to user 'i' share stash */
+                    var share_obj = {};
+                    share_obj.user_id = user_stash_list[j].user_id;
+                    share_obj.share = (j == i) ?  user_stash_list[i].share : "";
+                    share_list.push(share_obj);
+                }
+                /* Prepare the user stash document for user 'i' */
+                var user_stash_doc = {
+                    metadata: {
+                        scheme: "share_stash",
+                        scheme_version: "1.0",
+                        creation_time: (new Date()).toISOString()
+                    },
+                    stash_owner: user_stash_list[i].user_id,
+                    share_list: share_list,
+                    group_id: group_id
+                }
+                /* Insert the document (stash) into the main list that we'll push into the database. */
+                list_of_user_stash_to_insert.push(user_stash_doc);
+            }
+            /* Bulk push the stashes */
+            this.shares_stash_db.bulkDocs(list_of_user_stash_to_insert, {
+                include_docs: true
+            })
+            .then((data) => {
+                var data = data;
+                for (var i in data) {
+                    list_of_user_stash_to_insert[i].id = data[i].id;
+                }
+                resolve(list_of_user_stash_to_insert);
+            })
+            .catch((err) => reject(err));
+        });
+    }
 
+    CreateTransaction(creator_userid, transaction_name, cipher_data, user_stash_list, group_id, share_threshold) {
+        //TODO: Store shares_stash before creating the transaction and then add it to the new transaction
+        // user_stash_list - [{user_id:"123assss", share:"asdasdasdasd"},{},{},...]
+        var new_transaction_doc = {
+            metadata: {
+                scheme: "transaction",
+                scheme_version: "1.0",
+                creation_time: (new Date()).toISOString()
+            },
+            initiator: creator_userid,
+            transaction_name: transaction_name,
+            cipher_meta_data: {
+                type: "String",
+                data: cipher_data
+            },
+            group_id: group_id,
+            threshold: share_threshold,
+            stash_list: user_stash_list
+        };
+        return new Promise((resolve, reject) => {
+            this.transactions_db.post(new_transaction_doc, { include_docs: true })
+                .then((data) => resolve(data))
+                .catch((err) => reject(err));
+        });
+    };
 
-        // function(err, data) {
-        //    var list_of_public_keys = [];
-        //    if (err) {
-        //        logger.error("GetUsersPublicKeys: fetch - %s", err.message);
-        //    }
-        //    else {
-        //        for (var i = 0; i < data.rows.length; ++i) {
-        //            var doc = data.rows[i].doc;
-        //            list_of_public_keys.push({user_id: doc._id, email:doc.email,public_key:doc.public_key});
-        //        }
-        //        callback_func(err, list_of_public_keys);
-        //    }
-        //});
+    AddTransactionToGroup(group_id, transaction_doc) {
+        return new Promise((resolve, reject) => {
+            console.log("TRANSACTION DOC: ", transaction_doc);
+            console.log("GRUOP IDE: ", group_id);
+            this.groups_db.get(group_id, {include_docs: true})
+                .then((group_data) => {
+                    group_data.transaction_list.push(transaction_doc.id);
+                    this.groups_db.put(group_data);
+                })
+                .then((data) => resolve(data))
+                .catch((err) => reject(err));
+        });
     };
 }
 
