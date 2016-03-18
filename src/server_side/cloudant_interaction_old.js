@@ -587,27 +587,27 @@ var CloudantDBModule = (function() {
         });
     };
 
-    var IsUserExists = function(email, callback_func) {
-        var view_name = db_module_config.users_db.api.get_user_doc_by_email.name;
-        var design_name = db_module_config.users_db.api.get_user_doc_by_email.design_name;
-        users_db.view(design_name, view_name, { keys: [email] }, function (err, data) {
-            if (err) {
-                logger.error("GetUserByEmail: %s", err.message);
-                callback_func(err, data);
-            }
-            else {
-                if (data.rows.length == 0) {
-                    callback_func(null, false);
-
-                }
-                else {
-                    callback_func(err, true);
-                }
-
-            }
-
-        });
-    };
+    //var IsUserExists = function(email, callback_func) {
+    //    var view_name = db_module_config.users_db.api.get_user_doc_by_email.name;
+    //    var design_name = db_module_config.users_db.api.get_user_doc_by_email.design_name;
+    //    users_db.view(design_name, view_name, { keys: [email] }, function (err, data) {
+    //        if (err) {
+    //            logger.error("GetUserByEmail: %s", err.message);
+    //            callback_func(err, data);
+    //        }
+    //        else {
+    //            if (data.rows.length == 0) {
+    //                callback_func(null, false);
+    //
+    //            }
+    //            else {
+    //                callback_func(err, true);
+    //            }
+    //
+    //        }
+    //
+    //    });
+    //};
 
     var GetGroupDataByGroupId = function(group_id, callback_func) {
         groups_db.get(group_id, function (err, data) {
@@ -818,7 +818,7 @@ var CloudantDBModule = (function() {
     exports.InitDataBases = InitDataBases;
     exports.InsertNewUser =InsertNewUser;
 
-    exports.IsUserExists = IsUserExists;
+    //exports.IsUserExists = IsUserExists;
     exports.AddGroupToUser = AddGroupToUser;
     exports.AddUsersToGroup = AddUsersToGroup;
     //exports.GetUserByEmail = GetUserByEmail;

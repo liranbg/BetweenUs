@@ -39,26 +39,22 @@ router.get('/get_user', function(req, res, next) {
             .catch((err) => {
                 /* 401 -> Unauthorized. */
                 res.status(401).json({success: false, error: "Bad credentials."});
-                /* Print the error for debugging purposes */
-                console.log(err);
             });
     }
 });
 
 router.get('/user_exists', function(req, res, next) {
-    var user_email = req.query.user_email;
-    database_interface.IsUserExists(user_email, function(err, data) {
-        if (err) {
-            res.status(400).json({success:false, error: err.message});
-        }
-        else {
-            var http_code = 200;
-            if (!data) {
-                http_code = 500;
-            }
-            res.status(http_code).json({success:true,response: data});
-        }
-    });
+    var user_email = session_util.GetUserEmail(req.session);
+    if (!user_email)
+    {
+        res.status(401).json({success: false, error: "Must be authenticated to perform this action."});
+    }
+    else {
+        var user_email = req.query.user_email;
+        database_interface.IsUserExists(user_email)
+            .then((data) => res.status(200).json({success: true, response: data}))
+            .catch((err) => res.status(400).json({success: false, error: err}));
+    }
 });
 
 

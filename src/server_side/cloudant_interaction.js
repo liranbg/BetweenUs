@@ -515,6 +515,27 @@ class ServerInteraction {
         });
     }
 
+    /***
+     * TODO: Documentation
+     * @param email
+     * @returns {Promise}
+     * @constructor
+     */
+    IsUserExists(email) {
+        return new Promise((resolve, reject) => {
+            this.users_db.query(this._db_module_config.users_db.api.get_user_doc_by_email, {
+                keys: [email]
+            })
+            .then((data) => {
+                if (data.rows.length == 1)
+                    resolve("User was found.")
+                else
+                    reject("User not found.");
+            })
+            .catch((err) => reject("User not found."));
+        });
+    };
+
     /**
      * This function returns stash's share list
      * @param stash_id
