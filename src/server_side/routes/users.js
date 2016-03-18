@@ -1,6 +1,7 @@
 var express = require('express');
 var database_interface = require('../cloudant_interaction');
 var session_util = require('../utils/session');
+var validation_util = require('../utils/validation')
 var router = express.Router();
 
 /*** GET route for '/users/get_user' url.
@@ -53,7 +54,7 @@ router.get('/user_exists', function(req, res, next) {
         var user_email = req.query.user_email;
         database_interface.IsUserExists(user_email)
             .then((data) => res.status(200).json({success: true, response: data}))
-            .catch((err) => res.status(400).json({success: false, error: err}));
+            .catch((err) => res.status(404).json({success: false, error: err}));
     }
 });
 
@@ -65,31 +66,32 @@ router.post('/register_user', function(req, res) {
     var email = req.body.email;
     var password = req.body.password;
     var public_key = req.body.public_key;
-    if ((!email) || (!password) || (!public_key)) {
-        res.json({success: false, error: "Input Error"});
+    /* Validate input parameters */
+    if (validation_util.ValidatePassword(password) == false) {
+        res.status(422).json({success: false, error: "Bad parameters for password."});
+    }
+    else if (validation_util.ValidateUsername(email) == false) {
+        res.status(422).json({success: false, error: "Bad parameters for username."});
+    }
+    else if (validation_util.ValidatePublicKey(public_key) == false) {
+        res.status(422).json({success: false, error: "Bad parameters for public key."});
     }
     else {
-        database_interface.GetUserByEmail(email, function(err, data) {
-            if (err) {
-                res.status(400).json({success: false, error: err});
-            }
-            else {
-                if (data.rows.length == 0) {
-                    //No such user. we can insert it to db
-                    database_interface.InsertNewUser(password, email, public_key, function (err, data) {
-                        if (err) {
-                            res.status(400).json({success: false, error: err});
-                        }
-                        else {
-                            res.status(201).json({success: true, message: data});
-                        }
-                    });
-                }
-                else {
-                    res.status(400).json({success: false, message: "Email already exists"});
-                }
-            }
-        });
+        /* Check if user already exist. */
+        console.log("Checking if user exists...");
+        database_interface.IsUserExists(email)
+        .then((data) => {
+            console.log("User exists, returning 401...");
+            /* If successful, user exist, and that means we can't use that username. */
+            res.status(401).json({success: false, error: "Email already exist."});
+        })
+        .catch((data) => {
+            console.log("User doesn't exist, creating new user...");
+            /* If we're here, username does not exist. we can proceed to add it.*/
+            database_interface.InsertNewUser(password, email, public_key)
+            .then((data) => res.status(201).json({success: true, message: data}))
+            .catch((err) => res.status(400).json({success: false, error: err}))
+        })
     }
 });
 

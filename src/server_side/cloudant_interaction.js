@@ -551,6 +551,63 @@ class ServerInteraction {
                 });
         });
     }
+
+    InsertNewUser(password, email, public_key) {
+        // TODO: Add hashing and possibly a salt for the password [Discuss either here or on server prior to the request].
+        var user_doc = {
+            "metadata": {
+                "scheme": "user",
+                "scheme_version": "1.0",
+                "registration_time": (new Date()).toISOString(), //ISO FORMAT DATE STRING
+                "last_login_time": "" //ISO FORMAT DATE STRING,
+            },
+            "email": email,
+            "password": password,
+            "public_key": public_key,
+            "groups": [],
+            "notifications_stash": []
+        };
+        return new Promise((resolve, reject) => {
+            var user_doc_g = user_doc;
+            this.users_db.post(user_doc)
+                .then((user_doc) => this.users_db.get(user_doc.id))
+                .then((user_doc) => {
+                    user_doc_g = user_doc;
+                    this.CreateNotificationStash(user_doc.id)
+                    .then((notification_doc) => {
+                        user_doc_g.notifications_stash.push(notification_doc.id);
+                        this.users_db.put(user_doc_g)
+                            .then((doc) => resolve(doc))
+                            .catch((err) => reject(err))
+                    })
+                    .catch((err) => {
+                        console.log(err);
+                        reject(err);
+                    });
+                });
+        });
+    }
+
+    CreateNotificationStash(user_id) {
+        var notification_body = {
+            metadata: {
+                scheme: "notification_stash",
+                scheme_version: "1.0",
+                last_updated: (new Date()).toISOString()
+            },
+            user_id: user_id,
+            notification_list: [ ]
+        };
+        return new Promise((resolve, reject) => {
+            this.notification_stash_db.post(notification_body)
+                .then((data) => {
+                    resolve(data)
+                })
+                .catch((err) => {
+                    reject(err)
+                });
+        });
+    };
 }
 
 module.exports = ServerInteraction.instance;

@@ -483,43 +483,43 @@ var CloudantDBModule = (function() {
 
     };
 
-    var InsertNewUser = function (password, email, public_key, callback_func) {
-        // TODO: Add hashing and possibly a salt for the password [Discuss either here or on server prior to the request].
-        var user_doc = {
-            "metadata": {
-                "scheme": "user",
-                "scheme_version": "1.0",
-                "registration_time": (new Date()).toISOString(), //ISO FORMAT DATE STRING
-                "last_login_time": "" //ISO FORMAT DATE STRING,
-            },
-            "email": email,
-            "password": password,
-            "public_key": public_key,
-            "groups": [  ],
-            "notifications_stash": []
-        };
-        users_db.insert(
-            user_doc, // Document
-            function(err, user_inserted_doc) {                                 // Callback func
-                if (err) {
-                    logger.error("InsertNewUser: %s", err.message);
-                    callback_func(err, user_inserted_doc);
-                }
-                else {
-                    CreateNotificationStash(user_inserted_doc.id, function(err, notification_body) {
-                        if (err) {
-                            logger.error("InsertNewUser: CreateNotificationStash - %s", err.message);
-                            callback_func(err, user_inserted_doc);
-                        }
-                        else {
-                            user_doc.notifications_stash.push(notification_body.id);
-                            users_db.update(user_doc, user_inserted_doc.id, callback_func);
-                        }
-                    });
-                }
-
-            });
-    };
+    //var InsertNewUser = function (password, email, public_key, callback_func) {
+    //    // TODO: Add hashing and possibly a salt for the password [Discuss either here or on server prior to the request].
+    //    var user_doc = {
+    //        "metadata": {
+    //            "scheme": "user",
+    //            "scheme_version": "1.0",
+    //            "registration_time": (new Date()).toISOString(), //ISO FORMAT DATE STRING
+    //            "last_login_time": "" //ISO FORMAT DATE STRING,
+    //        },
+    //        "email": email,
+    //        "password": password,
+    //        "public_key": public_key,
+    //        "groups": [  ],
+    //        "notifications_stash": []
+    //    };
+    //    users_db.insert(
+    //        user_doc, // Document
+    //        function(err, user_inserted_doc) {                                 // Callback func
+    //            if (err) {
+    //                logger.error("InsertNewUser: %s", err.message);
+    //                callback_func(err, user_inserted_doc);
+    //            }
+    //            else {
+    //                CreateNotificationStash(user_inserted_doc.id, function(err, notification_body) {
+    //                    if (err) {
+    //                        logger.error("InsertNewUser: CreateNotificationStash - %s", err.message);
+    //                        callback_func(err, user_inserted_doc);
+    //                    }
+    //                    else {
+    //                        user_doc.notifications_stash.push(notification_body.id);
+    //                        users_db.update(user_doc, user_inserted_doc.id, callback_func);
+    //                    }
+    //                });
+    //            }
+    //
+    //        });
+    //};
 
     var CreateGroup = function (creator, list_of_users_ids, group_name, callback_func) {
         // TODO: Check that group name is complaint to some policy we'll set (max length, forbidden chars etc.) [Discuss either here or on server prior to the request].
@@ -694,24 +694,24 @@ var CloudantDBModule = (function() {
         });
     };
 
-    var CreateNotificationStash = function(user_id, callback_func) {
-        var notification_body = {
-            metadata: {
-                scheme: "notification_stash",
-                scheme_version: "1.0",
-                last_updated: (new Date()).toISOString()
-            },
-            user_id: user_id,
-            notification_list: [ ]
-        };
-        notification_stash_db.insert(notification_body, function(err, new_notification_body) {
-            if (err) {
-                logger.error("CreateNotificationStash: insert - %s", err.message);
-            }
-            callback_func(err, new_notification_body);
-        });
-
-    };
+    //var CreateNotificationStash = function(user_id, callback_func) {
+    //    var notification_body = {
+    //        metadata: {
+    //            scheme: "notification_stash",
+    //            scheme_version: "1.0",
+    //            last_updated: (new Date()).toISOString()
+    //        },
+    //        user_id: user_id,
+    //        notification_list: [ ]
+    //    };
+    //    notification_stash_db.insert(notification_body, function(err, new_notification_body) {
+    //        if (err) {
+    //            logger.error("CreateNotificationStash: insert - %s", err.message);
+    //        }
+    //        callback_func(err, new_notification_body);
+    //    });
+    //
+    //};
 
     var GetNotificationStash = function(notification_stash_id, callback_func) {
         notification_stash_db.get(notification_stash_id, function(err, notification_body) {
@@ -816,7 +816,7 @@ var CloudantDBModule = (function() {
     };
 
     exports.InitDataBases = InitDataBases;
-    exports.InsertNewUser =InsertNewUser;
+    //exports.InsertNewUser =InsertNewUser;
 
     //exports.IsUserExists = IsUserExists;
     exports.AddGroupToUser = AddGroupToUser;
@@ -839,7 +839,7 @@ var CloudantDBModule = (function() {
     exports.GetShareStashByStashID = GetShareStashByStashID;
     exports.GetShareStashDocByStashID = GetShareStashDocByStashID;
 
-    exports.CreateNotificationStash = CreateNotificationStash;
+    // exports.CreateNotificationStash = CreateNotificationStash;
     exports.GetNotificationStash = GetNotificationStash;
     exports.RequestShareFromUser = RequestShareFromUser;
     exports.CommitShareToUser = CommitShareToUser;
