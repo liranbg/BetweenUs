@@ -677,22 +677,22 @@ var CloudantDBModule = (function() {
         });
     };
 
-    var GetUsersPublicKeys = function(user_ids_list, callback_func) {
-        //This function returns a list of objects contains for each email its public key
-        users_db.fetch({keys:user_ids_list}, function(err, data) {
-            var list_of_public_keys = [];
-            if (err) {
-                logger.error("GetUsersPublicKeys: fetch - %s", err.message);
-            }
-            else {
-                for (var i = 0; i < data.rows.length; ++i) {
-                    var doc = data.rows[i].doc;
-                    list_of_public_keys.push({user_id: doc._id, email:doc.email,public_key:doc.public_key});
-                }
-                callback_func(err, list_of_public_keys);
-            }
-        });
-    };
+    //var GetUsersPublicKeys = function(user_ids_list, callback_func) {
+    //    //This function returns a list of objects contains for each email its public key
+    //    users_db.fetch({keys:user_ids_list}, function(err, data) {
+    //        var list_of_public_keys = [];
+    //        if (err) {
+    //            logger.error("GetUsersPublicKeys: fetch - %s", err.message);
+    //        }
+    //        else {
+    //            for (var i = 0; i < data.rows.length; ++i) {
+    //                var doc = data.rows[i].doc;
+    //                list_of_public_keys.push({user_id: doc._id, email:doc.email,public_key:doc.public_key});
+    //            }
+    //            callback_func(err, list_of_public_keys);
+    //        }
+    //    });
+    //};
 
     //var CreateNotificationStash = function(user_id, callback_func) {
     //    var notification_body = {
@@ -824,7 +824,7 @@ var CloudantDBModule = (function() {
     //exports.GetUserByEmail = GetUserByEmail;
     exports.GetUsersByEmailList = GetUsersByEmailList;
     exports.GetUsersByIdsList = GetUsersByIdsList;
-    exports.GetUsersPublicKeys = GetUsersPublicKeys;
+    //exports.GetUsersPublicKeys = GetUsersPublicKeys;
 
     exports.CreateGroup = CreateGroup;
     exports.GetAllMyGroups = GetAllMyGroups;

@@ -608,6 +608,41 @@ class ServerInteraction {
                 });
         });
     };
+
+     GetUsersPublicKeys(user_ids_list) {
+        // This function returns a list of objects contains for each email its public key
+         var public_keys = [];
+         console.log("GetUsersPublicKeys: Creating new promise... ID:", user_ids_list);
+         return new Promise((resolve, reject) => {
+             this.users_db.allDocs({ keys: user_ids_list, include_docs: true})
+                 .then((data) => {
+                     console.log("Query was success");
+                     console.log(data.rows[0]);
+                     for (var i in data.rows) {
+                         public_keys.push(data.rows[i].doc.public_key);
+                     }
+                     resolve(public_keys);
+                 })
+                 .catch((err) => reject(err));
+         });
+
+
+
+
+        // function(err, data) {
+        //    var list_of_public_keys = [];
+        //    if (err) {
+        //        logger.error("GetUsersPublicKeys: fetch - %s", err.message);
+        //    }
+        //    else {
+        //        for (var i = 0; i < data.rows.length; ++i) {
+        //            var doc = data.rows[i].doc;
+        //            list_of_public_keys.push({user_id: doc._id, email:doc.email,public_key:doc.public_key});
+        //        }
+        //        callback_func(err, list_of_public_keys);
+        //    }
+        //});
+    };
 }
 
 module.exports = ServerInteraction.instance;

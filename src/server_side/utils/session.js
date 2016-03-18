@@ -5,7 +5,10 @@ var SessionUtilModule = (function() {
     };
 
     var GetUserId = function(session_store) {
-        return session_store.user_session.user_id;
+        if (session_store.hasOwnProperty('user_session') && session_store.user_session.hasOwnProperty('user_id')) {
+            return session_store.user_session.user_id;
+        }
+        return null;
     };
 
     /*** GetUserEmail

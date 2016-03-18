@@ -62,7 +62,6 @@ router.get('/user_exists', function(req, res, next) {
 router.post('/register_user', function(req, res) {
     // TODO: Check parameters are in compliance with some policy we'll set regarding username, password etc.
     // TODO: Add an email authorization before actually inserting user into the database (Low priority).
-    //gets email,password, public_key
     var email = req.body.email;
     var password = req.body.password;
     var public_key = req.body.public_key;
@@ -78,15 +77,12 @@ router.post('/register_user', function(req, res) {
     }
     else {
         /* Check if user already exist. */
-        console.log("Checking if user exists...");
         database_interface.IsUserExists(email)
         .then((data) => {
-            console.log("User exists, returning 401...");
             /* If successful, user exist, and that means we can't use that username. */
             res.status(401).json({success: false, error: "Email already exist."});
         })
         .catch((data) => {
-            console.log("User doesn't exist, creating new user...");
             /* If we're here, username does not exist. we can proceed to add it.*/
             database_interface.InsertNewUser(password, email, public_key)
             .then((data) => res.status(201).json({success: true, message: data}))
@@ -111,17 +107,43 @@ router.post('/login', function (req, res) {
 });
 
 
+/*** GET route handler for /users/get_public_key
+ *
+ *  This function will return a json that looks like that:
+ *  {"success":true,"public_key":"alice_pk"}
+ *
+ *  User must be authenticated otherwise it will return:
+ *  {"success":false,"error":"Must be authenticated to perform this action."}
+ *
+ *  user_id must be provided in the GET query other it will return:
+ *  {"success":false,"error":"Missing parameter: user_id."}
+ *
+ */
 router.get('/get_public_key', function(req, res) {
-    var user_id = req.query.user_id;
-    database_interface.GetUsersPublicKeys([user_id], function(err, body) {
-        if (err) {
-            res.status(404).json({success:false, error: err.message});
+    var requesting_user_id = session_util.GetUserId(req.session);
+    /* Verify that user is logged in, AKA there is a stored session. */
+    if (requesting_user_id == null)
+    {
+        res.status(401).json({success: false, error: "Must be authenticated to perform this action."});
+    }
+    else
+    {
+        /* Verify that the user has provided an 'user_id' in the GET query. */
+        if (req.hasOwnProperty('query') && req.query.hasOwnProperty('user_id')) {
+            var user_id = req.query.user_id;
+            database_interface.GetUsersPublicKeys([user_id])
+                .then((data) => {
+                    res.status(200).json({success: true, public_key: data[0]});
+                })
+                .catch((err) => {
+                    res.status(404).json({success: false, error: err.message});
+                });
         }
-        else {
-            res.status(200).json({success: true, public_key: body[0].public_key});
+        else
+        {
+            res.status(404).json({success: false, error: "Missing parameter: user_id."});
         }
-    })
-
+    }
 });
 
 module.exports = router;
