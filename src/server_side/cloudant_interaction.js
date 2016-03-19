@@ -412,7 +412,6 @@ class ServerInteraction {
                     keys: list_of_users_ids
                 })
                 .then((result) => {
-                    console.log("Returning results...");
                     resolve(result.rows);
                 })
                 .catch((err) => {
@@ -551,9 +550,10 @@ class ServerInteraction {
                         reject("No stash found for transaction id: " +  ntransaction_id + " associated with user id: " + nuser_id);
                     }
                     else {
-                        this.GetShareStashByStashID(result.rows[0].value)
+                        return result.rows[0].value;
                     }
                 })
+                .then((results) => this.GetShareStashByStashID(results))
                 .then((result) => {
                     if (convert_ids_to_name) {
                         var user_ids = [];
