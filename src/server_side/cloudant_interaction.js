@@ -106,6 +106,17 @@ class ServerInteraction {
         };
         this._InitialDataBasesConnectionVariables();
         this._InitDataBases();
+        this._TestFunctions();
+    }
+
+    _TestFunctions() {
+        /* Test Get Notification Stash. */
+        this.GetNotificationStash("7570ad201067614d5afc50056f7cb6ac")
+            .then((data) => console.log("Testing GetNotificationStash...", data))
+            .catch((err) => console.log("Testing GetNotificationStash...", err));
+        this.RequestShareFromUser("549b28dde0a96df05e8d1426ad6e6aed", "549b28dde0a96df05e8d1426ad61b119", "251535b0e57a94f4382d50a6ac9eff9d")
+            .then((data) => console.log("Testing RequestShareFromUser", data))
+            .catch((err) => console.log("Testing RequestShareFromUser", err));
     }
 
     static get instance() {
@@ -361,6 +372,35 @@ class ServerInteraction {
 
     /**
      * This function returns all data for given list of user ids
+     * Input: [id1, id2]
+     * Output:
+     * // id1
+     * [ { id: '549b28dde0a96df05e8d1426ad61b119',
+         key: '549b28dde0a96df05e8d1426ad61b119',
+         value: { rev: '4-96f7cc0ecc46976221b865a0d87fb92d' },
+         doc:
+         { _id: '549b28dde0a96df05e8d1426ad61b119',
+           _rev: '4-96f7cc0ecc46976221b865a0d87fb92d',
+           metadata: [Object],
+           email: 'bob',
+           password: '1',
+           public_key: 'bob_pk1',
+           groups: [Object],
+           notifications_stash: [Object] } },
+     * // id2
+         { id: '251535b0e57a94f4382d50a6ac9eff9d',
+           key: '251535b0e57a94f4382d50a6ac9eff9d',
+           value: { rev: '4-c4687cd931990971f3b48056e78b49a8' },
+           doc:
+            { _id: '251535b0e57a94f4382d50a6ac9eff9d',
+              _rev: '4-c4687cd931990971f3b48056e78b49a8',
+              metadata: [Object],
+              email: 'charlie',
+              password: '1',
+              public_key: 'charlie_pk',
+              groups: [Object],
+              notifications_stash: [Object] } } ]
+
      * @param list_of_users_ids
      * @returns {Promise}
      * @constructor
@@ -396,8 +436,9 @@ class ServerInteraction {
      */
     GetTransactionsByListOfIds(list_of_transactions_ids) {
         return new Promise((resolve, reject) => {
-            this.transactions_db.query(this._db_module_config.transactions_db.api.get_transaction_info_by_id, {
-                    keys: list_of_transactions_ids
+            this.transactions_db.allDocs({
+                    keys: list_of_transactions_ids,
+                    include_docs: true
                 })
                 .then((result) => {
                     resolve(result.rows);
@@ -757,6 +798,106 @@ class ServerInteraction {
                 .catch((err) => reject(err));
         });
     };
+
+
+    /***
+     * Input: Notifcation stash id.
+     * Output:
+     * { _id: '7570ad201067614d5afc50056f7cb6ac',
+        _rev: '2-aa52fbe0ca34b85d2e68df54a9254152',
+        metadata: {
+            scheme: 'notification_stash',
+            scheme_version: '1.0',
+            last_updated: '2016-01-24T15:00:38.779Z' },
+        user_id: '549b28dde0a96df05e8d1426ad61b119',
+        notification_list: [ {
+            time: '2016-01-24T15:08:31.456Z',
+            group_id: 'e6d4824ba908e09959e5ac63289e800d',
+            transaction_id: '549b28dde0a96df05e8d1426ad6e6aed',
+            sender: 'cddf14e4e0ce7fd1f3fb2f8d66fef344',
+            type: 'share-request',
+            status: 'pending' } ] }
+     * @param notification_stash_id
+     * @returns {Promise}
+     * @constructor
+     */
+    GetNotificationStash(notification_stash_id) {
+        return new Promise((resolve, reject) => {
+           this.notification_stash_db.get(notification_stash_id, { include_docs: true })
+           .then((data) => resolve(data))
+           .catch((err) => reject(err));
+        });
+    }
+
+    RequestShareFromUser(transaction_id, stash_owner_id, dest_user_id) {
+        var transaction_body;
+        var src_user_doc = null,
+            dst_user_doc = null,
+            transaction_id = transaction_id;
+        return new Promise((resolve, reject) => {
+            this.GetTransactionsByListOfIds([transaction_id])
+            .then((data) => {
+                transaction_body = data[0].doc;
+                return this.GetUsersByListOfIds([stash_owner_id, dest_user_id]);
+            })
+            .then((user_list) => {
+                /* Make sure we get exactly 2 user list, we shouldn ever get anything else but this is just
+                   a sanity test.
+                 */
+                if (user_list.length != 2) {
+                    reject("Expected 2 user docs, got ", user_list.length);
+                }
+                else {
+                    src_user_doc = user_list[0].doc;
+                    dst_user_doc = user_list[1].doc;
+                    var found_src_dst = 0;
+                    /* Check that both stash_owner_id and dest_user_id are present in the transaction. */
+                    for (var i in transaction_body.stash_list) {
+                        if ((transaction_body.stash_list[i].user_id == src_user_doc._id) ||
+                            (transaction_body.stash_list[i].user_id == dst_user_doc._id)) {
+                            found_src_dst++;
+                        }
+                    }
+                    if (found_src_dst != 2) {
+                        reject(("Users are not part of the transaction.", found_src_dst));
+                    }
+                    else {
+                        return this.GetNotificationStash(dst_user_doc.notifications_stash[0]);
+                    }
+                }
+            })
+            .then((notification_stash) => {
+                /* Once we're here, the notification stash we have is the destination user notification stash. */
+                var notification_list = notification_stash.notification_list;
+                /* Verify that the sender hasn't already requested the share from the destination user for that specific
+                   transaction.
+                 */
+                for (var i in notification_list) {
+                    if ((notification_list[i].transaction_id == transaction_id) &&
+                        (notification_list[i].sender == src_user_doc._id) &&
+                        (notification_list[i].type == "share-request")) {
+                        reject("Share request already exist.");
+                    }
+                }
+                /* If share-request doesn't exist, create it. */
+                var notification_item_doc = {
+                    time: (new Date()).toISOString(),
+                    group_id: transaction_body.group_id,
+                    transaction_id: transaction_body._id,
+                    sender: src_user_doc._id,
+                    type: "share-request",
+                    status: "pending"
+                };
+                notification_stash.notification_list.push(notification_item_doc);
+                return this.notification_stash_db.put(notification_stash);
+            })
+            .then((data) => {
+                console.log("Share request notification added succesfully.", data);
+                resolve(data);
+            })
+            .catch((err) => reject(err));
+        })
+    }
 }
 
 module.exports = ServerInteraction.instance;

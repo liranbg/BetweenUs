@@ -2,7 +2,7 @@ var express = require('express');
 var database_interface = require('../cloudant_interaction');
 var session_util = require('../utils/session');
 var router = express.Router();
-
+var errors_util = require('../utils/errors');
 ///* POST API Is testable with Windows PowerShell, Example:
 // $ $data = @{  creator    = "nadav";
 // $             user_list = "nadav@gmail.com, liranbg@gmail.com, yaron@gmail.com";
@@ -93,29 +93,31 @@ router.get('/get_group_info', function (req, res) {
 
 router.get('/get_members_public_keys/:group_id', function (req, res) {
     var group_id = req.params.group_id;
-    /* TODO Check for authenticated session */
-    /* Find group id associated with transaction */
-    console.log("In get public keys!");
-    database_interface.GetGroupDataByGroupId(group_id)
-    .then((data) => {
-        console.log("After initial promise creation...");
-        console.log("THIS IS WHAT WE GOT! ", data);
-        //TODO send user all public keys associated with group id
-        //make another db call and send the data as [{user_id:"123", public_key: "dsfsd"},...]
-        var users_id_list = [];
-        for (var i = 0; i< data.member_list.length; ++i) {
-            users_id_list.push(data.member_list[i].user_id);
-        }
-        users_id_list.push(data.creator.user_id);
-        console.log("Sending user id list to promise GetUsersPublicKeys");
-        console.log(users_id_list);
-        return database_interface.GetUsersPublicKeys(users_id_list)
-    })
-    .then((data) => {
-
-        res.status(200).json({success: true, key_info: data })
-    })
-    .catch((err) => res.status(400).json({success: false, message: err}));
+    if (session_util.GetUserEmail(req.session) == null) {
+        errors_util.ReturnNotLoggedInError(res);
+    }
+    else {
+        /* Find group id associated with transaction */
+        database_interface.GetGroupDataByGroupId(group_id)
+            .then((data) => {
+                console.log("After initial promise creation...");
+                console.log("THIS IS WHAT WE GOT! ", data);
+                //TODO send user all public keys associated with group id
+                //make another db call and send the data as [{user_id:"123", public_key: "dsfsd"},...]
+                var users_id_list = [];
+                for (var i = 0; i< data.member_list.length; ++i) {
+                    users_id_list.push(data.member_list[i].user_id);
+                }
+                users_id_list.push(data.creator.user_id);
+                console.log("Sending user id list to promise GetUsersPublicKeys");
+                console.log(users_id_list);
+                return database_interface.GetUsersPublicKeys(users_id_list);
+            })
+            .then((data) => {
+                res.status(200).json({success: true, key_info: data })
+            })
+            .catch((err) => res.status(400).json({success: false, message: err}));
+    }
 });
 
 

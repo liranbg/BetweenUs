@@ -67,7 +67,7 @@ var server = app.listen(3000, function () {
     var host = "localhost";
     var port = server.address().port;
     console.log('BetweenUs is up & listening at http://%s:%s', host, port);
-    database_interface.G
 });
+
 
 module.exports = app;

@@ -285,20 +285,20 @@ var CloudantDBModule = (function() {
         });
     };
 
-    /***
-     * This functions gets a list of transaction ids and fetches the docs from the db
-     * @param list_of_transaction_id
-     * @param callback_func
-     * @constructor
-     */
-    var GetTransactionsDocsByIdList = function (list_of_transaction_id, callback_func) {
-        transactions_db.fetch({keys: list_of_transaction_id}, function (err, data) {
-            if (err) {
-                logger.error("GetTransactionsDocsByIdList: fetch - %s", err.message);
-            }
-            callback_func(err, data);
-        });
-    };
+    ///***
+    // * This functions gets a list of transaction ids and fetches the docs from the db
+    // * @param list_of_transaction_id
+    // * @param callback_func
+    // * @constructor
+    // */
+    //var GetTransactionsDocsByIdList = function (list_of_transaction_id, callback_func) {
+    //    transactions_db.fetch({keys: list_of_transaction_id}, function (err, data) {
+    //        if (err) {
+    //            logger.error("GetTransactionsDocsByIdList: fetch - %s", err.message);
+    //        }
+    //        callback_func(err, data);
+    //    });
+    //};
 
     //var CreateTransaction = function (creator_userid, transaction_name, cipher_data, user_stash_list, group_id, share_threshold, callback_func) {
     //    //TODO: Store shares_stash before creating the transaction and then add it to the new transaction
@@ -721,84 +721,84 @@ var CloudantDBModule = (function() {
             callback_func(err, notification_body);
         });
     };
-
-    var RequestShareFromUser = function(transaction_id, stash_owner_user_id, dst_user_id, callback_func) {
-        /**
-         * Get transaction by id. (check stash owner and dst_user_id are in transaction)
-         * Check if dst_user_id already has a request from stash owner -> if Yes then return "REQUESTED"
-         * else, add a notification in dst_user_id with its relevant scheme
-         * return Created
-         */
-        transactions_db.get(transaction_id, function(err, transaction_body) {
-            if (err) {
-                logger.error("RequestShareFromUser: transactions_db - get - %s", err.message);
-                callback_func(err, null);
-            }
-            else {
-                GetUsersByIdsList([stash_owner_user_id, dst_user_id], function (err, user_data) {
-                    if (err) {
-                        logger.error("RequestShareFromUser: GetUsersByEmailList %s", err.message);
-                        callback_func(err, null);
-                        return
-                    }
-                    else if (user_data.rows.length != 2) {
-                        logger.error("RequestShareFromUser: GetUsersByEmailList %s", "No Such User");
-                        callback_func(err, null);
-                        return
-                    }
-                    else {
-                        var src_user_doc = user_data.rows[0].doc;
-                        var dst_user_doc = user_data.rows[1].doc;
-                        var found_src_dst = 0;
-                        for (var i in transaction_body.stash_list) {
-                            if ((transaction_body.stash_list[i].user_id == src_user_doc._id) ||
-                                (transaction_body.stash_list[i].user_id == dst_user_doc._id)) {
-                                found_src_dst++;
-                            }
-                        }
-                        if (found_src_dst != 2) {
-                            logger.error("RequestShareFromUser: GetUsersByEmailList %s", "Users not in transaction");
-                            callback_func(err, null);
-                            return
-
-                        }
-                        GetNotificationStash(dst_user_doc.notifications_stash[0], function(err, notification_body){
-                            if (err) {
-                                logger.error("RequestShareFromUser: GetNotificationStash %s", err.message);
-                                callback_func(err, null);
-                                return;
-                            }
-                            else {
-                                for (var i in notification_body.notification_list) {
-                                    if ((notification_body.notification_list[i].transaction_id == transaction_id) &&
-                                        (notification_body.notification_list[i].sender == src_user_doc._id) &&
-                                        (notification_body.notification_list[i].type == "share-request")) {
-                                        callback_func(err, notification_body.notification_list[i].type);
-                                        return;
-                                    }
-                                }
-                                //create
-                                var notification_item_doc = {
-                                    time: (new Date()).toISOString(),
-                                    group_id: transaction_body.group_id,
-                                    transaction_id: transaction_body._id,
-                                    sender: src_user_doc._id,
-                                    type: "share-request",
-                                    status: "pending"
-                                };
-                                notification_body.notification_list.push(notification_item_doc);
-                                notification_stash_db.update(notification_body, notification_body._id, callback_func);
-                            }
-                        })
-                    }
-                });
-
-            }
-        });
-
-
-
-    };
+    //
+    //var RequestShareFromUser = function(transaction_id, stash_owner_user_id, dst_user_id, callback_func) {
+    //    /**
+    //     * Get transaction by id. (check stash owner and dst_user_id are in transaction)
+    //     * Check if dst_user_id already has a request from stash owner -> if Yes then return "REQUESTED"
+    //     * else, add a notification in dst_user_id with its relevant scheme
+    //     * return Created
+    //     */
+    //    transactions_db.get(transaction_id, function(err, transaction_body) {
+    //        if (err) {
+    //            logger.error("RequestShareFromUser: transactions_db - get - %s", err.message);
+    //            callback_func(err, null);
+    //        }
+    //        else {
+    //            GetUsersByIdsList([stash_owner_user_id, dst_user_id], function (err, user_data) {
+    //                if (err) {
+    //                    logger.error("RequestShareFromUser: GetUsersByEmailList %s", err.message);
+    //                    callback_func(err, null);
+    //                    return
+    //                }
+    //                else if (user_data.rows.length != 2) {
+    //                    logger.error("RequestShareFromUser: GetUsersByEmailList %s", "No Such User");
+    //                    callback_func(err, null);
+    //                    return
+    //                }
+    //                else {
+    //                    var src_user_doc = user_data.rows[0].doc;
+    //                    var dst_user_doc = user_data.rows[1].doc;
+    //                    var found_src_dst = 0;
+    //                    for (var i in transaction_body.stash_list) {
+    //                        if ((transaction_body.stash_list[i].user_id == src_user_doc._id) ||
+    //                            (transaction_body.stash_list[i].user_id == dst_user_doc._id)) {
+    //                            found_src_dst++;
+    //                        }
+    //                    }
+    //                    if (found_src_dst != 2) {
+    //                        logger.error("RequestShareFromUser: GetUsersByEmailList %s", "Users not in transaction");
+    //                        callback_func(err, null);
+    //                        return
+    //
+    //                    }
+    //                    GetNotificationStash(dst_user_doc.notifications_stash[0], function(err, notification_body){
+    //                        if (err) {
+    //                            logger.error("RequestShareFromUser: GetNotificationStash %s", err.message);
+    //                            callback_func(err, null);
+    //                            return;
+    //                        }
+    //                        else {
+    //                            for (var i in notification_body.notification_list) {
+    //                                if ((notification_body.notification_list[i].transaction_id == transaction_id) &&
+    //                                    (notification_body.notification_list[i].sender == src_user_doc._id) &&
+    //                                    (notification_body.notification_list[i].type == "share-request")) {
+    //                                    callback_func(err, notification_body.notification_list[i].type);
+    //                                    return;
+    //                                }
+    //                            }
+    //                            //create
+    //                            var notification_item_doc = {
+    //                                time: (new Date()).toISOString(),
+    //                                group_id: transaction_body.group_id,
+    //                                transaction_id: transaction_body._id,
+    //                                sender: src_user_doc._id,
+    //                                type: "share-request",
+    //                                status: "pending"
+    //                            };
+    //                            notification_body.notification_list.push(notification_item_doc);
+    //                            notification_stash_db.update(notification_body, notification_body._id, callback_func);
+    //                        }
+    //                    })
+    //                }
+    //            });
+    //
+    //        }
+    //    });
+    //
+    //
+    //
+    //};
 
     var CommitShareToUser = function(stash_doc, share, source_user_id, callback_func) {
         for (var i in stash_doc.share_list) {
@@ -833,15 +833,15 @@ var CloudantDBModule = (function() {
     //exports.CreateTransaction = CreateTransaction;
     //exports.CreateStashList = CreateStashList;
     exports.GetTransactionInfoById = GetTransactionInfoById;
-    exports.GetTransactionsByIdList = GetTransactionsDocsByIdList;
+    //exports.GetTransactionsByIdList = GetTransactionsDocsByIdList;
     //exports.AddTransactionToGroup = AddTransactionToGroup;
     //exports.GetShareStash = GetShareStash;
     exports.GetShareStashByStashID = GetShareStashByStashID;
     exports.GetShareStashDocByStashID = GetShareStashDocByStashID;
 
     // exports.CreateNotificationStash = CreateNotificationStash;
-    exports.GetNotificationStash = GetNotificationStash;
-    exports.RequestShareFromUser = RequestShareFromUser;
+    //exports.GetNotificationStash = GetNotificationStash;
+    //exports.RequestShareFromUser = RequestShareFromUser;
     exports.CommitShareToUser = CommitShareToUser;
     exports.DeclineRequestShareFromUser = DeclineRequestShareFromUser;
 
