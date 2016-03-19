@@ -11,47 +11,41 @@ var errors_util = require('../utils/errors');
 // */
 //
 router.post('/create_group', function (req, res) {
-    // TODO: Check authentication and equivalence of requestor of the request to creator of the group
-    var creator = session_util.GetUserId(req.session),
-        users_email_list = req.body['member_list[]'],
-        group_name = req.body.group_name;
-    if (!Array.isArray(users_email_list)) {
-        users_email_list = [users_email_list];
+    var user_docs = null;
+    var creator = session_util.GetUserId(req.session);
+    if (creator == null) {
+        errors_util.ReturnNotLoggedInError(res);
     }
-    users_email_list.push(session_util.GetUserEmail(req.session)); //add the creator
-    database_interface.GetUsersByEmailList(users_email_list, function(err, users_doc){
-        if (err) {
-            res.status(400).json({success: false, error: err.message })
+    else {
+        var users_email_list = req.body['member_list[]'],
+            group_name = req.body.group_name;
+        if (!Array.isArray(users_email_list)) {
+            users_email_list = [users_email_list];
         }
-        else {
+        /* The initial request passes the member list without the creator in it, so add it manually. */
+        users_email_list.push(session_util.GetUserEmail(req.session));
+        database_interface.GetUsersByEmailList(users_email_list)
+        .then((users_doc) => {
+            user_docs = users_doc;
+            /* Verify we got as many emails as we inputted. */
             if (users_doc.rows.length != users_email_list.length) {
-                res.json({success:false, error: "Invalid Input"});
+                reject("Couldn't find all users.");
             }
-            else {
-                var list_of_users_ids = [];
-                for (var i =0; i< users_doc.rows.length; ++i) {
-                    if (users_doc.rows[i].id != creator)
-                        list_of_users_ids.push(users_doc.rows[i].id);
-                }
-                database_interface.CreateGroup(creator, list_of_users_ids, group_name, function(err, group_data) {
-                    if (err) {
-                        res.status(400).json({success: false, error: err.message })
-                    }
-                    else {
-                        database_interface.AddUsersToGroup(users_doc, group_data, function(err, user_data) {
-                            if (err) {
-                                res.status(400).json({success: false, error: err.message })
-                            }
-                            else {
-                                res.status(201).json({success: true, message: group_data })
-                            }
-                        });
-                    }
-                });
+            var list_of_users_ids = [];
+            for (var i in users_doc.rows) {
+                if (users_doc.rows[i].id != creator)
+                    list_of_users_ids.push(users_doc.rows[i].id);
             }
-        }
-    });
-    // TODO: For each user in the user list / creator, update document to include new group.
+            return database_interface.CreateGroup(creator, list_of_users_ids, group_name);
+        })
+        .then((group_doc) => {
+            return database_interface.AddUsersToGroup(user_docs, group_doc);
+        })
+        .then((data) => {
+            res.status(201).json({success: true, message: data })
+        })
+        .catch((err) => res.status(400).json({success: false, error: err }));
+    }
 });
 
 

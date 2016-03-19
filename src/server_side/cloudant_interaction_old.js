@@ -521,28 +521,28 @@ var CloudantDBModule = (function() {
     //        });
     //};
 
-    var CreateGroup = function (creator, list_of_users_ids, group_name, callback_func) {
-        // TODO: Check that group name is complaint to some policy we'll set (max length, forbidden chars etc.) [Discuss either here or on server prior to the request].
-        var group_doc = {
-            "metadata": {
-                "scheme": "group",
-                "scheme_version": "1.0",
-                "creation_time": (new Date()).toISOString()
-            },
-            "creator": creator,
-            "group_name": group_name,
-            "member_list": list_of_users_ids,
-            "transaction_list": [ ]
-        };
-        groups_db.insert(
-            group_doc,                    // Document
-            function(err, data) {                                                          // Callback func
-                if (err) {
-                    logger.error("CreateGroup: %s", err.message);
-                }
-                callback_func(err, data);
-            });
-    };
+    //var CreateGroup = function (creator, list_of_users_ids, group_name, callback_func) {
+    //    // TODO: Check that group name is complaint to some policy we'll set (max length, forbidden chars etc.) [Discuss either here or on server prior to the request].
+    //    var group_doc = {
+    //        "metadata": {
+    //            "scheme": "group",
+    //            "scheme_version": "1.0",
+    //            "creation_time": (new Date()).toISOString()
+    //        },
+    //        "creator": creator,
+    //        "group_name": group_name,
+    //        "member_list": list_of_users_ids,
+    //        "transaction_list": [ ]
+    //    };
+    //    groups_db.insert(
+    //        group_doc,                    // Document
+    //        function(err, data) {                                                          // Callback func
+    //            if (err) {
+    //                logger.error("CreateGroup: %s", err.message);
+    //            }
+    //            callback_func(err, data);
+    //        });
+    //};
 
     var GetAllMyGroups = function (user_id, callback_func) {
         var view_name = db_module_config.groups_db.api.get_groups_metadata_by_user.name;
@@ -661,21 +661,21 @@ var CloudantDBModule = (function() {
     //
     //};
 
-    var AddUsersToGroup = function(users_doc, group, callback_func) {
-        var docs_to_update = [];
-        var doc;
-        for (var i = 0; i < users_doc.rows.length; ++i) {
-            doc = users_doc.rows[i].value;
-            doc.groups.push(group.id);
-            docs_to_update.push(doc);
-        }
-        users_db.bulk({docs: docs_to_update}, function(err, updated_data) {
-            if (err) {
-                logger.error("AddUsersToGroup: bulk - %s", err.message);
-            }
-            callback_func(err, updated_data);
-        });
-    };
+    //var AddUsersToGroup = function(users_doc, group, callback_func) {
+    //    var docs_to_update = [];
+    //    var doc;
+    //    for (var i = 0; i < users_doc.rows.length; ++i) {
+    //        doc = users_doc.rows[i].value;
+    //        doc.groups.push(group.id);
+    //        docs_to_update.push(doc);
+    //    }
+    //    users_db.bulk({docs: docs_to_update}, function(err, updated_data) {
+    //        if (err) {
+    //            logger.error("AddUsersToGroup: bulk - %s", err.message);
+    //        }
+    //        callback_func(err, updated_data);
+    //    });
+    //};
 
     //var GetUsersPublicKeys = function(user_ids_list, callback_func) {
     //    //This function returns a list of objects contains for each email its public key
@@ -820,13 +820,13 @@ var CloudantDBModule = (function() {
 
     //exports.IsUserExists = IsUserExists;
     exports.AddGroupToUser = AddGroupToUser;
-    exports.AddUsersToGroup = AddUsersToGroup;
+    //exports.AddUsersToGroup = AddUsersToGroup;
     //exports.GetUserByEmail = GetUserByEmail;
     //exports.GetUsersByEmailList = GetUsersByEmailList;
     exports.GetUsersByIdsList = GetUsersByIdsList;
     //exports.GetUsersPublicKeys = GetUsersPublicKeys;
 
-    exports.CreateGroup = CreateGroup;
+    //exports.CreateGroup = CreateGroup;
     exports.GetAllMyGroups = GetAllMyGroups;
     //exports.GetGroupDataByGroupId = GetGroupDataByGroupId;
 

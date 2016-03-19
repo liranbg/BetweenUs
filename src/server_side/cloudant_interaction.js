@@ -106,7 +106,7 @@ class ServerInteraction {
         };
         this._InitialDataBasesConnectionVariables();
         this._InitDataBases();
-        this._TestFunctions();
+        //this._TestFunctions();
     }
 
     _TestFunctions() {
@@ -898,6 +898,62 @@ class ServerInteraction {
             .catch((err) => reject(err));
         })
     }
+
+    CreateGroup(creator, list_of_users_ids, group_name) {
+        // TODO: Check that group name is complaint to some policy we'll set (max length, forbidden chars etc.) [Discuss either here or on server prior to the request].
+        var group_doc = {
+            "metadata": {
+                "scheme": "group",
+                "scheme_version": "1.0",
+                "creation_time": (new Date()).toISOString()
+            },
+            "creator": creator,
+            "group_name": group_name,
+            "member_list": list_of_users_ids,
+            "transaction_list": [ ]
+        };
+        return new Promise((resolve, reject) => {
+            this.groups_db.post(group_doc).
+                then((data) => {
+                    resolve(data);
+                })
+                .catch((err) => {
+                    reject(err);
+                });
+        });
+    };
+
+    AddUsersToGroup(users_doc, group) {
+        var docs_to_update = [];
+        var doc;
+        for (var i in users_doc.rows) {
+            doc = users_doc.rows[i].doc;
+            doc.groups.push(group.id);
+            docs_to_update.push(doc);
+        }
+        return new Promise((resolve, reject) => {
+            this.users_db.bulkDocs(docs_to_update)
+                .then((data) => resolve(data))
+                .catch((err) => reject(err));
+        });
+    };
+
+    //var AddUsersToGroup = function(users_doc, group, callback_func) {
+    //    var docs_to_update = [];
+    //    var doc;
+    //    for (var i = 0; i < users_doc.rows.length; ++i) {
+    //        doc = users_doc.rows[i].value;
+    //        doc.groups.push(group.id);
+    //        docs_to_update.push(doc);
+    //    }
+    //    users_db.bulk({docs: docs_to_update}, function(err, updated_data) {
+    //        if (err) {
+    //            logger.error("AddUsersToGroup: bulk - %s", err.message);
+    //        }
+    //        callback_func(err, updated_data);
+    //    });
+    //};
 }
+
 
 module.exports = ServerInteraction.instance;
