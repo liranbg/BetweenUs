@@ -923,6 +923,16 @@ class ServerInteraction {
         });
     };
 
+    /***
+     * Receives a list of n user documents (users_doc.rows[n].doc), pushes the group (group.id) to the docs
+     * 'groups' attribute for each user (users_docs.rows[n].doc.groups), and then uses bulkDocs to bulk update
+     * the users in the database.
+     *
+     * @param users_doc
+     * @param group
+     * @returns {Promise}
+     * @constructor
+     */
     AddUsersToGroup(users_doc, group) {
         var docs_to_update = [];
         var doc;
@@ -938,21 +948,6 @@ class ServerInteraction {
         });
     };
 
-    //var AddUsersToGroup = function(users_doc, group, callback_func) {
-    //    var docs_to_update = [];
-    //    var doc;
-    //    for (var i = 0; i < users_doc.rows.length; ++i) {
-    //        doc = users_doc.rows[i].value;
-    //        doc.groups.push(group.id);
-    //        docs_to_update.push(doc);
-    //    }
-    //    users_db.bulk({docs: docs_to_update}, function(err, updated_data) {
-    //        if (err) {
-    //            logger.error("AddUsersToGroup: bulk - %s", err.message);
-    //        }
-    //        callback_func(err, updated_data);
-    //    });
-    //};
 }
 
 

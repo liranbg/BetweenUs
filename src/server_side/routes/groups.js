@@ -51,8 +51,8 @@ router.post('/create_group', function (req, res) {
 
 router.get('/get_groups', function (req, res) {
     var user_id = session_util.GetUserId(req.session);
-    if (!user_id) {
-        res.json({success:false})
+    if (user_id == null) {
+        errors_util.ReturnNotLoggedInError(res);
     }
     else {
         database_interface.GetGroupsForUserId(user_id)
@@ -65,7 +65,6 @@ router.get('/get_groups', function (req, res) {
             })
             .catch((err) => {
                 res.status(401).json({success: false, message: err});
-
             });
     }
 });
@@ -79,8 +78,12 @@ router.get('/get_group_info', function (req, res) {
     else {
         var group_id = req.query.group_id;
         database_interface.GetGroupDataByGroupId(group_id)
-            .then((result) => { res.status(200).json({success: true, data: result}); })
-            .catch((err) => { res.status(401).json({success: false, error: err.message}); });
+            .then((result) => {
+                res.status(200).json({success: true, data: result});
+            })
+            .catch((err) => {
+                res.status(401).json({success: false, error: err.message});
+            });
     }
 });
 
@@ -94,17 +97,11 @@ router.get('/get_members_public_keys/:group_id', function (req, res) {
         /* Find group id associated with transaction */
         database_interface.GetGroupDataByGroupId(group_id)
             .then((data) => {
-                console.log("After initial promise creation...");
-                console.log("THIS IS WHAT WE GOT! ", data);
-                //TODO send user all public keys associated with group id
-                //make another db call and send the data as [{user_id:"123", public_key: "dsfsd"},...]
                 var users_id_list = [];
                 for (var i = 0; i< data.member_list.length; ++i) {
                     users_id_list.push(data.member_list[i].user_id);
                 }
                 users_id_list.push(data.creator.user_id);
-                console.log("Sending user id list to promise GetUsersPublicKeys");
-                console.log(users_id_list);
                 return database_interface.GetUsersPublicKeys(users_id_list);
             })
             .then((data) => {

@@ -142,7 +142,6 @@ router.get('/get_public_key', function(req, res) {
         else
         {
             errors_util.ReturnRequestMissingParamteres(res);
-
         }
     }
 });
