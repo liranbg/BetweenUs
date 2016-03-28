@@ -433,17 +433,17 @@ var CloudantDBModule = (function() {
      * @param callback_func
      * @constructor
      */
-    var GetShareStashByStashID = function(share_stash_id, callback_func) {
-        shares_stash_db.get(share_stash_id, function (err, data) {
-            if (err) {
-                logger.error("GetShareStashByStashID: %s", err.message);
-            }
-            else {
-                var share_list = data.share_list;
-            }
-            callback_func(err, share_list);
-        });
-    };
+    //var GetShareStashByStashID = function(share_stash_id, callback_func) {
+    //    shares_stash_db.get(share_stash_id, function (err, data) {
+    //        if (err) {
+    //            logger.error("GetShareStashByStashID: %s", err.message);
+    //        }
+    //        else {
+    //            var share_list = data.share_list;
+    //        }
+    //        callback_func(err, share_list);
+    //    });
+    //};
 
     var GetShareStashDocByStashID = function(share_stash_id, callback_func) {
         shares_stash_db.get(share_stash_id, function (err, data) {
@@ -836,7 +836,7 @@ var CloudantDBModule = (function() {
     //exports.GetTransactionsByIdList = GetTransactionsDocsByIdList;
     //exports.AddTransactionToGroup = AddTransactionToGroup;
     //exports.GetShareStash = GetShareStash;
-    exports.GetShareStashByStashID = GetShareStashByStashID;
+    //exports.GetShareStashByStashID = GetShareStashByStashID;
     exports.GetShareStashDocByStashID = GetShareStashDocByStashID;
 
     // exports.CreateNotificationStash = CreateNotificationStash;
