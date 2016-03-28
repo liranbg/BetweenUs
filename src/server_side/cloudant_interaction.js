@@ -450,19 +450,22 @@ class ServerInteraction {
 
     /**
      * This function returns data for a specific transaction id
-     * { id: '549b28dde0a96df05e8d1426ad6e6aed',
-          transaction_name: 'Prototype Transaction',
-          threshold: 2,
-          initiator:
-           { initiator_id: 'cddf14e4e0ce7fd1f3fb2f8d66fef344',
-             initiator_email: 'alice' },
+     { id: '31d7e197b72a77f80ed736a77043685b',
+       key: '31d7e197b72a77f80ed736a77043685b',
+       value: { rev: '1-754431bdd2494831604a2621ae988c33' },
+       doc:
+        { _id: '31d7e197b72a77f80ed736a77043685b',
+          _rev: '1-754431bdd2494831604a2621ae988c33',
+          metadata:
+           { scheme: 'transaction',
+             scheme_version: '1.0',
+             creation_time: '2016-03-28T05:49:28.222Z' },
+          initiator: 'cddf14e4e0ce7fd1f3fb2f8d66fef344',
+          transaction_name: 'Antother test trans',
+          cipher_meta_data: { type: 'String', data: 'ghdñÿ°ä¶ÌûÏò\'¼<4áwÓ1&a¤\u0011n(' },
           group_id: 'e6d4824ba908e09959e5ac63289e800d',
-          members_list:
-           [ { email: 'bob', user_id: '549b28dde0a96df05e8d1426ad61b119' },
-             { email: 'charlie',
-               user_id: '251535b0e57a94f4382d50a6ac9eff9d' },
-             { email: 'alice', user_id: 'cddf14e4e0ce7fd1f3fb2f8d66fef344' } ],
-          my_stash: 'd05ab2d51d8a84864e91c642c19c47b3' }
+          threshold: 3,
+          stash_list: [ [Object], [Object], [Object] ] } }
      * @param requesting_user_id
      * @param transaction_id
      * @returns {Promise}
