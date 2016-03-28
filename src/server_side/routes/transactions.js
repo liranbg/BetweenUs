@@ -124,9 +124,12 @@ router.get('/request_share', function(req,res) {
     });
 });
 
+/*** GET Handler for /get_my_share
+ *   GET params: transaction_id
+ *   Response: {"success":true,"share":{"bits":8,"id":3, "data":"7d94bbaf4e158d5cd907094...e6328fb87691"}}
+ */
 router.get('/get_my_share', function(req, res) {
     //http://localhost:3000/transactions/get_my_share?transaction_id=31d7e197b72a77f80ed736a77043685b
-    console.log("TRIGGERED");
     var user_id = session_util.GetUserId(req.session);
     /* Make sure user is logged in first. */
     if (user_id == null) {
@@ -142,9 +145,11 @@ router.get('/get_my_share', function(req, res) {
     .then((data) => {
         var req_user_id = user_id;
         var doc = data[0].doc;
+        var share_found = false;
         for (var i in doc.stash_list) {
             /* Find the requesting user stash id. */
             if (doc.stash_list[i].user_id == req_user_id) {
+                share_found = true;
                 /* Get the users share stash. */
                 var share_stash_id = doc.stash_list[i].stash_id;
                 database_interface.GetShareStashByStashID(share_stash_id)
@@ -170,26 +175,42 @@ router.get('/get_my_share', function(req, res) {
         /* This should never happen either, if this happened, that means that the user requested a transaction
         he is not a part of - he is not in the stash_list struct.
          */
-        res.status(404).json({success:false, error: "Can't find user share."});
-        return;
+        if (share_found == false) {
+            res.status(404).json({success:false, error: "Can't find user share."});
+            return;
+        }
     })
     .catch((err) => {
         res.status(404).json({success:false, error: err});
     });
 });
 
+/*** GET Handler for /get_cipher_data
+ *   GET params: transaction_id
+ *   Response:
+ *   {"success":true,"cipher":{"type":"String","data":"ghdñÿ°ä¶ÌûÏò'¼<4áwÓ1&a¤\u0011n("}}
+ */
 router.get('/get_cipher_data', function(req, res) {
-    //http://localhost:3000/transactions/get_cipher_data?transaction_id=24461a3e2b275e168c7f7f428a0ff0d6
+    //http://localhost:3000/transactions/get_cipher_data?transaction_id=31d7e197b72a77f80ed736a77043685b
     var user_id = session_util.GetUserId(req.session);
+    /* Make sure user is logged in first. */
+    if (user_id == null) {
+        errors_util.ReturnNotLoggedInError(res);
+        return;
+    }
     var transaction_id = req.query.transaction_id;
-    database_interface.GetTransactionsByIdList([transaction_id], function(err, transactions) {
-        if (err) {
-            res.status(404).json({success:false, error: "Invalid Input"});
-        }
-        else {
-            var transaction_doc = transactions.rows[0].doc;
-            res.status(200).json({success:true, cipher: transaction_doc.cipher_meta_data});
-        }
+    /* Check that transcation_id exist */
+    if (transaction_id == null) {
+        errors_util.ReturnRequestMissingParamteres(res);
+        return;
+    }
+    database_interface.GetTransactionsByListOfIds([transaction_id])
+    .then((data) => {
+        var doc = data[0].doc;
+        res.status(200).json({success:true, cipher: doc.cipher_meta_data});
+    })
+    .catch((err) => {
+        res.status(404).json({success:false, error: "Invalid Input"});
     });
 });
 
