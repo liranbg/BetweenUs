@@ -254,50 +254,50 @@ router.get('/get_all_shares', function(req, res) {
         });
 });
 
+/*** POST Handler for /commit_share
+ *   POST params: transaction_id, target_user_id, encrypted_share
+ *   Response: "Done" on success, error message on failure.
+ */
 router.post('/commit_share', function(req,res) {
     var user_id = session_util.GetUserId(req.session);
     var transaction_id = req.body.transaction_id;
     var target_user_id = req.body.target_user_id;
     var encrypted_share = JSON.parse(req.body.encrypted_share);
 
-    if ((!transaction_id) || (!target_user_id) || (!encrypted_share)) {
-        res.status(404).json({success:false, error: "Invalid Input"});
+    /* Check if user is logged in. */
+    if (user_id == null) {
+        errors_util.ReturnNotLoggedInError(res);
         return;
     }
-
-    database_interface.GetTransactionsByIdList([transaction_id], function(err, transactions) {
-        if (err) {
-            res.status(404).json({success:false, error: "Invalid Input"});
-        }
-        else {
-            var transaction_doc = transactions.rows[0].doc;
+    /* Check required params are present. */
+    if ((transaction_id == null) || (target_user_id == null) || (encrypted_share == null)) {
+        errors_util.ReturnRequestMissingParamteres(res);
+        return;
+    }
+    /* Fetch the Transaction */
+    database_interface.GetTransactionsByListOfIds([transaction_id])
+        .then((data) => {
+            var transaction_doc = data[0].doc;
             for (var i in transaction_doc.stash_list) {
-                var doc = transaction_doc.stash_list[i];
-                if (doc.user_id == target_user_id) {
-                    database_interface.GetShareStashDocByStashID(doc.stash_id, function(err, stash) {
-                        if (err) {
-                            res.status(404).json({success:false, error: err.message});
-                        }
-                        else {
-                            database_interface.CommitShareToUser(stash, encrypted_share, user_id, function(err, stash) {
-                                    if (err) {
-                                        res.status(404).json({success:false, error: "Share committing error"});
-                                    }
-                                    else {
-                                        //TODO update notification to be "committed"
-                                        res.status(201).json({success:true, message: "Done"});
-                                    }
-                                }
-                            );
-                        }
-                    });
+                var stash = transaction_doc.stash_list[i];
+                if (stash.user_id == target_user_id) {
+                    database_interface.GetShareStashDocByStashID(stash.stash_id)
+                        .then((stash_doc) => {
+                            database_interface.CommitShareToUser(stash_doc, encrypted_share, user_id)
+                        })
+                        .then((data) => {
+                            res.status(201).json({success: true, message: "Done"});
+                        })
+                        // TODO: Update notification status to be committed.
+                        .catch((err) => {
+                            res.status(404).json({success: false, error: err});
+                        });
                 }
             }
-        }
-    });
+        })
+        .catch((err) => {
+            res.status(404).json({success:false, error: err});
+        });
 });
-
-
-
 
 module.exports = router;

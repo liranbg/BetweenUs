@@ -800,16 +800,16 @@ var CloudantDBModule = (function() {
     //
     //};
 
-    var CommitShareToUser = function(stash_doc, share, source_user_id, callback_func) {
-        for (var i in stash_doc.share_list) {
-            if (stash_doc.share_list[i].user_id == source_user_id) {
-                stash_doc.share_list[i].share = share;
-                shares_stash_db.update(stash_doc, stash_doc._id, callback_func);
-                return;
-            }
-        }
-        callback_func({message:"no user id in share list"}, null);
-    };
+    //var CommitShareToUser = function(stash_doc, share, source_user_id, callback_func) {
+    //    for (var i in stash_doc.share_list) {
+    //        if (stash_doc.share_list[i].user_id == source_user_id) {
+    //            stash_doc.share_list[i].share = share;
+    //            shares_stash_db.update(stash_doc, stash_doc._id, callback_func);
+    //            return;
+    //        }
+    //    }
+    //    callback_func({message:"no user id in share list"}, null);
+    //};
 
     var DeclineRequestShareFromUser = function(transaction_id, stash_owner_user_id, wanted_share_user_id, callback_func) {
 
@@ -837,12 +837,12 @@ var CloudantDBModule = (function() {
     //exports.AddTransactionToGroup = AddTransactionToGroup;
     //exports.GetShareStash = GetShareStash;
     //exports.GetShareStashByStashID = GetShareStashByStashID;
-    exports.GetShareStashDocByStashID = GetShareStashDocByStashID;
+    //exports.GetShareStashDocByStashID = GetShareStashDocByStashID;
 
     // exports.CreateNotificationStash = CreateNotificationStash;
     //exports.GetNotificationStash = GetNotificationStash;
     //exports.RequestShareFromUser = RequestShareFromUser;
-    exports.CommitShareToUser = CommitShareToUser;
+    //exports.CommitShareToUser = CommitShareToUser;
     exports.DeclineRequestShareFromUser = DeclineRequestShareFromUser;
 
 } (CloudantDBModule || {}));

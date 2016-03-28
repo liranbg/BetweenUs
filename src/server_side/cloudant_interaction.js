@@ -110,13 +110,18 @@ class ServerInteraction {
     }
 
     _TestFunctions() {
-        /* Test Get Notification Stash. */
-        this.GetNotificationStash("7570ad201067614d5afc50056f7cb6ac")
-            .then((data) => console.log("Testing GetNotificationStash...", data))
-            .catch((err) => console.log("Testing GetNotificationStash...", err));
-        this.RequestShareFromUser("549b28dde0a96df05e8d1426ad6e6aed", "549b28dde0a96df05e8d1426ad61b119", "251535b0e57a94f4382d50a6ac9eff9d")
-            .then((data) => console.log("Testing RequestShareFromUser", data))
-            .catch((err) => console.log("Testing RequestShareFromUser", err));
+        this.GetShareStashDocByStashID("04b48a28c77b587c6e9f594d0a2dce58")
+        .then((stash_doc) => {
+             this.CommitShareToUser(stash_doc, "12345", "251535b0e57a94f4382d50a6ac9eff9d")
+            .then((data) => {
+                console.log(data);
+                console.log(data);
+            })
+        })
+        .catch((err) => {
+            console.log(err);
+            console.log(err);
+        })
     }
 
     static get instance() {
@@ -944,6 +949,63 @@ class ServerInteraction {
         });
     };
 
+    /*** GetShareStashDocByStashID
+     * @data:
+     * { _id: '04b48a28c77b587c6e9f594d0a2dce58',
+      _rev: '1-90594d84c075db59b463fd541a7a74c4',
+      metadata:
+       { scheme: 'share_stash',
+         scheme_version: '1.0',
+         creation_time: '2016-03-18T18:23:15.815Z' },
+      stash_owner: '549b28dde0a96df05e8d1426ad61b119',
+      share_list:
+       [ { user_id: '549b28dde0a96df05e8d1426ad61b119', share: [Object] },
+         { user_id: '251535b0e57a94f4382d50a6ac9eff9d', share: '' },
+         { user_id: 'cddf14e4e0ce7fd1f3fb2f8d66fef344', share: '' } ],
+      group_id: 'e6d4824ba908e09959e5ac63289e800d' }
+     * @param share_stash_id
+     * @returns {Promise}
+     * @constructor
+     */
+    GetShareStashDocByStashID(share_stash_id) {
+        return new Promise((resolve, reject) => {
+            this.shares_stash_db.get(share_stash_id)
+            .then((data) => {
+                resolve(data);
+            })
+            .catch((err) => {
+                reject(err);
+            })
+        });
+    };
+
+    /*** CommitShareToUser
+     * Receives encrypted share and the stash doc, inserts the encrypted share (in the source_user_id share object)
+     * and commits the change to the database.
+     * @param stash_doc
+     * @param share
+     * @param source_user_id
+     * @returns {Promise}
+     * @constructor
+     */
+    CommitShareToUser(stash_doc, share, source_user_id) {
+        return new Promise((resolve, reject) => {
+            for (var i in stash_doc.share_list) {
+                if (stash_doc.share_list[i].user_id == source_user_id) {
+                    stash_doc.share_list[i].share = share;
+                    this.shares_stash_db.post(stash_doc)
+                    .then((data) => {
+                        resolve(data);
+                    })
+                    .catch((err) => {
+                        reject(err);
+                    });
+                }
+            }
+            reject("Can't find stash id.");
+        })
+
+    };
 }
 
 
