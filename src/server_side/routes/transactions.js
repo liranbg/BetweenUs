@@ -47,7 +47,6 @@ router.get('/get_share_stash', function (req, res) {
                 .catch((err) => {
                     console.log(err);
                     res.status(401).json({success: false, error: err});
-
                 });
         }
         else {
