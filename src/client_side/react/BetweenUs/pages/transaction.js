@@ -93,22 +93,27 @@ var Transaction = React.createClass({
     },
     getInitialState() {
         var members_ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1.user_id !== r2.user_id});
-        var member_list = [];
+        var shares_ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1.user_id !== r2.user_id});
         return( {
-            done:false,
-            transaction_id: "",
-            transaction_name: "",
-            threshold: "",
-            initiator: {
-                initiator_id: "",
-                initiator_email: ""
-            },
-            group_data: {
-                group_id:"",
-                group_name:""
+            transaction: {
+                id: "",
+                name: "",
+                threshold: "",
+                initiator: {
+                    id: "",
+                    email: ""
+                },
+                group: {
+                    id:"",
+                    name:""
+                },
+                members_list: members_ds.cloneWithRows([]),
+                my_stash_id: "",
+                transaction_shares_data: shares_ds.cloneWithRows([]),
+                can_decrypt: false
             },
             user_info: this.props.user_info,
-            transaction_share_data: members_ds.cloneWithRows(member_list)
+            // transaction_shares_data: members_ds.cloneWithRows([])
         })
     },
     componentDidMount: function() {
@@ -126,41 +131,29 @@ var Transaction = React.createClass({
             ServerAPI.fetchTransactionData(this.props.data.transaction_id),
             ServerAPI.fetchTransactionSharesData(this.props.data.transaction_id)
         ]).then((all)=> {
-            console.log(all[0]);
             var members_ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1.user_id !== r2.user_id});
-
-            all[0].transaction_data.transaction_share_data = members_ds.cloneWithRows(all[[1]].transaction_data);
-            this.setState(all[0].transaction_data);
-
-            console.warn("combining shares...");
-            var all_shares = betweenUs.CombineShares([
-                all[1].transaction_data[0].share,
-                all[1].transaction_data[2].share
-            ]);
-            console.warn(all_shares);
-            console.warn("combining shares is done");
-            var chiper = all[0].transaction_data.cipher_meta_data.data;
-            console.warn("chiper is");
-            console.warn(chiper);
-            console.warn("finishing...");
-            /** Receives a string and converts it into a uInt8Array.
-             *
-             * @param s {string}
-             * @returns {Uint8Array}
-             */
-            function Util_Text2uIntArray(s) {
-                var ua = new Uint8Array(s.length);
-                for (var i = 0; i < s.length; i++) {
-                    ua[i] = s.charCodeAt(i);
+            var shares_ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1.user_id !== r2.user_id});
+            var data = all[0].transaction_data;
+            this.setState({
+                transaction: {
+                    id: data.id,
+                    name: data.transaction_name,
+                    threshold: data.threshold,
+                    initiator: {
+                        id: data.initiator.initiator_id,
+                        email: data.initiator.initiator_email
+                    },
+                    group: {
+                        id:data.group_id,
+                        name:data.my_stash
+                    },
+                    members_list: members_ds.cloneWithRows(data.members_list),
+                    my_stash_id: "",
+                    can_decrypt: all[1].transaction_data.length >= data.threshold,
+                    transaction_shares_data: shares_ds.cloneWithRows(all[1].transaction_data)
                 }
-                return ua;
-            }
-            function Util_uIntArray2Text(uintArray) {
-                return String.fromCharCode.apply(null, new Uint16Array(uintArray));
-            }
 
-            var decrypted_buffer = betweenUs.SymmetricDecrypt(Util_Text2uIntArray(chiper), all_shares);
-            console.log(Util_uIntArray2Text(decrypted_buffer));
+            });
 
 
         }).catch((error) => {
@@ -178,18 +171,31 @@ var Transaction = React.createClass({
     render(){
         return (
             <View style={styles.container}>
-                <Text style={{justifyContent: 'center', flex:1, textAlign:'center', fontWeight:'bold', margin: 10, fontSize: 24}}>{this.state.transaction_name}</Text>
-                <Text>Member List</Text>
-                <View style={{flexDirection: 'row'}}>
-                    <Text style={{flex:0.2, fontWeight:'bold', marginRight: 5, fontSize: 12}}>Email</Text>
-                    <Text style={{flex:0.8, fontWeight:'bold', marginRight: 5, fontSize: 12}}>Share</Text>
-                </View>
+                <Text style={styles.header}>{this.state.transaction.name}</Text>
+                <Text style={styles.sub_header}>Threshold: {this.state.transaction.threshold}</Text>
+                {(
+                    () => {
+                        if (this.state.transaction.can_decrypt) {
+                            return <Text style={styles.sub_header}>Open File</Text>
+                        }
+                    }
+                )()}
+                {(
+                    () => {
+                        if (this.state.transaction.members_list.length > 0) {
+                            return
+
+
+                        }
+                    }
+                )()}
+
                 <ListView
-                    dataSource={this.state.transaction_share_data}
+                    dataSource={this.state.transaction.transaction_shares_data}
                     renderRow={this.PaintMembers}
                 />
                 <View style={{marginBottom:20}}/>
-                <Button onPress={this.transaction_test}>Get Data</Button>
+                <Button onPress={this.fetchTransactionData}>Get Data</Button>
             </View>
         );
     }
@@ -197,6 +203,8 @@ var Transaction = React.createClass({
 
 
 var styles = StyleSheet.create({
+    header: {textAlign:'center', fontWeight:'bold', margin: 5, fontSize: 20},
+    sub_header: {textAlign:'center', fontWeight:'bold', margin: 0, fontSize: 18},
     container: {
         flex: 1
     }

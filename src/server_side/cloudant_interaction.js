@@ -893,7 +893,6 @@ class ServerInteraction {
                 return this.notification_stash_db.put(notification_stash);
             })
             .then((data) => {
-                console.log("Share request notification added succesfully.", data);
                 resolve(data);
             })
             .catch((err) => reject(err));

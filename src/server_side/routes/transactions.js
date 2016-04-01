@@ -18,7 +18,7 @@ router.get('/get_transaction', function (req, res) {
             var transaction_id = req.query.transaction_id;
             database_interface.GetTransactionAllInfoById(user_id, transaction_id)
                 .then((result) => {
-                    res.status(200).json({success: true, transaction_data: result});
+                    res.status(200).json({success: true, transaction: result});
                 })
                 .catch((err) => {
                     res.status(401).json({success: false, error: err.message});
@@ -42,7 +42,7 @@ router.get('/get_share_stash', function (req, res) {
             var transaction_id = req.query.transaction_id;
             database_interface.GetShareStash(user_id, transaction_id, true)
                 .then((result) => {
-                    res.status(200).json({success: true, transaction_data: result});
+                    res.status(200).json({success: true, transaction: result});
                 })
                 .catch((err) => {
                     console.log(err);
@@ -114,9 +114,13 @@ router.get('/request_share', function(req,res) {
         res.status(404).json({success:false, error: "Invalid Input"});
         return;
     }
+    if (share_owner == user_id) {
+        res.status(404).json({success:false, error: "Share request already exist."});
+        return;
+    }
     database_interface.RequestShareFromUser(transaction_id, user_id, share_owner)
     .then((data) => {
-        res.status(200).json({success: true, transaction_data: data});
+        res.status(200).json({success: true, transaction: data});
     })
     .catch((err) => {
         res.status(404).json({success:false, error: err});
