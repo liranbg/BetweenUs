@@ -53,30 +53,40 @@ class ServerInteraction {
 
             },
             transactions_db: {
-                get_transaction_info_by_id: {
-                    map: function (doc) {
-                        if (doc.metadata.scheme == "transaction") {
-                            emit(doc._id, {
-                                    transaction_name: doc.transaction_name,
-                                    group_id: doc.group_id,
-                                    threshold: doc.threshold,
-                                    initiator: doc.initiator
-                                }
-                            );
-                        }
-                    }.toString()
-                },
-                get_transaction_share_stash: {
-                    map: function (doc) {
-                        for (var i in doc.stash_list) {
-                            emit({
-                                transaction_id: doc._id,
-                                user_id: doc.stash_list[i].user_id
-                            }, doc.stash_list[i].stash_id);
-                        }
-                    }.toString()
-                }
+            get_transaction_info_by_id: {
+                map: function (doc) {
+                    if (doc.metadata.scheme == "transaction") {
+                        emit(doc._id, {
+                                transaction_name: doc.transaction_name,
+                                group_id: doc.group_id,
+                                threshold: doc.threshold,
+                                initiator: doc.initiator
+                            }
+                        );
+                    }
+                }.toString()
+            },
+            get_transaction_share_stash: {
+                map: function (doc) {
+                    for (var i in doc.stash_list) {
+                        emit({
+                            transaction_id: doc._id,
+                            user_id: doc.stash_list[i].user_id
+                        }, doc.stash_list[i].stash_id);
+                    }
+                }.toString()
             }
+        },
+        notification_stash_db: {
+            transaction_status: {
+                map: function (doc) {
+                    for (var i in doc.notification_list) {
+                        emit([doc.notification_list[i].transaction_id, doc.notification_list[i].sender],
+                            doc.notification_list[i].status);
+                    }
+                }.toString()
+            }
+        }
         };
         this._db_module_config = {
             auth: {
@@ -101,6 +111,12 @@ class ServerInteraction {
                     name: '_design/api',
                     get_transaction_info_by_id: "api/get_transaction_info_by_id",
                     get_transaction_share_stash: "api/get_transaction_share_stash"
+                }
+            },
+            notification_stash_db: {
+                api: {
+                    name: '_design/api',
+                    get_status_by_transaction_and_requester: "api/transaction_status",
                 }
             }
         };
@@ -133,7 +149,6 @@ class ServerInteraction {
     }
 
     _InitialDataBasesConnectionVariables() {
-        /* TODO: Check if we can remove the need for multiple connections */
         this.users_db = new PouchDB('https://betweenus.cloudant.com/users', { auth: this._db_module_config.auth });
         this.groups_db = new PouchDB('https://betweenus.cloudant.com/groups', { auth: this._db_module_config.auth });
         this.transactions_db = new PouchDB('https://betweenus.cloudant.com/transactions', { auth: this._db_module_config.auth });
@@ -200,7 +215,7 @@ class ServerInteraction {
     _InitTransactionsDB() {
         return new Promise((resolve, reject) => {
             this.transactions_db.get(this._db_module_config.transactions_db.api.name)
-                .then((doc)=> {resolve("TransactionsDB indexes has been created successfully"); })
+                .then((doc)=> { resolve("TransactionsDB indexes has been created successfully"); })
                 .catch((err)=> {
                     //document does not exists, create it
                     this.transactions_db.post({
@@ -222,8 +237,20 @@ class ServerInteraction {
     }
 
     _InitNotificationsStashDB() {
-        return new Promise(function(resolve, reject) {
-            resolve("Done");
+        return new Promise((resolve, reject) => {
+            this.notification_stash_db.get(this._db_module_config.notification_stash_db.api.name)
+                .then((doc)=> { resolve("Notification stash DB indexes has been created successfully"); })
+                .catch((err)=> {
+                    //document does not exists, create it
+                    this.notification_stash_db.post({
+                        views: this._views.notification_stash_db,
+                        _id: this._db_module_config.notification_stash_db.api.name
+                    }).then((doca)=> {
+                        resolve("Notification stash DB indexes has been created successfully");
+                    }).catch((erra)=> {
+                        reject("Error on creating Notification stash DB indexes");
+                    });
+                });
         });
     }
 
@@ -878,6 +905,7 @@ class ServerInteraction {
                         (notification_list[i].sender == src_user_doc._id) &&
                         (notification_list[i].type == "share-request")) {
                         reject("Share request already exist.");
+                        return;
                     }
                 }
                 /* If share-request doesn't exist, create it. */
@@ -1003,8 +1031,12 @@ class ServerInteraction {
             }
             reject("Can't find stash id.");
         })
-
     };
+
+    GetShareStatus(transaction, list_of_ids) {
+
+    }
+
 }
 
 
