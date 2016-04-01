@@ -14,40 +14,6 @@
 
 var BetweenUsModule = require('./betweenus');
 var RSA = require('node-rsa');
-var winston = require('winston');
-var moment = require('moment');
-var logger = new(winston.Logger)({
-    transports: [
-        new(winston.transports.File)({
-            // humanReadableUnhandledException: true,
-            // handleExceptions: true,
-            colorize: true,
-            json: false,
-            level: 'debug',
-            name: 'info-file',
-            filename: 'info.json',
-            timestamp: function() {
-                return moment(new Date()).format("YYYY-MM-dTHH:mm:ss:SSS");
-            },
-            formatter: function(options) {
-                // Return string will be passed to logger.
-                return options.timestamp() + ' ' + options.level.toUpperCase() + ' ' + (undefined !== options.message ? options.message : '') +
-                    (options.meta && Object.keys(options.meta).length ? '\n\t' + JSON.stringify(options.meta) : '');
-            }
-        }),
-        new(winston.transports.Console)({
-            level: 'error',
-            timestamp: function() {
-                return moment(new Date()).format("YYYY-MM-dTHH:mm:ss:SSS");
-            },
-            formatter: function(options) {
-                // Return string will be passed to logger.
-                return options.timestamp() + ' ' + options.level.toUpperCase() + ' ' + (undefined !== options.message ? options.message : '') +
-                    (options.meta && Object.keys(options.meta).length ? '\n\t' + JSON.stringify(options.meta) : '');
-            }
-        })
-    ]
-});
 var rsa_bits = 1024;
 
 var text_to_encrypt = "Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.";
@@ -83,55 +49,55 @@ var client_3 = {
 
 
 //Client 1 creates symmetric key [represented as dictoinary. holds key and initial vector]
-logger.log("-------------------");
-logger.log('Starting BetweenUs flow on text:');
-logger.log('"' + text_to_encrypt + '"');
-logger.log('Generating Symmetric Key...');
+console.log("-------------------");
+console.log('Starting BetweenUs flow on text:');
+console.log('"' + text_to_encrypt + '"');
+console.log('Generating Symmetric Key...');
 var symmetric_key = BetweenUsModule.GenerateSymmetricKeyDictionary();
-logger.log('Done.');
-logger.log('Key: ' + symmetric_key);
+console.log('Done.');
+console.log('Key: ' + symmetric_key);
 
 //Client 1 encryptes [text_to_encrypt] with the symmetric key from above
-logger.log('Generating cipher text using previously generated symmetric key...');
+console.log('Generating cipher text using previously generated symmetric key...');
 var encrypted_buffer = BetweenUsModule.SymmetricEncrypt(text_to_encrypt, symmetric_key);
-logger.log('Encryption done.');
-logger.log('Cipher text: ' + encrypted_buffer.toString('hex'));
+console.log('Encryption done.');
+console.log('Cipher text: ' + encrypted_buffer.toString('hex'));
 //Client 1 gets client list to share the secret with. then encryptes each share with client's public key accordingly
 var clients_to_share_with = [client_1, client_2, client_3];
-logger.log('Using Shamir\'s Secret Sharing to split symmetric key into shares.');
+console.log('Using Shamir\'s Secret Sharing to split symmetric key into shares.');
 var shares = BetweenUsModule.MakeShares(symmetric_key, clients_to_share_with.length, 2, 0);
 
 
-logger.log('Done.');
-logger.log('Starting encryption with RSA');
+console.log('Done.');
+console.log('Starting encryption with RSA');
 var assigned_shares = [];
 for (var i in shares) {
-    logger.log('ID: ' + clients_to_share_with[i].id + ', Share: ' + shares[i]);
+    console.log('ID: ' + clients_to_share_with[i].id + ', Share: ' + shares[i]);
     var start = process.hrtime();
     assigned_shares.push({
         belong_to: clients_to_share_with[i].id,
         share: BetweenUsModule.AsymmetricEncrypt(shares[i], clients_to_share_with[i].assymetric_key.rsa_key)
     });
-    logger.log("Took %d seconds", (process.hrtime(start)[1]*1e-9).toFixed(5));
+    console.log("Took %d seconds", (process.hrtime(start)[1]*1e-9).toFixed(5));
 }
 //SKIPPED: Server gets all shares and assign it to the relevant oarticipant
 
 //each client reveals his share by decrypt with private key
-logger.log('Starting decryption client\'s shares');
+console.log('Starting decryption client\'s shares');
 for (var i in clients_to_share_with) {
     for (var j in assigned_shares) {
         if (assigned_shares[j].belong_to == clients_to_share_with[i].id) {
-            logger.log('ID: ' + clients_to_share_with[i].id + ', Encrypted Share: ' + assigned_shares[j].share);
+            console.log('ID: ' + clients_to_share_with[i].id + ', Encrypted Share: ' + assigned_shares[j].share);
             var start = process.hrtime();
             clients_to_share_with[i].owned_share = BetweenUsModule.AsymmetricDecrypt(assigned_shares[j].share, clients_to_share_with[i].assymetric_key.rsa_key);
-            logger.log("Took %d seconds", (process.hrtime(start)[1]*1e-9).toFixed(5));
+            console.log("Took %d seconds", (process.hrtime(start)[1]*1e-9).toFixed(5));
         }
     }
 }
 //Checking all clients has correct shares. if not prints client id
 for (var i in clients_to_share_with) {
     if (shares.indexOf(clients_to_share_with[i].owned_share) == -1) {
-        logger.log(clients_to_share_with[i].id);
+        console.log(clients_to_share_with[i].id);
     }
 }
 

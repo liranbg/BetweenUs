@@ -11,15 +11,7 @@
     "url": "git+https://github.com/liranbg/BetweenUs.git"
   },
   "dependencies": {
-    "body-parser": "^1.14.2",
-    "cloudant": "^1.4.0",
-    "dotenv": "^1.2.0",
-    "express": "4.13.3",
-    "express-session": "1.12.1",
-    "moment": "2.10.6",
-    "morgan": "^1.6.1",
-    "node-rsa": "0.2.26",
-    "winston": "2.1.1"
+    "node-rsa": "0.2.26"
   },
   "keywords": [
     "secret",
