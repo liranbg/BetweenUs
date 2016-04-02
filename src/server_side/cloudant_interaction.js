@@ -78,11 +78,11 @@ class ServerInteraction {
             }
         },
         notification_stash_db: {
-            transaction_status: {
+            share_request_status: {
                 map: function (doc) {
                     for (var i in doc.notification_list) {
                         emit([doc.notification_list[i].transaction_id, doc.notification_list[i].sender],
-                            doc.notification_list[i].status);
+                            { share_status: doc.notification_list[i].status, requested_from: doc.user_id });
                     }
                 }.toString()
             }
@@ -116,28 +116,17 @@ class ServerInteraction {
             notification_stash_db: {
                 api: {
                     name: '_design/api',
-                    get_status_by_transaction_and_requester: "api/transaction_status",
+                    get_share_status: "api/share_request_status",
                 }
             }
         };
         this._InitialDataBasesConnectionVariables();
         this._InitDataBases();
-        //this._TestFunctions();
+        this._TestFunctions();
     }
 
     _TestFunctions() {
-        this.GetShareStashDocByStashID("04b48a28c77b587c6e9f594d0a2dce58")
-        .then((stash_doc) => {
-             this.CommitShareToUser(stash_doc, "12345", "251535b0e57a94f4382d50a6ac9eff9d")
-            .then((data) => {
-                console.log(data);
-                console.log(data);
-            })
-        })
-        .catch((err) => {
-            console.log(err);
-            console.log(err);
-        })
+        this.GetShareStatus("b03fe9f22dcbf2a95bfcc304f32b2ca5","0e99b5cccd51354bb2b9024d17fd650c");
     }
 
     static get instance() {
@@ -663,7 +652,7 @@ class ServerInteraction {
                 .then((user_doc) => this.users_db.get(user_doc.id))
                 .then((user_doc) => {
                     user_doc_g = user_doc;
-                    this.CreateNotificationStash(user_doc.id)
+                    this.CreateNotificationStash(user_doc._id)
                     .then((notification_doc) => {
                         user_doc_g.notifications_stash.push(notification_doc.id);
                         this.users_db.put(user_doc_g)
@@ -686,7 +675,7 @@ class ServerInteraction {
                 last_updated: (new Date()).toISOString()
             },
             user_id: user_id,
-            notification_list: [ ]
+            notification_list: []
         };
         return new Promise((resolve, reject) => {
             this.notification_stash_db.post(notification_body)
@@ -1034,7 +1023,27 @@ class ServerInteraction {
         })
     };
 
-    GetShareStatus(transaction, list_of_ids) {
+    GetShareStatus(transaction_id, user_id) {
+        return new Promise((resolve, reject) => {
+            this.notification_stash_db.query(this._db_module_config.notification_stash_db.api.get_share_status, {
+                    key: [ transaction_id, user_id ],
+                })
+                .then((data) => {
+                    var share_status = []
+                    var status_array = data.rows;
+                    for (var i in status_array) {
+                        var user_data = { user_id: "", share_status: ""};
+                        user_data.share_status = status_array[i].value.share_status;
+                        user_data.user_id = status_array[i].value.requested_from;
+                        share_status.push(user_data);
+                    }
+                    resolve(share_status);
+                })
+                .catch((err) => {
+                    reject(data);
+                })
+        })
+
 
     }
 

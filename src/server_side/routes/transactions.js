@@ -42,7 +42,24 @@ router.get('/get_share_stash', function (req, res) {
             var transaction_id = req.query.transaction_id;
             database_interface.GetShareStash(user_id, transaction_id, true)
                 .then((result) => {
-                    res.status(200).json({success: true, transaction_data: result});
+                    /* Set default value for share = missing. if it's pending or committed we'll change it. */
+                    for (var i in result) {
+                        result[i].share_status = "missing";
+                        if (result[i].user_id == user_id) {
+                            result[i].share_status = "own_stash"
+                        }
+                    }
+                    database_interface.GetShareStatus( req.query.transaction_id, user_id)
+                    .then((data) => {
+                        for (var j in data) {
+                            for (var k in result) {
+                                if (data[j].user_id == result[k].user_id) {
+                                    result[k].share_status = data[j].share_status;
+                                }
+                            }
+                        }
+                        res.status(200).json({success: true, transaction_data: result});
+                    })
                 })
                 .catch((err) => {
                     console.log(err);
