@@ -1,5 +1,6 @@
-import React, {View, Text, StyleSheet, TouchableHighlight, ListView} from 'react-native'
+import React, {Alert, View, Text, StyleSheet,ScrollView, TouchableHighlight, ListView} from 'react-native'
 var ServerAPI = require('../api/server_interaction');
+var MemberSlider = require('../components/MembersSlider');
 var Button = require('react-native-button');
 var betweenUs = require('../api/betweenus');
 
@@ -89,11 +90,10 @@ var Transaction = React.createClass({
                     console.warn(decrypted_buffer);
                 })
                 .catch((err)=> {console.warn(err)});
-        }
+        },
+
     },
     getInitialState() {
-        var members_ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1.user_id !== r2.user_id});
-        var shares_ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1.user_id !== r2.user_id});
         return( {
             transaction: {
                 id: "",
@@ -107,33 +107,43 @@ var Transaction = React.createClass({
                     id:"",
                     name:""
                 },
-                members_list: members_ds.cloneWithRows([]),
+                members_list: [],
                 my_stash_id: "",
-                transaction_shares_data: shares_ds.cloneWithRows([]),
+                transaction_shares_data: [{email:"alice",share:true},{email:"bob",share:false}],
                 can_decrypt: false
             },
             user_info: this.props.user_info,
             // transaction_shares_data: members_ds.cloneWithRows([])
         })
     },
-    componentDidMount: function() {
+    componentDidMount() {
         if (this.props.data !== undefined)
         {
             this.setState({
                 transaction_name: this.props.data.transaction_name,
                 transaction_id: this.props.data.transaction_id
             });
-            //this.fetchTransactionData(); //TODO unmark when finish with transaction page
+            this.fetchTransactionData();
         }
+    },
+    request_share(from_user_id) {
+        var transaction_id = this.props.data.transaction_id;
+
+        ServerAPI.requestShareFrom(transaction_id, from_user_id)
+            .then((data) => {
+                //change status for requester to pending
+
+            })
+            .catch((error)=> {
+                Alert.alert('ERROR', error.error, [{text: 'OK' ,  style: 'ok'}]);
+            })
     },
     fetchTransactionData() {
         Promise.all([
             ServerAPI.fetchTransactionData(this.props.data.transaction_id),
             ServerAPI.fetchTransactionSharesData(this.props.data.transaction_id)
         ]).then((all)=> {
-            var members_ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1.user_id !== r2.user_id});
-            var shares_ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1.user_id !== r2.user_id});
-            var data = all[0].transaction_data;
+            var data = all[0].transaction;
             this.setState({
                 transaction: {
                     id: data.id,
@@ -147,26 +157,43 @@ var Transaction = React.createClass({
                         id:data.group_id,
                         name:data.my_stash
                     },
-                    members_list: members_ds.cloneWithRows(data.members_list),
+                    data: {
+                        type:data.cipher_meta_data.type,
+                        content:data.cipher_meta_data.data
+                    },
+                    members_list: data.members_list,
                     my_stash_id: "",
-                    can_decrypt: all[1].transaction_data.length >= data.threshold,
-                    transaction_shares_data: shares_ds.cloneWithRows(all[1].transaction_data)
+                    can_decrypt: all[1].transaction.length >= data.threshold,
+                    transaction_shares_data: all[1].transaction
                 }
 
             });
-
-
         }).catch((error) => {
             console.warn(error);
         });
     },
-    PaintMembers(rowData) {
-        return (
-            <View style={{flexDirection: 'row'}}>
-                <Text style={{flex:0.2, fontWeight:'bold', marginRight: 5}}>{rowData.email}</Text>
-                <Text style={{flex:0.7, fontWeight:'bold', marginRight: 5}}>{rowData.share?'Exists':'Missing'}</Text>
-            </View>
-        );
+    showFile(){
+        var shares_to_decrypt = [];
+        var index = 0;
+        while ((shares_to_decrypt.length < this.state.transaction.threshold) && (index < this.state.transaction.transaction_shares_data.length)) {
+            if (this.state.transaction.transaction_shares_data[index].share) {
+                shares_to_decrypt.push(this.state.transaction.transaction_shares_data[index].share);
+            }
+            index+=1;
+        }
+        if (shares_to_decrypt.length >= this.state.transaction.threshold) {
+            var from_shares_symmetric_key_dictionary = betweenUs.CombineShares(shares_to_decrypt);
+            var decrypted_buffer = betweenUs.SymmetricDecrypt(this.state.transaction.data.content, from_shares_symmetric_key_dictionary);
+            Alert.alert(
+                'Response',
+                decrypted_buffer,
+                [
+                    // {text: 'Ask me later', onPress: () => console.warn('Ask me later pressed')},
+                    // {text: 'Cancel', onPress: () => console.warn('Cancel Pressed'), style: 'cancel'},
+                    {text: 'OK' ,  style: 'ok'}
+                ]
+            );
+        }
     },
     render(){
         return (
@@ -176,38 +203,26 @@ var Transaction = React.createClass({
                 {(
                     () => {
                         if (this.state.transaction.can_decrypt) {
-                            return <Text style={styles.sub_header}>Open File</Text>
+
+                            return <Button onPress={this.showFile}><Text style={styles.sub_header}>Open File</Text></Button>
                         }
                     }
                 )()}
-                {(
-                    () => {
-                        if (this.state.transaction.members_list.length > 0) {
-                            return
+                <MemberSlider data={{members_list:this.state.transaction.transaction_shares_data, request_share: this.request_share}}/>
 
-
-                        }
-                    }
-                )()}
-
-                <ListView
-                    dataSource={this.state.transaction.transaction_shares_data}
-                    renderRow={this.PaintMembers}
-                />
                 <View style={{marginBottom:20}}/>
                 <Button onPress={this.fetchTransactionData}>Get Data</Button>
             </View>
         );
     }
 });
-
-
 var styles = StyleSheet.create({
     header: {textAlign:'center', fontWeight:'bold', margin: 5, fontSize: 20},
     sub_header: {textAlign:'center', fontWeight:'bold', margin: 0, fontSize: 18},
+    member_row:{flexDirection: 'row', height:40},
     container: {
         flex: 1
     }
 });
-//Transaction.betweenus();
+// Transaction.betweenus();
 module.exports = Transaction;

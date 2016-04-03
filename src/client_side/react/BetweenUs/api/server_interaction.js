@@ -88,5 +88,31 @@ class BetweenUsServer {
                 .catch((error) => {reject(error); });
             });
     }
+    static requestShareFrom(transaction_id, from_user_id) {
+        return new Promise(function(resolve, reject)
+        {
+            fetch(GLOBAL.DB_SERVER + "/transactions/request_share?transaction_id=" + transaction_id + "&share_owner=" + from_user_id,
+                {
+                    method: 'GET',
+                    headers:
+                    {
+                        'Accept': 'application/json'
+                    }
+                })
+                .then((response) => response.json())
+                .then((response_json) => {
+                    if (!response_json.success){
+                        reject(response_json);
+                    }
+                    else {
+                        resolve(response_json)
+                    }
+
+                })
+                .catch((error) => {
+                    console.warn("123")
+                    reject(error); });
+        });
+    }
 }
 module.exports = BetweenUsServer;

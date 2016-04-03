@@ -13,8 +13,7 @@ var Error = React.createClass({
     getInitialState: function() {
         return {
             offset: new Animated.Value(-deviceHeight),
-            email: 'alice',
-            password: '1'
+
         };
     },
     componentDidMount() {

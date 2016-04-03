@@ -4,12 +4,13 @@ var AllGroupsScene = require('../pages/groups');
 var GroupScene = require("../pages/group");
 var TransactionScene = require("../pages/transaction");
 //var GroupScene = require('../pages/group');
-import React, {    BackAndroid,Navigator, StyleSheet, ScrollView, Text, TouchableHighlight, View} from 'react-native';
+import React, {BackAndroid,Navigator, StyleSheet, ScrollView, Text, TouchableHighlight, View, Dimensions} from 'react-native';
 
+var {height, width} = Dimensions.get('window');
 
 var INITIAL_ROUTES = [
-    {id: 'transaction'},
     {id: 'groups'},
+    {id: 'transaction'},
     {id: 'group'},
     {id: 'a'}
 
@@ -19,19 +20,17 @@ var JumpingNavBar = React.createClass({
     render() {
         return (
             <View style={styles.tabs}>
-                <Icon style={{flex:0.3, borderColor:'black'}} size={36} name="ios-people" color="#4F8EF7"  onPress={()=>{
+                <Icon style={{ borderColor:'black'}} size={36} name="ios-people" color="#4F8EF7"  onPress={()=>{
                 this.props.navigator.jumpTo(INITIAL_ROUTES[0]);
                 }}/>
-                <View/>
-                <Icon style={{flex:0.3}}  size={36} name="settings" color="#4F8EF7" onPress={()=>{
+                <View style={styles.tabs_separator}/>
+                <Icon style={{}}  size={36} name="settings" color="#4F8EF7" onPress={()=>{
                 this.props.navigator.jumpTo(INITIAL_ROUTES[1]);
                 }}/>
-                <View/>
-                <Icon style={{flex:0.3}}  size={36} name="ios-compose" color="#4F8EF7"  onPress={()=>{
+                <View style={styles.tabs_separator}/>
+                <Icon style={{}}  size={36} name="ios-compose" color="#4F8EF7"  onPress={()=>{
                 this.props.navigator.jumpTo(INITIAL_ROUTES[2]);
                 }}/>
-                <View/>
-
             </View>
         );
     }
@@ -138,6 +137,10 @@ var styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center'
+    },
+    tabs_separator: {
+        marginRight:width/10,
+        marginLeft:width/10
     }
 });
 

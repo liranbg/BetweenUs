@@ -21,8 +21,7 @@ var Groups = React.createClass({
         })
     },
     componentDidMount: function() {
-        this.props.navigator.push({id:"group", data:{group_id:"e6d4824ba908e09959e5ac63289e800d", group_name:"ProtoType Group"}});
-        //this.fetchGroupData();
+        this.fetchGroupData();
     },
     fetchGroupData: function() {
         ServerAPI.GetGroups()
@@ -31,8 +30,6 @@ var Groups = React.createClass({
                 this.setState({dataSource: ds.cloneWithRows(ResponseJSON.groups)});
             }).catch((error) => {
         });
-        //TODO auto clicker
-
     },
     AddGroupRow(rowData) {
         //<Text style={{flex:0.6, fontWeight:'bold', marginRight: 5}}>{rowData.group_id}</Text>
@@ -79,7 +76,7 @@ var Groups = React.createClass({
 var styles = StyleSheet.create({
     container: {
         backgroundColor: 'white'
-    },
+    }
 });
 
 module.exports = Groups;
