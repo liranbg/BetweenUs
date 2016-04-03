@@ -2,7 +2,7 @@ var ValidationUtilModule = (function() {
 
     var ValidatePassword = function(password) {
         /* Longer than 6 chars */
-        return (password && (password.length >= 6));
+        return (password && (password.length >= 1));
     };
 
     var ValidateUsername = function(username) {
