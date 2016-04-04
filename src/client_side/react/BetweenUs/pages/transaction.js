@@ -109,21 +109,16 @@ var Transaction = React.createClass({
                 },
                 members_list: [],
                 my_stash_id: "",
-                transaction_shares_data: [{email:"alice",share:true},{email:"bob",share:false}],
+                transaction_shares_data: [],
                 can_decrypt: false
             },
             user_info: this.props.user_info,
-            // transaction_shares_data: members_ds.cloneWithRows([])
         })
     },
     componentDidMount() {
         if (this.props.data !== undefined)
         {
-            this.setState({
-                transaction_name: this.props.data.transaction_name,
-                transaction_id: this.props.data.transaction_id
-            });
-            this.fetchTransactionData();
+            this.setState(this.props.data);
         }
     },
     request_share(from_user_id) {
@@ -140,35 +135,45 @@ var Transaction = React.createClass({
     },
     fetchTransactionData() {
         Promise.all([
-            ServerAPI.fetchTransactionData(this.props.data.transaction_id),
-            ServerAPI.fetchTransactionSharesData(this.props.data.transaction_id)
-        ]).then((all)=> {
-            var data = all[0].transaction;
-            this.setState({
-                transaction: {
-                    id: data.id,
-                    name: data.transaction_name,
-                    threshold: data.threshold,
-                    initiator: {
-                        id: data.initiator.initiator_id,
-                        email: data.initiator.initiator_email
-                    },
-                    group: {
-                        id:data.group_id,
-                        name:data.my_stash
-                    },
-                    data: {
-                        type:data.cipher_meta_data.type,
-                        content:data.cipher_meta_data.data
-                    },
-                    members_list: data.members_list,
-                    my_stash_id: "",
-                    can_decrypt: all[1].transaction.length >= data.threshold,
-                    transaction_shares_data: all[1].transaction
+                ServerAPI.fetchTransactionData(this.props.data.transaction_id),
+                ServerAPI.fetchTransactionSharesData(this.props.data.transaction_id)
+            ])
+            .then((all)=> {
+                var data = all[0].transaction;
+                var member_list = [];
+                var count_for_threshold = 0;
+                for (var i = 0; i < all[1].transaction_data.length; ++i) {
+                    if (all[1].transaction_data[i].user_id != this.state.user_info.user_id) {
+                        if (all[1].transaction_data[i].share_status == "own_stash")
+                            count_for_threshold++;
+                        member_list.push(all[1].transaction_data[i]);
+                    }
                 }
+                this.setState({
+                    transaction: {
+                        id: data.id,
+                        name: data.transaction_name,
+                        threshold: data.threshold,
+                        initiator: {
+                            id: data.initiator.initiator_id,
+                            email: data.initiator.initiator_email
+                        },
+                        group: {
+                            id:data.group_id,
+                            name:data.my_stash
+                        },
+                        data: {
+                            type:data.cipher_meta_data.type,
+                            content:data.cipher_meta_data.data
+                        },
+                        members_list: data.members_list,
+                        my_stash_id: "",
+                        can_decrypt: count_for_threshold >= data.threshold,
+                        transaction_shares_data: member_list
+                    }
 
-            });
-        }).catch((error) => {
+                });
+            }).catch((error) => {
             console.warn(error);
         });
     },

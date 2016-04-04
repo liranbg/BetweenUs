@@ -20,34 +20,59 @@ var MemberSlider = React.createClass({
             values: nextProps.data.members_list
         });
     },
-    _buttonRequestShare: function(requester) {
+    _buttonRequestShare: function(member) {
+        var request_status = "";
+        var request_status_color = "";
+        if (member.share_status == "missing")
+        {
+            request_status = "Request";
+            request_status_color = "#2980B9";
+        }
+
+        else if (member.share_status == "pending")
+        {
+            request_status = "Requested";
+            request_status_color = "#6D6875";
+        }
+        else
+        {
+            return {}
+        }
+
         return {
             // text: 'request',
             backgroundColor: '',
             component: (
                 <View style={styles.scrollButton}>
-                    <Icon style={{borderColor:'black'}} size={28} name="pull-request" color="#2980B9"/>
-                    <Text style={{fontSize: 10}}>Request</Text>
+                    <Icon style={{borderColor:'black'}} size={28} name="pull-request" color={request_status_color}/>
+                    <Text style={{fontSize: 10}}>{request_status}</Text>
                 </View>
             ),
             onPress: ()=>{
-                this.props.data.request_share(requester);
+                if (request_status == "Request") {
+                    this.props.data.request_share(member.user_id);
+                }
+
             }
         }
     },
     _renderRow: function(value, index) {
         var icon_name, icon_color;
-        if (value.share) {
+        if (value.share_status == "own_stash") {
             icon_color= '#2ECC71';
             icon_name="android-checkmark-circle";
         }
-        else {
+        else if (value.share_status == "missing") {
             icon_color= '#E74C3C';
+            icon_name="minus-circled"
+        }
+        else { //pending
+            icon_color= '#FFB4A2';
             icon_name="minus-circled"
         }
         return (
             <View style={styles.row} key={index}>
-                <Swipeout autoClose={true} right={[this._buttonRequestShare(value.user_id)]} backgroundColor={'#EAEAEA'}>
+                <Swipeout autoClose={true} right={[this._buttonRequestShare(value)]} backgroundColor={'#EAEAEA'}>
                     <View style={{flexDirection: 'row',alignItems: 'center'}}>
                         <View style={styles.shareExistsIcon}>
                             <Icon size={28} name={icon_name} color={icon_color}/>

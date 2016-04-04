@@ -25,14 +25,15 @@ var LogIn = React.createClass({
     },
     clickToLogIn: function() {
         this.setState({ loginState: 'busy' });
-        ServerAPI.Login(this.state.email,this.state.password).then((ResponseJSON) => {
-            this.setState({
-                loginState: 'success',
-                groups:ResponseJSON.data.groups,
-                user_id:ResponseJSON.data._id
+        ServerAPI.Login(this.state.email,this.state.password)
+            .then((response) => {
+                this.setState({
+                    loginState: 'success',
+                    groups:response.data.groups,
+                    user_id:response.data._id
+                });
+                this.props.navigator.push({id: 'logged_in', data:{groups:response.data.groups,user_id:response.data._id}});
             });
-            this.props.navigator.push({id: 'logged_in'});
-        });
     },
     render(){
         return (

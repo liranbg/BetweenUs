@@ -1,56 +1,87 @@
-import React, {View, Text, StyleSheet, TouchableHighlight, ListView} from 'react-native'
+import React, {View, Text, StyleSheet, TouchableHighlight} from 'react-native'
 var ServerAPI = require('../api/server_interaction');
+var TransactionsSlider = require('../components/TransactionsSlider');
+var CreateTransactionButton = require('../components/CreateTransactionButton');
 var MK = require('react-native-material-kit');
 const { MKButton } = MK;
 
 var Groups = React.createClass({
 
     getInitialState() {
-        var members_ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1.user_id !== r2.user_id});
-        var transactions_ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1.transaction_id !== r2.transaction_id});
-        var member_list = [
-            {
-                user_id:"",
-                email:""
-            }
-        ];
-        var transaction_list = [
-
-        ];
         return( {
             group_name: "",
             group_id: "",
             user_info: this.props.user_info,
-            members_list: members_ds.cloneWithRows(member_list),
-            transactions_list: transactions_ds.cloneWithRows(transaction_list)
+            members_list: [],
+            transaction_list: []
         })
     },
     componentDidMount: function() {
-        if (this.props.data !== undefined)
-        {
+        if (this.props.data !== undefined) {
+            console.warn(JSON.stringify(this.props.data));
             this.setState(this.props.data);
-            this.props.navigator.push({id:"transaction", data:{
-                transaction_id: "549b28dde0a96df05e8d1426ad6e6aed",
-                transaction_name: "Prototype Transaction"
-            }});
-            //this.fetchGroupData();
         }
     },
     fetchGroupData() {
-        ServerAPI.FetchGroupData(this.props.data.group_id)
+        ServerAPI.FetchGroupData(this.props.data.group.group_id)
             .then((ResponseJSON) => {
-                var members_ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1.user_id !== r2.user_id});
-                var transactions_ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1.transaction_id !== r2.transaction_id});
                 var list_of_participants = ResponseJSON.data.member_list;
                 var creator = ResponseJSON.data.creator;
                 creator.is_creator = true;
                 list_of_participants.unshift(creator);
                 this.setState(
                     {
-                        members_list: members_ds.cloneWithRows(list_of_participants),
-                        transactions_list: transactions_ds.cloneWithRows(ResponseJSON.data.transaction_list)
+                        members_list: list_of_participants,
+                        transaction_list: ResponseJSON.data.transaction_list
                     });
             }).catch((error) => {console.warn(error);});
+    },
+    fetchTransactionThenShow(transaction_id) {
+        Promise.all([
+                ServerAPI.fetchTransactionData(transaction_id),
+                ServerAPI.fetchTransactionSharesData(transaction_id)
+            ])
+            .then((all)=> {
+                var data = all[0].transaction;
+                var member_list = [];
+                var count_for_threshold = 0;
+                for (var i = 0; i < all[1].transaction_data.length; ++i) {
+                    if (all[1].transaction_data[i].user_id != this.state.user_info.user_id) {
+                        if (all[1].transaction_data[i].share_status == "own_stash")
+                            count_for_threshold++;
+                        member_list.push(all[1].transaction_data[i]);
+                    }
+                }
+                return {
+                    transaction: {
+                        id: data.id,
+                        name: data.transaction_name,
+                        threshold: data.threshold,
+                        initiator: {
+                            id: data.initiator.initiator_id,
+                            email: data.initiator.initiator_email
+                        },
+                        group: {
+                            id:data.group_id,
+                            name:data.my_stash
+                        },
+                        data: {
+                            type:data.cipher_meta_data.type,
+                            content:data.cipher_meta_data.data
+                        },
+                        members_list: data.members_list,
+                        my_stash_id: "",
+                        can_decrypt: count_for_threshold >= data.threshold,
+                        transaction_shares_data: member_list
+                    }
+
+                }})
+            .then((data)=> {
+                this.props.navigator.push({id:"transaction", data:data});
+            })
+            .catch((error) => {
+                console.warn(error);
+            });
     },
     PaintMembers(rowData) {
         return (
@@ -82,26 +113,9 @@ var Groups = React.createClass({
     render(){
         return (
             <View style={styles.container}>
-                <Text style={{justifyContent: 'center', flex:1, textAlign:'center', fontWeight:'bold', margin: 10, fontSize: 24}}>Group {this.state.group_name}</Text>
-                <Text>Member List</Text>
-                <View style={{flexDirection: 'row'}}>
-                    <Text style={{flex:0.2, fontWeight:'bold', marginRight: 5, fontSize: 12}}>Email</Text>
-                    <Text style={{flex:0.8, fontWeight:'bold', marginRight: 5, fontSize: 12}}>User ID</Text>
-                </View>
-                <ListView
-                    dataSource={this.state.members_list}
-                    renderRow={this.PaintMembers}
-                />
-                <View style={{marginBottom:20}}/>
-                <Text>Transactions List</Text>
-                <View style={{flexDirection: 'row'}}>
-                    <Text style={{flex:0.2, fontWeight:'bold', marginRight: 5, fontSize: 12}}>Name</Text>
-                    <Text style={{flex:0.8, fontWeight:'bold', marginRight: 5, fontSize: 12}}>Transaction ID</Text>
-                </View>
-                <ListView
-                    dataSource={this.state.transactions_list}
-                    renderRow={this.PaintTransactions}
-                />
+                <Text style={{justifyContent: 'center', textAlign:'center', fontWeight:'bold', margin: 10, fontSize: 24}}>Group {this.state.group_name}</Text>
+                <Text>Transactions</Text>
+                <TransactionsSlider data={{transaction_list:this.state.transaction_list, fetchTransactionThenShow:this.fetchTransactionThenShow}}/>
                 <MKButton
                     shadowRadius={2}
                     shadowOffset={{width:0, height:2}}
@@ -113,6 +127,7 @@ var Groups = React.createClass({
                         Fetch Data
                     </Text>
                 </MKButton>
+                <View style={{flex:1, alignSelf:'stretch'}}><CreateTransactionButton/></View>
             </View>
         );
     }

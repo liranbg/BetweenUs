@@ -6,7 +6,8 @@ var RegisterScene = require('./pages/register');
 var JumpingNav = require('./components/JumpingNav');
 import React, {
     AppRegistry,
-    Navigator
+    Navigator,
+    StyleSheet
 } from 'react-native'
 
 
@@ -18,7 +19,7 @@ var BetweenUs = React.createClass({
             case 'register':
                 return <RegisterScene navigator={nav} />;
             case 'logged_in':
-                return <JumpingNav navigator={nav} />;
+                return <JumpingNav navigator={nav} user_info={route.data}/>;
             default:
                 return (
                     <JumpingNav navigator={nav}/>
@@ -28,12 +29,19 @@ var BetweenUs = React.createClass({
     render() {
         return (
             <Navigator
+                style={styles.scene}
                 initialRoute={{ id: 'login' }}
                 renderScene={this.renderScene}
             />
         )}
 
 });
+var styles = StyleSheet.create({
+    scene: {
+        flex: 1,
+        backgroundColor: 'white'
 
+    }
+});
 
 AppRegistry.registerComponent('BetweenUs', () => BetweenUs);

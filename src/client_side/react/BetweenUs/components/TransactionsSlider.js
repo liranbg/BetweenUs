@@ -2,7 +2,6 @@ var React = require('react-native');
 var Swipeout = require('react-native-swipeout');
 var Icon = require('react-native-vector-icons/Ionicons');
 var {
-    Alert,
     TouchableOpacity,
     StyleSheet,
     ScrollView,
@@ -10,46 +9,44 @@ var {
     Text,
 } = React;
 
-var GroupsSlider = React.createClass({
+var TransactionsSlider = React.createClass({
     getInitialState: function() {
         return {
-            groups: this.props.data.groups
+            values: this.props.data.transaction_list
         };
     },
     componentWillReceiveProps: function(nextProps) {
         this.setState({
-            groups: nextProps.data.groups
+            values: nextProps.data.transaction_list
         });
     },
-    _buttonsGroups: function() {
-        return [{
+    _buttonTransaction: function() {
+        return {
             backgroundColor: '',
             component: (
                 <View style={styles.scrollButton}>
-                    <Icon style={{borderColor:'black'}} size={28} name="information" color="#2980B9"/>
-                    <Text style={{fontSize: 10}}>Members</Text>
+                    <Icon style={{borderColor:'black'}} size={28} name="pull-request" color="#2980B9"/>
+                    <Text style={{fontSize: 10}}>Settings</Text>
                 </View>
             ),
             onPress: null
-        }]
+        }
     },
     _renderRow: function(value, index) {
         return (
             <View style={styles.row} key={index}>
-                <Swipeout autoClose={true} right={this._buttonsGroups()} backgroundColor={'#EAEAEA'}>
-                    <TouchableOpacity onPress={()=>this.props.data.fetchGroupThenShow(value._id)}>
+                <Swipeout autoClose={true} right={[this._buttonTransaction()]} backgroundColor={'#EAEAEA'}>
+                    <TouchableOpacity onPress={()=>this.props.data.fetchTransactionThenShow(value.transaction_id)}>
                         <View style={{flexDirection: 'row',alignItems: 'center'}}>
                             <View style={styles.shareExistsIcon}>
-                                <Icon size={28} name="ios-people" color="#247BA0"/>
+                                <Icon size={28} name='social-freebsd-devil' color='#2980B9'/>
                             </View>
                             <View style={{flexDirection: 'column'}}>
                                 <View>
-                                    <Text style={{fontSize: 20}}>{value.group_name}</Text>
+                                    <Text style={{fontSize: 20}}>{value.transaction_name}</Text>
                                 </View>
                                 <View style={{flexDirection: 'row'}}>
-                                    <Text style={{fontSize: 11}}>Members: {value.member_list.length},</Text>
-                                    <View style={{marginRight: 3}}/>
-                                    <Text style={{fontSize: 11}}>Transactions: {value.transaction_list.length},</Text>
+                                    <Text style={{fontSize: 11}}>Threshold: {value.threshold} ,</Text>
                                     <View style={{marginRight: 3}}/>
                                     <Text style={{fontSize: 11}}>Last updated: 1/1/2007</Text>
                                 </View>
@@ -64,7 +61,7 @@ var GroupsSlider = React.createClass({
         return (
             <View style={styles.container}>
                 <ScrollView style={styles.outerScroll}>
-                    {this.state.groups.map(this._renderRow, this)}
+                    {this.state.values.map(this._renderRow, this)}
                 </ScrollView>
             </View>
         );
@@ -96,8 +93,7 @@ var styles = StyleSheet.create({
     },
     shareExistsIcon: {
         height: 45,
-        marginRight:5,
-        marginLeft:5,
+        marginRight:10,
         backgroundColor: '#EAEAEA',
         flexDirection: 'row',
         alignItems: 'center',
@@ -105,4 +101,4 @@ var styles = StyleSheet.create({
     }
 });
 
-module.exports = GroupsSlider;
+module.exports = TransactionsSlider;
