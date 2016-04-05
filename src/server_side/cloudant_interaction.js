@@ -377,9 +377,9 @@ class ServerInteraction {
                     for (var i in transaction_data) {
                         group_data.transaction_list.push({
                             transaction_id: transaction_data[i].id,
-                            transaction_name: transaction_data[i].value.transaction_name,
-                            transaction_creator: transaction_data[i].value.initiator,
-                            threshold: transaction_data[i].value.threshold
+                            transaction_name: transaction_data[i].doc.transaction_name,
+                            transaction_creator: transaction_data[i].doc.initiator,
+                            threshold: transaction_data[i].doc.threshold
                         })
                     }
                     resolve(group_data);
