@@ -13,6 +13,7 @@
     "react-native-action-button": "^1.1.3",
     "react-native-button": "^1.4.2",
     "react-native-material-kit": "^0.3.0",
+    "react-native-modalbox": "^1.3.2",
     "react-native-randombytes": "^2.0.0",
     "react-native-swipeout": "^2.0.12",
     "react-native-vector-icons": "^1.3.2"

@@ -22,17 +22,9 @@ var Groups = React.createClass({
         }
     },
     fetchGroupData() {
-        ServerAPI.FetchGroupData(this.props.data.group_id)
-            .then((ResponseJSON) => {
-                var list_of_participants = ResponseJSON.data.member_list;
-                var creator = ResponseJSON.data.creator;
-                creator.is_creator = true;
-                list_of_participants.unshift(creator);
-                this.setState(
-                    {
-                        member_list: list_of_participants,
-                        transaction_list: ResponseJSON.data.transaction_list
-                    });
+        ServerAPI.FetchGroupData(this.state.group_id)
+            .then((response) => {
+                this.setState(response);
             }).catch((error) => {console.warn(error);});
     },
     fetchTransactionThenShow(transaction_id) {

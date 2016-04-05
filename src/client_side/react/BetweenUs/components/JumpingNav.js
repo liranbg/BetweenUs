@@ -3,6 +3,7 @@ var Icon = require('react-native-vector-icons/Ionicons');
 var AllGroupsScene = require('../pages/groups');
 var GroupScene = require("../pages/group");
 var TransactionScene = require("../pages/transaction");
+var GroupCreation = require("../pages/create_group");
 //var GroupScene = require('../pages/group');
 import React, {
     BackAndroid,
@@ -22,7 +23,8 @@ var INITIAL_ROUTES = [
     {id: 'groups'},
     {id: 'transaction'},
     {id: 'group'},
-    {id: 'notification'}
+    {id: 'notification'},
+    {id: 'create_group'}
 ];
 
 var JumpingNavBar = React.createClass({
@@ -66,7 +68,8 @@ var JumpingNavBar = React.createClass({
 
 var JumpingNav = React.createClass({
     getInitialState() {
-        return ({});
+        return ({
+        });
     },
     componentDidMount(){
         this.setState(this.props.user_info);
@@ -89,6 +92,9 @@ var JumpingNav = React.createClass({
                 break;
             case 'transaction':
                 response = (<TransactionScene data={route.data} user_info={this.props.user_info} navigator={nav}/>);
+                break;
+            case 'create_group':
+                response = (<GroupCreation data={route.data} user_info={this.props.user_info} navigator={nav}/>);
                 break;
             default:
                 response = (<Text>Default</Text>);
@@ -116,11 +122,7 @@ var JumpingNav = React.createClass({
                     }
                     return Navigator.SceneConfigs.FloatFromRight;
                 }}
-                navigationBar={<JumpingNavBar
-                 onTabIndex={(index) => {
-                  this._navigator.jumpTo(ROUTE_STACK[index]);
-                }}
-                routeStack={INITIAL_ROUTES} />}
+                navigationBar={<JumpingNavBar routeStack={INITIAL_ROUTES}/>}
             />
 
         );

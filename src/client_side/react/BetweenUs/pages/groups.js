@@ -1,4 +1,5 @@
 import React, {Dimensions, View, Text, StyleSheet, TouchableHighlight, ListView} from "react-native";
+var Modal   = require('react-native-modalbox');
 var ServerAPI = require('../api/server_interaction');
 var CreateButton = require('../components/CreateButton');
 var MK = require('react-native-material-kit');
@@ -12,6 +13,11 @@ var {height, width} = Dimensions.get('window');
 var Groups = React.createClass({
     getInitialState() {
         return ( {
+            member_list_modal: {
+                isOpen: false,
+                members: [],
+                index: -1
+            },
             user_info: this.props.user_info,
             groups: []
         })
@@ -27,37 +33,43 @@ var Groups = React.createClass({
         });
     },
     fetchGroupThenShow: function(group_id) {
-        
-        ServerAPI.FetchGroupData(group_id)
-            .then((ResponseJSON) => {
-                var creator = ResponseJSON.data.creator;
-                creator.is_creator = true;
-                ResponseJSON.data.member_list.unshift(creator);
-                ResponseJSON.data.group_id=ResponseJSON.data.id;
-                delete ResponseJSON.data.id;
-                this.props.navigator.push({id:"group", data:ResponseJSON.data});
-            }).catch((error) => {console.warn(error);});
+        ServerAPI.FetchGroupData(group_id).then((response)=>{
+            this.props.navigator.push({id:"group", data:response});
+        }).catch((error) => {console.warn(error);});
     },
-    AddGroupRow(rowData) {
-        var data = {group_id:rowData._id, group_name:rowData.group_name};
-        return (
-            <View style={{flexDirection: 'row', borderBottomWidth: 0.5, borderBottomColor:'#AFBDC4', marginBottom: 10}}>
-                <MKButton
-                    shadowRadius={2}
-                    shadowOffset={{width:0, height:2}}
-                    shadowOpacity={.7}
-                    shadowColor="black"
-                    onPress={()=>this.fetchGroupDataAndShow(data)}>
-                    <Text style={{flex:1, fontWeight:'bold', marginRight: 5, fontSize:24}}>{rowData.group_name} </Text>
-                </MKButton>
-            </View>
-        );
+    showMemberListModal(group_id) {
+        ServerAPI.FetchGroupData(group_id)
+            .then((response)=>{
+                this.setState({member_list_modal:{isOpen:true,index:group_id,members:response.member_list}});
+                this.refs.member_list_modal.open();
+            });
+    },
+    closeMemberListModal() {
+        this.setState({member_list_modal: {isOpen:!this.state.member_list_modal.isOpen, index:-1, members:[]}});
     },
     render(){
         return (
             <View style={styles.container}>
                 <Text style={{justifyContent: 'center',  textAlign:'center', fontWeight:'bold', margin: 10, fontSize: 36}}>My Groups</Text>
-                <GroupsSlider data={{groups:this.state.groups,fetchGroupThenShow:this.fetchGroupThenShow}}/>
+                <GroupsSlider data={{groups:this.state.groups,fetchGroupThenShow:this.fetchGroupThenShow}} btnCMD={[this.showMemberListModal]}/>
+                <Modal backdrop={true} style={styles.member_list_modal} position={"center"} ref={"member_list_modal"} isOpen={this.state.member_list_modal.isOpen}>
+                    {
+                        this.state.member_list_modal.members.map(index => {
+                            return <Text key={index.email}>{index.email}</Text>
+                        })
+                    }
+                    <MKButton
+                        shadowRadius={2}
+                        shadowOffset={{width:0, height:2}}
+                        shadowOpacity={.7}
+                        shadowColor="black"
+                        onPress={()=>this.closeMemberListModal()}>
+                        <Text pointerEvents="none"
+                              style={{color: '#0079FE', fontWeight: 'bold'}}>
+                            Close ({this.state.member_list_modal.isOpen ? "true" : "false"})
+                        </Text>
+                    </MKButton>
+                </Modal>
                 <View style={{alignItems:'center'}}>
                     <MKButton
                         shadowRadius={2}
@@ -71,7 +83,9 @@ var Groups = React.createClass({
                         </Text>
                     </MKButton>
                 </View>
-                <CreateButton title="Create Group" onPress={()=>{console.warn("create group");}}/>
+                <CreateButton title="Create Group" onPress={()=>{
+                this.props.navigator.push({id:"create_group", data:{}})
+                }}/>
             </View>
         );
     }
@@ -81,7 +95,14 @@ var styles = StyleSheet.create({
     container: {
         flex: 1,
         // flexDirection:'column',
-    }
+    },
+    member_list_modal: {
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: 300,
+        width: 300
+    },
+
 });
 
 module.exports = Groups;

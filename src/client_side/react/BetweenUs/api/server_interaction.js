@@ -53,7 +53,13 @@ class BetweenUsServer {
                     }
                 })
                 .then((response) => response.json())
-                .then((responseJSON)=>{resolve(responseJSON)})
+                .then((responseJSON)=>{
+                    var creator = responseJSON.data.creator;
+                    creator.is_creator = true;
+                    responseJSON.data.member_list.unshift(creator);
+                    responseJSON.data.group_id=responseJSON.data.id;
+                    delete responseJSON.data.id;
+                    resolve(responseJSON.data)})
                 .catch((err)=>{reject(err)});
 
         });

@@ -13,15 +13,17 @@ var {
 var GroupsSlider = React.createClass({
     getInitialState: function() {
         return {
-            groups: this.props.data.groups
+            groups: this.props.data.groups,
+            btnCMD: []
         };
     },
     componentWillReceiveProps: function(nextProps) {
         this.setState({
-            groups: nextProps.data.groups
+            groups: nextProps.data.groups,
+            btnCMD: nextProps.btnCMD
         });
     },
-    _buttonsGroups: function() {
+    _buttonsGroups: function(index) {
         return [{
             backgroundColor: '',
             component: (
@@ -30,13 +32,18 @@ var GroupsSlider = React.createClass({
                     <Text style={{fontSize: 10}}>Members</Text>
                 </View>
             ),
-            onPress: null
+            onPress: ()=>{
+                // console.warn(typeof );
+                if (this.state.btnCMD.length) {
+                    this.state.btnCMD[0](index); //show member list. first in list
+                }
+            }
         }]
     },
     _renderRow: function(value, index) {
         return (
             <View style={styles.row} key={index}>
-                <Swipeout autoClose={true} right={this._buttonsGroups()} backgroundColor={'#EAEAEA'}>
+                <Swipeout autoClose={true} right={this._buttonsGroups(value._id)} backgroundColor={'#EAEAEA'}>
                     <TouchableOpacity onPress={()=>this.props.data.fetchGroupThenShow(value._id)}>
                         <View style={{flexDirection: 'row',alignItems: 'center'}}>
                             <View style={styles.shareExistsIcon}>
@@ -47,7 +54,7 @@ var GroupsSlider = React.createClass({
                                     <Text style={{fontSize: 20}}>{value.group_name}</Text>
                                 </View>
                                 <View style={{flexDirection: 'row'}}>
-                                    <Text style={{fontSize: 11}}>Members: {value.member_list.length},</Text>
+                                    <Text style={{fontSize: 11}}>Members: {value.member_list.length+1},</Text>
                                     <View style={{marginRight: 3}}/>
                                     <Text style={{fontSize: 11}}>Transactions: {value.transaction_list.length},</Text>
                                     <View style={{marginRight: 3}}/>
