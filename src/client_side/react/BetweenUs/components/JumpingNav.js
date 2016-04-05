@@ -22,7 +22,7 @@ var INITIAL_ROUTES = [
     {id: 'groups'},
     {id: 'transaction'},
     {id: 'group'},
-    {id: 'notification'},
+    {id: 'notification'}
 ];
 
 var JumpingNavBar = React.createClass({

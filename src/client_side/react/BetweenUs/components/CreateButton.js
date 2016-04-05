@@ -5,11 +5,23 @@ import ActionButton from 'react-native-action-button';
 import Icon from 'react-native-vector-icons/Ionicons';
 
 
-var CreateGroupButton = React.createClass({
+var CreateButton = React.createClass({
+    getInitialState: function() {
+        return {
+            title: "" || this.props.title,
+            onPress: undefined || this.props.onPress
+        };
+    },
+    componentWillReceiveProps: function(nextProps) {
+        this.setState({
+            title: "" || nextProps.title,
+            onPress: null || nextProps.onPress
+        });
+    },
     render() {
         return (
             <ActionButton position="right" buttonColor="rgba(231,76,60,1)">
-                <ActionButton.Item buttonColor='#9b59b6' title="Create Transaction" onPress={() => console.warn("notes tapped!")}>
+                <ActionButton.Item buttonColor='#9b59b6' title={this.state.title} onPress={() => {if (this.state.onPress) this.state.onPress()}}>
                     <Icon name="android-create" style={styles.actionButtonIcon} />
                 </ActionButton.Item>
             </ActionButton>
@@ -18,7 +30,7 @@ var CreateGroupButton = React.createClass({
 });
 
 
-module.exports = CreateGroupButton;
+module.exports = CreateButton;
 
 var styles = StyleSheet.create({
     actionButtonIcon: {

@@ -91,7 +91,6 @@ var Transaction = React.createClass({
                 })
                 .catch((err)=> {console.warn(err)});
         },
-
     },
     getInitialState() {
         return( {

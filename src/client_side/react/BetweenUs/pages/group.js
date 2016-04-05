@@ -1,7 +1,7 @@
-import React, {View, Text, StyleSheet, TouchableHighlight} from 'react-native'
+import React, {View, Text, StyleSheet, TouchableHighlight, ScrollView} from 'react-native'
 var ServerAPI = require('../api/server_interaction');
 var TransactionsSlider = require('../components/TransactionsSlider');
-var CreateTransactionButton = require('../components/CreateTransactionButton');
+var CreateButton = require('../components/CreateButton');
 var MK = require('react-native-material-kit');
 const { MKButton } = MK;
 
@@ -12,18 +12,17 @@ var Groups = React.createClass({
             group_name: "",
             group_id: "",
             user_info: this.props.user_info,
-            members_list: [],
+            member_list: [],
             transaction_list: []
         })
     },
     componentDidMount: function() {
         if (this.props.data !== undefined) {
-            console.warn(JSON.stringify(this.props.data));
             this.setState(this.props.data);
         }
     },
     fetchGroupData() {
-        ServerAPI.FetchGroupData(this.props.data.group.group_id)
+        ServerAPI.FetchGroupData(this.props.data.group_id)
             .then((ResponseJSON) => {
                 var list_of_participants = ResponseJSON.data.member_list;
                 var creator = ResponseJSON.data.creator;
@@ -31,7 +30,7 @@ var Groups = React.createClass({
                 list_of_participants.unshift(creator);
                 this.setState(
                     {
-                        members_list: list_of_participants,
+                        member_list: list_of_participants,
                         transaction_list: ResponseJSON.data.transaction_list
                     });
             }).catch((error) => {console.warn(error);});
@@ -83,51 +82,28 @@ var Groups = React.createClass({
                 console.warn(error);
             });
     },
-    PaintMembers(rowData) {
-        return (
-            <View style={{flexDirection: 'row'}}>
-                <Text style={{flex:0.2, fontWeight:'bold', marginRight: 5}}>{rowData.email}</Text>
-                <Text style={{flex:0.7, fontWeight:'bold', marginRight: 5}}>{rowData.user_id}</Text>
-            </View>
-        );
-    },
-    PaintTransactions(rowData) {
-        var data = {
-            transaction_id: rowData.transaction_id,
-            transaction_name: rowData.transaction_name
-        };
-        return (
-            <View style={{flexDirection: 'row'}}>
-                <MKButton
-                    shadowRadius={2}
-                    shadowOffset={{width:0, height:2}}
-                    shadowOpacity={.7}
-                    shadowColor="black"
-                    onPress={()=>{this.props.navigator.push({id:"transaction", data:data});}}>
-                    <Text style={{flex:0.2, fontWeight:'bold', marginRight: 5}}>{rowData.transaction_name}</Text>
-                    <Text style={{flex:0.8, fontWeight:'bold', marginRight: 5}}>{rowData.transaction_id}</Text>
-                </MKButton>
-            </View>
-        );
-    },
     render(){
         return (
             <View style={styles.container}>
                 <Text style={{justifyContent: 'center', textAlign:'center', fontWeight:'bold', margin: 10, fontSize: 24}}>Group {this.state.group_name}</Text>
                 <Text>Transactions</Text>
-                <TransactionsSlider data={{transaction_list:this.state.transaction_list, fetchTransactionThenShow:this.fetchTransactionThenShow}}/>
-                <MKButton
-                    shadowRadius={2}
-                    shadowOffset={{width:0, height:2}}
-                    shadowOpacity={.7}
-                    shadowColor="black"
-                    onPress={this.fetchGroupData}>
-                    <Text pointerEvents="none"
-                          style={{color: '#0079FE', fontWeight: 'bold'}}>
-                        Fetch Data
-                    </Text>
-                </MKButton>
-                <View style={{flex:1, alignSelf:'stretch'}}><CreateTransactionButton/></View>
+                <ScrollView>
+                    <TransactionsSlider data={{transaction_list:this.state.transaction_list, fetchTransactionThenShow:this.fetchTransactionThenShow}}/>
+                </ScrollView>
+                <View style={{alignItems:'center'}}>
+                    <MKButton
+                        shadowRadius={2}
+                        shadowOffset={{width:0, height:2}}
+                        shadowOpacity={.7}
+                        shadowColor="black"
+                        onPress={this.fetchGroupData}>
+                        <Text pointerEvents="none"
+                              style={{color: '#0079FE', fontWeight: 'bold'}}>
+                            Fetch Data
+                        </Text>
+                    </MKButton>
+                </View>
+                <CreateButton title="Create Transaction" onPress={()=>{console.warn("hey");}}/>
             </View>
         );
     }

@@ -1,5 +1,6 @@
 import React, {Dimensions, View, Text, StyleSheet, TouchableHighlight, ListView} from "react-native";
 var ServerAPI = require('../api/server_interaction');
+var CreateButton = require('../components/CreateButton');
 var MK = require('react-native-material-kit');
 const { MKButton } = MK;
 
@@ -32,6 +33,8 @@ var Groups = React.createClass({
                 var creator = ResponseJSON.data.creator;
                 creator.is_creator = true;
                 ResponseJSON.data.member_list.unshift(creator);
+                ResponseJSON.data.group_id=ResponseJSON.data.id;
+                delete ResponseJSON.data.id;
                 this.props.navigator.push({id:"group", data:ResponseJSON.data});
             }).catch((error) => {console.warn(error);});
     },
@@ -55,17 +58,20 @@ var Groups = React.createClass({
             <View style={styles.container}>
                 <Text style={{justifyContent: 'center',  textAlign:'center', fontWeight:'bold', margin: 10, fontSize: 36}}>My Groups</Text>
                 <GroupsSlider data={{groups:this.state.groups,fetchGroupThenShow:this.fetchGroupThenShow}}/>
-                <MKButton
-                    shadowRadius={2}
-                    shadowOffset={{width:0, height:2}}
-                    shadowOpacity={.7}
-                    shadowColor="black"
-                    onPress={this.fetchMyGroupListData}>
-                    <Text pointerEvents="none"
-                          style={{color: '#0079FE', fontWeight: 'bold'}}>
-                        Fetch Data
-                    </Text>
-                </MKButton>
+                <View style={{alignItems:'center'}}>
+                    <MKButton
+                        shadowRadius={2}
+                        shadowOffset={{width:0, height:2}}
+                        shadowOpacity={.7}
+                        shadowColor="black"
+                        onPress={this.fetchMyGroupListData}>
+                        <Text pointerEvents="none"
+                              style={{color: '#0079FE', fontWeight: 'bold'}}>
+                            Fetch Data
+                        </Text>
+                    </MKButton>
+                </View>
+                <CreateButton title="Create Group" onPress={()=>{console.warn("create group");}}/>
             </View>
         );
     }
