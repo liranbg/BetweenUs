@@ -1,6 +1,7 @@
 import React, {View, Text, StyleSheet} from 'react-native'
 var MK = require('react-native-material-kit');
 var LoginInputStyles = require("../styles/email_password.js");
+var GroupMembersAdder = require('../components/GroupMembersAdder');
 var Icon = require('react-native-vector-icons/Ionicons');
 var ServerAPI = require('../api/server_interaction');
 const { MKButton, MKColor,MKTextField } = MK;
@@ -23,20 +24,14 @@ var GroupCreation = React.createClass({
                         <MKTextField
                             tintColor={'#86CDAD'}
                             textInputStyle={{color: '#86CDAD'}}
-                            placeholder="Email"
+                            placeholder="Group Name"
                             style={styles.textInput}
-                            value={this.state.email}
-                            onChangeText={(email) => this.setState({email})}
+                            value={this.state.group_name}
+                            onChangeText={(group_name) => this.setState({group_name})}
                         />
-                        <MKButton
-                            style={styles.textInputLabel}
-                            onPress={this.fetchGroupData}>
-                            <Text>
-                                <Icon name="person-add" size={30} color="#86CDAD" />
-                            </Text>
-                        </MKButton>
-
                     </View>
+                    <Text>Members list</Text>
+                    <GroupMembersAdder/>
                     <View style={LoginInputStyles.row}>
                         <MKButton
                             backgroundColor={MKColor.Teal}
@@ -64,7 +59,13 @@ var styles = StyleSheet.create({
     container: {
         flex: 1
     },
-    title:{justifyContent: 'center', textAlign:'center', fontWeight:'bold', margin: 10, fontSize: 24},
+    title: {
+        justifyContent: 'center',
+        textAlign:'center',
+        fontWeight:'bold',
+        margin: 10,
+        fontSize: 24
+    },
     textInputContainer: {
         flexDirection: 'row',
         flex: 1,
@@ -72,7 +73,6 @@ var styles = StyleSheet.create({
     },
     textInputLabel: {
         flex: 0.1
-
     },
     textInput:{
         flex: 0.8,

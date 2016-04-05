@@ -1,5 +1,3 @@
-'use strict';
-
 import React, {StyleSheet} from 'react-native';
 import ActionButton from 'react-native-action-button';
 import Icon from 'react-native-vector-icons/Ionicons';
