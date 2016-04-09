@@ -902,7 +902,7 @@ class ServerInteraction {
                     time: (new Date()).toISOString(),
                     group_id: transaction_body.group_id,
                     transaction_id: transaction_body._id,
-                    sender: src_user_doc._id,
+                    sender: { user_id: src_user_doc._id, user_email: src_user_doc.email},
                     type: "share-request",
                     status: "pending"
                 };

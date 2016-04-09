@@ -256,8 +256,8 @@ function FetchTransactionDataOnClick(input_transaction_id,transaction_info_error
             console.log(data);
             /* Getting the value out of the json */
             var group_name = "test",
-                transaction_name = data.transaction_data.transaction_name,
-                threshold = data.transaction_data.threshold;
+                transaction_name = data.transaction.transaction_name,
+                threshold = data.transaction.threshold;
             /* Group name */
             console.log("lala", group_name);
             $("#" + group_name_span_id).html("Group Name: " + group_name);

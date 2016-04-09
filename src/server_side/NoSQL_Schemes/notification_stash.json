@@ -13,7 +13,7 @@
         "time": "2016-01-21T08:24:20.989Z",
         "group_id": "12345abc",
         "transaction_id": "tin2o1i4n21",
-        "sender": "Bob@fictious-names.com",
+        "sender": { "user_id": "7654321", "user_email":"Bob@fictious-names.com" },
         "type": "share-request",
         "status": "pending"
       },
@@ -21,7 +21,7 @@
         "time": "2016-01-21T09:24:20.989Z",
         "group_id": "12345abc",
         "transaction_id": "99999abc123",
-        "sender": "Bob@fictious-names.com",
+        "sender": { "user_id": "7654321", "user_email":"Bob@fictious-names.com" },
         "type": "share-response",
         "status": "committed"
       },
@@ -29,7 +29,7 @@
         "time": "2016-01-21T19:24:20.989Z",
         "group_id": "12345abc",
         "transaction_id": "99999abc123",
-        "sender": "Charlie@fictious-names.com",
+        "sender": { "user_id": "1234567", "user_email":"Charlie@fictious-names.com" },
         "type": "share-response",
         "status": "declined"
       }
