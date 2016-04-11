@@ -182,10 +182,14 @@ function CreateGroupOnClick(group_name_field_id, member_table_id, output_span_id
         return;
     }
     /* End of VALIDATION! */
-    var json_object = { group_name: group_name, member_list: member_list};
+    var json_object = JSON.stringify({ group_name: group_name, member_list: member_list});
     $.ajax({
         type: "POST",
         url: server + "/groups/create_group",
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
         dataType:'json',
         data: json_object,
         xhrFields: {withCredentials: true},

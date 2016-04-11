@@ -106,18 +106,54 @@ class BetweenUsServer {
                     }
                 })
                 .then((response) => response.json())
+                .then((response_json) => {response_json.success?resolve(response_json):reject(response_json);})
+                .catch((error) => {reject(error); });
+        });
+    }
+    static checkUserExists(email) {
+        return new Promise(function(resolve, reject)
+        {
+            fetch(GLOBAL.DB_SERVER + "/users/user_exists?user_email=" + email,
+                {
+                    method: 'GET',
+                    headers:
+                    {
+                        'Accept': 'application/json'
+                    }
+                })
+                .then((response) => response.json())
+                .then((response_json) => {response_json.success?resolve(response_json):reject(response_json);})
+                .catch((error) => {reject(error); });
+        });
+    }
+    static createGroup(group_name, list_of_members) {
+        var data = JSON.stringify({
+            group_name: group_name,
+            member_list: list_of_members
+        });
+        return new Promise(function(resolve, reject)
+        {
+            fetch(GLOBAL.DB_SERVER + "/groups/create_group",
+                {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: data
+                })
+                .then((response) => response.json())
+                .then((response_json) => {if (!response_json.success) reject(response_json); else return response_json})
                 .then((response_json) => {
-                    if (!response_json.success){
-                        reject(response_json);
-                    }
-                    else {
-                        resolve(response_json)
-                    }
+                    var new_group = {};
+                    new_group.member_list = response_json.message.member_list;
+                    new_group.group_name = response_json.message.group_name;
+                    new_group.group_id = response_json.message._id;
+                    new_group.transaction_list = response_json.message.transaction_list;
+                    resolve(new_group);
 
                 })
-                .catch((error) => {
-                    console.warn("123")
-                    reject(error); });
+                .catch((error) => {reject(error); });
         });
     }
 }

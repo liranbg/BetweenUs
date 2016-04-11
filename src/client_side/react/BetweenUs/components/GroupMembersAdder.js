@@ -1,48 +1,67 @@
-import React, {View, Text, StyleSheet} from 'react-native'
+import React, {Alert, View, Text, StyleSheet, ListView, TextInput} from 'react-native'
 var MK = require('react-native-material-kit');
 var LoginInputStyles = require("../styles/email_password.js");
 var Icon = require('react-native-vector-icons/Ionicons');
+var IconFontAwesome = require('react-native-vector-icons/FontAwesome');
 var ServerAPI = require('../api/server_interaction');
 const { MKButton, MKColor,MKTextField } = MK;
 
 var GroupMembersAdderComponent = React.createClass({
-    getInitialState() {
-        return( {
-            email:""
-        })
-    },
     render(){
+        var rightBTN;
+        if (this.props.islast) {
+            rightBTN = <MKButton
+                shadowRadius={2}
+                shadowOffset={{width:0, height:2}}
+                shadowOpacity={.7}
+                shadowColor="black"
+                style={styles.textInputLabel}
+                onPress={()=>{
+                    this.props.onPress("add", this.props.data.ref)
+
+                    }}>
+                <Text>
+                    <IconFontAwesome name='user-plus' size={24} color="#CC0000" />
+                </Text>
+            </MKButton>
+        }
+        else {
+            rightBTN =  <MKButton
+                shadowRadius={2}
+                shadowOffset={{width:0, height:2}}
+                shadowOpacity={.7}
+                shadowColor="black"
+                style={styles.textInputLabel}
+                onPress={()=>{
+                    this.props.onPress("delete", this.props.data.ref)
+
+                    }}>
+                <Text>
+                    <IconFontAwesome name='user-times' size={24} color="#CC0000" />
+                </Text>
+            </MKButton>
+        }
         return (
             <View style={styles.textInputContainer}>
                 <MKTextField
-                    tintColor={'#86CDAD'}
-                    textInputStyle={{color: '#86CDAD'}}
+                    editable={this.props.islast}
+                    tintColor={MKColor.Blue}
+                    textInputStyle={{color: MKColor.LightBlue}}
                     placeholder="Email"
                     style={styles.textInput}
-                    value={this.state.email}
-                    onChangeText={(email) => this.setState({email})}
+                    value={this.props.data.email}
+                    onChangeText={(email) => this.props.data.setEmail(this.props.data.ref, email)}
                 />
-                <MKButton
-                    style={styles.textInputLabel}
-                    onPress={()=>{
-                    var response = this.props.onPress(this.state.email);
-                    }}>
-                    <Text>
-                        <Icon name="person-add" size={30} color="#86CDAD" />
-                    </Text>
-                </MKButton>
+                {rightBTN}
             </View>
         )
     }
 });
-
-
 var GroupMembersAdder = React.createClass({
     getInitialState() {
         return( {
-            amount:1,
-            data_list: [""],
-            component_list: [<GroupMembersAdderComponent onPress={this.addMember}/>,<GroupMembersAdderComponent onPress={this.addMember}/>]
+            amount: 0,
+            component_list: [{ref:"GroupMembersAdderComponent-0", email:""}]
         })
     },
     componentWillReceiveProps: function(nextProps) {
@@ -50,33 +69,131 @@ var GroupMembersAdder = React.createClass({
             data_list: nextProps.data_list || []
         });
     },
-    componentDidMount: function() {
-
-    },
-    addMember(email) {
-        this.state.data_list.map((email_in_list)=>{
-            if (email_in_list == email) {
-                return "exists";
-            }
+    componentWillMount() {
+        this.dataSource = new ListView.DataSource({
+            rowHasChanged: (row1, row2) => row1 !== row2
         });
-        this.state.data_list.push(email);
-        var component;
-        component = React.createElement(GroupMembersAdderComponent,{onPress:this.addMember});
-        this.state.component_list.push(component);
-        this.setState({}); //call to update screen. no need to put object inside
-        return "added";
+    },
+    getEmailForComponentId(componentId) {
+        for (var i in this.state.component_list) {
+            if (this.state.component_list[i].ref == componentId)
+                return this.state.component_list[i].email;
+        }
+        return undefined;
+    },
+    getAllEmails() {
+        var list_of_emails = [];
+        this.state.component_list.map((value,index)=> {
+            if (value.email != "") list_of_emails.push(value.email);
+            return null;
+        });
+        return list_of_emails;
+    },
+    requestHandle(action, componentId){
+        if (action == "add") {
+            var email = this.getEmailForComponentId(componentId);
+            if (!email) {
+                Alert.alert(
+                    'Error',
+                    "Please check your input",
+                    [
+                        {text: 'OK' ,  style: 'ok'}
+                    ]
+                );
+            return;
+            }
+            if (!this.checkEmailInList(email)) {
+                ServerAPI.checkUserExists(email)
+                    .then((result)=> {if (result.success)
+                    {
+                        this.addMember();
+                    }})
+                    .catch((error)=>{
+                        if (error.error.toLowerCase() == "user not found.") {
+                            Alert.alert(
+                                'Error',
+                                error.error + " Please check your input",
+                                [
+                                    {text: 'OK' ,  style: 'ok'}
+                                ]
+                            );
+                            return;
+                        }
+                    });
+            }
+            else {
+                Alert.alert(
+                    'Error',
+                    "User is already added",
+                    [
+                        {text: 'OK' ,  style: 'ok'}
+                    ]
+                );}
+        }
+        else if (action == "delete") {
+            this.removeMember(componentId);
+        }
+    },
+    checkEmailInList(email) {
+        //checking for 2 appearence of email in list.
+        //why 2? because the component we are checking for, already contains this email
+        var seen = false;
+        for (var i in this.state.component_list) {
+            if (this.state.component_list[i].email == email)
+                if (seen)
+                    return true;
+                else
+                    seen=true;
+        }
+        return false;
+    },
+    addMember() {
+        var next_amount = this.state.amount + 1;
+        this.setState(state => {
+            state.component_list.push({ref:"GroupMembersAdderComponent-"+next_amount, email:""});
+            return {component_list: state.component_list, amount: next_amount};
+        });
+    },
+    removeMember(componentId) {
+        // if (!email) return false;
+        var component_index = -1;
+        this.state.component_list.map((component, index)=>{
+            if (component.ref == componentId) {
+                component_index = index;
+                return true;
+            }});
+        this.setState(state => {
+            state.component_list.splice(component_index,1);
+            return {component_list: state.component_list};
+        });
+        return true;
+    },
+    setEmail(componentId, email) {
+        var component_index = -1;
+        this.state.component_list.map((component, index)=>{
+            if (component.ref == componentId) {
+                component_index = index;
+                return true;
+            }});
+        this.setState(state => {
+            state.component_list[component_index].email = email;
+            return {component_list: state.component_list};
+        });
+    },
+    _renderGroupMembers(rowData, sectionID, rowID) {
+        return (<GroupMembersAdderComponent
+            key={rowID}
+            islast={ rowID == this.state.component_list.length-1}
+            data={{ref:rowData.ref, email:rowData.email, setEmail:this.setEmail}}
+            onPress={this.requestHandle}/>)
     },
     render(){
+        var dataSource = this.dataSource.cloneWithRows(this.state.component_list);
         return (
             <View style={styles.container}>
-                <Text>{this.state.component_list.length}</Text>
-                {
-                    this.state.component_list.map((member,index)=>{
-                        return <View key={index}>{member}</View>;
-                        // return <View key={index}>{member}</View>;
-                    })
-                }
-
+                <ListView
+                    dataSource={dataSource}
+                    renderRow={this._renderGroupMembers}/>
             </View>
         );
     }
@@ -90,7 +207,8 @@ var styles = StyleSheet.create({
     textInputContainer: {
         flexDirection: 'row',
         flex: 1,
-        alignItems: 'center'
+        alignItems: 'center',
+        marginBottom:4
     },
     textInputLabel: {
         flex: 0.1
