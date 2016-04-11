@@ -932,6 +932,9 @@ class ServerInteraction {
         return new Promise((resolve, reject) => {
             this.groups_db.post(group_doc).
                 then((data) => {
+                    return this.groups_db.get(data.id, {include_docs: true});
+                })
+                .then((data) => {
                     resolve(data);
                 })
                 .catch((err) => {
@@ -950,17 +953,18 @@ class ServerInteraction {
      * @returns {Promise}
      * @constructor
      */
-    AddUsersToGroup(users_doc, group) {
+    AddUsersToGroup(users_doc, group_doc) {
         var docs_to_update = [];
         var doc;
         for (var i in users_doc.rows) {
             doc = users_doc.rows[i].doc;
-            doc.groups.push(group.id);
+            doc.groups.push(group_doc.id);
             docs_to_update.push(doc);
         }
         return new Promise((resolve, reject) => {
             this.users_db.bulkDocs(docs_to_update)
-                .then((data) => resolve(data))
+                // On success, return the group document.
+                .then((data) => resolve(group_doc))
                 .catch((err) => reject(err));
         });
     };
