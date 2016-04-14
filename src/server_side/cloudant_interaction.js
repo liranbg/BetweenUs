@@ -776,6 +776,18 @@ class ServerInteraction {
         });
     }
 
+    /*** This function returns the transaction document including the rev and id it gets assigned after committing it
+     * to the database.
+     *
+     * @param creator_userid
+     * @param transaction_name
+     * @param cipher_data
+     * @param user_stash_list
+     * @param group_id
+     * @param share_threshold
+     * @returns {Promise}
+     * @constructor
+     */
     CreateTransaction(creator_userid, transaction_name, cipher_data, user_stash_list, group_id, share_threshold) {
         //TODO: Store shares_stash before creating the transaction and then add it to the new transaction
         // user_stash_list - [{user_id:"123assss", share:"asdasdasdasd"},{},{},...]
@@ -797,21 +809,34 @@ class ServerInteraction {
         };
         return new Promise((resolve, reject) => {
             this.transactions_db.post(new_transaction_doc, { include_docs: true })
-                .then((data) => resolve(data))
+                .then((data) => {
+                    new_transaction_doc.id = data.id;
+                    new_transaction_doc.rev = data.rev;
+                    resolve(new_transaction_doc);
+                })
                 .catch((err) => reject(err));
         });
     };
 
+    /*** This function add the transaction id into the group document, to the transaction list array.
+     * The return value for this function is the transaction document.
+     *
+     * @param group_id
+     * @param transaction_doc
+     * @returns {Promise}
+     * @constructor
+     */
     AddTransactionToGroup(group_id, transaction_doc) {
         return new Promise((resolve, reject) => {
-            console.log("TRANSACTION DOC: ", transaction_doc);
-            console.log("GRUOP IDE: ", group_id);
             this.groups_db.get(group_id, {include_docs: true})
                 .then((group_data) => {
                     group_data.transaction_list.push(transaction_doc.id);
-                    this.groups_db.put(group_data);
+                    return this.groups_db.put(group_data);
                 })
-                .then((data) => resolve(data))
+                .then((data) => {
+                    console.log(transaction_doc);
+                    resolve(transaction_doc);
+                })
                 .catch((err) => reject(err));
         });
     };
