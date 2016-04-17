@@ -72,6 +72,24 @@ router.get('/get_share_stash', function (req, res) {
     }
 });
 
+/*** /create_transaction POST handler
+ *
+ * return data on success:
+ * {"success":true,"data":{
+ *  "metadata":{ "scheme":"transaction","scheme_version":"1.0","creation_time":"2016-04-14T09:33:57.056Z"},
+ *  "initiator":"105ab1ec28024130d27f87e0da1797cd",
+ *  "transaction_name":"2154125",
+ *  "cipher_meta_data":{"type":"String","data":"pðv¥hÕìÈ#\u001d=%áÙ°ôS5@:ý?"},
+ *  "group_id":"ff2735b9d44455a085e0dc5b37502f78",
+ *  "threshold":2,
+ *  "stash_list":[
+ *  {"user_id":"93cb79edd520acdd04d88f05617e9984","stash_id":"7b9988dbfb645dbaf34407ba9661e766"},
+ *  {"user_id":"10fd290177596f6512d1392eda4bcc4d","stash_id":"7b9988dbfb645dbaf34407ba9661f680"},
+ *  {"user_id":"105ab1ec28024130d27f87e0da1797cd","stash_id":"7b9988dbfb645dbaf34407ba96620310"}],
+ *  "id":"74a579d1309d3141956048c22f7aeb24",
+ *  "rev":"1-49318655831c28defc6c68888c0e7927"}}
+ *
+ */
 router.post('/create_transaction', function (req, res) {
     var initiator = session_util.GetUserId(req.session);
     var data = JSON.parse(req.body.json_data);
@@ -84,7 +102,6 @@ router.post('/create_transaction', function (req, res) {
     for (var i in stash_list) {
         email_list.push(stash_list[i].user_id);
     }
-    console.log("In create transaction function... email list:", email_list);
     database_interface.GetUsersByEmailList(email_list)
     .then((data) => {
         console.log("Get users by email list returned:", data);
@@ -96,7 +113,6 @@ router.post('/create_transaction', function (req, res) {
                 stash_list[i].user_id = data.rows[i].id;
             }
         }
-        console.log("#1 returning", data.rows);
         return data.rows;
     })
     .then((data) => {
@@ -110,13 +126,16 @@ router.post('/create_transaction', function (req, res) {
         for (var j in share_stashes) {
             list_of_stash_shares_ids.push({user_id: share_stashes[j].stash_owner, stash_id: share_stashes[j].id});
         }
-        console.log("List of share stash", list_of_stash_shares_ids);
         return database_interface.CreateTransaction(initiator, transaction_name, cipher_data, list_of_stash_shares_ids, group_id, share_threshold);
     })
     .then((data) => {
-        database_interface.AddTransactionToGroup(group_id, data);
+        return database_interface.AddTransactionToGroup(group_id, data);
     })
-    .then((data) => res.status(201).json({success:true, data:data}))
+    .then((data) => {
+        console.log("HTML DATA:");
+        console.log(data);
+        res.status(201).json({success:true, data: data})
+    })
     .catch((err) => res.status(404).json({success:false, error:err}));
 });
 
