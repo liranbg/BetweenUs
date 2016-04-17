@@ -1,8 +1,8 @@
 import React, {View, Text, TextInput, StyleSheet, TouchableHighlight} from 'react-native'
-var GLOBAL = require('../env');
 var LoginInputStyles = require("../styles/email_password.js");
 var Icon = require('react-native-vector-icons/Ionicons');
 var MK = require('react-native-material-kit');
+var ServerAPI = require('../api/server_interaction');
 const { MKButton, MKColor, } = MK;
 
 var Registration = React.createClass({
@@ -14,34 +14,35 @@ var Registration = React.createClass({
         };
     },
     clickToRegister: function() {
-        //this.setState({ loginState: 'busy' });
-        //fetch(GLOBAL.DB_SERVER + "/users/register_user", {
-        //    method: 'POST',
-        //    headers: {
-        //        'Accept': 'application/json',
-        //        'Content-Type': 'application/json'
-        //    },
-        //    body: JSON.stringify({
-        //        email: this.state.email,
-        //        password: this.state.password,
-        //        public_key: "1" //TODO: Add public key generator
-        //    })
-        //})
-        //    .then((response) => response.json())
-        //
-        //    .then((ResponseJSON) => {
-        //        if (ResponseJSON.status != 201) {
-        //            Actions.error(ResponseJSON.message);
-        //        }
-        //        else {
-        //
-        //        }
-        //    }).catch((error) => {
-        //    console.warn(error);
-        //
-        //});
-        //Actions.login({user_info: {email:this.state.email, password:this.state.password, loginState: 'idle'}});
+        this.setState({ loginState: 'busy' });
+        this.props.navigator.push({id: 'login',user_info: {email:this.state.email, password:this.state.password, loginState: 'idle'}});
+        ServerAPI.register(this.state.email, this.state.password, "1")
+            .then((response) => {
+                this.props.navigator.push({id: 'login',user_info: {email:this.state.email, password:this.state.password, loginState: 'idle'}});
 
+            })
+            .catch((error) => {
+                console.error(JSON.stringify(error));
+            });
+        // fetch(GLOBAL.DB_SERVER + "/users/register_user", {
+        //     method: 'POST',
+        //     headers: {
+        //         'Accept': 'application/json',
+        //         'Content-Type': 'application/json'
+        //     },
+        //     body: JSON.stringify({
+        //         email: this.state.email,
+        //         password: this.state.password,
+        //         public_key: "1" //TODO: Add public key generator
+        //     })
+        // })
+        //     .then((response) => response.json())
+        //
+        //     .then((ResponseJSON) => {
+        //
+        //     }).catch((error) => {
+        //     console.warn(error);
+        // });
     },
     render(){
         return (

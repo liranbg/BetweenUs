@@ -5,6 +5,7 @@ var {
     Alert,
     StyleSheet,
     ScrollView,
+    TouchableOpacity,
     View,
     Text,
 } = React;
@@ -20,66 +21,74 @@ var MemberSlider = React.createClass({
             values: nextProps.data.members_list
         });
     },
-    _buttonRequestShare: function(member) {
+    _approveShareButton(member) {
         var request_status = "";
         var request_status_color = "";
-        if (member.share_status == "missing")
-        {
+        if (member.pending_request) {
+            request_status = "Approve";
+            request_status_color = "#2ECC71";
+            return (
+                <TouchableOpacity onPress={()=>{this.props.data.approve_share(member.user_id)}} style={styles.scrollButton}>
+                    <Icon style={{borderColor:'black'}} size={28} name="ios-checkmark" color={request_status_color}/>
+                    <Text style={{fontSize: 10, fontWeight: 'bold'}}>{request_status}</Text>
+                </TouchableOpacity>
+            );
+        }
+        else
+            return (<View></View>);
+    },
+    _requestShareButton(member) {
+        var request_status = "";
+        var request_status_color = "";
+        if (member.share_status == "missing") {
             request_status = "Request";
             request_status_color = "#2980B9";
+            return (
+                <TouchableOpacity onPress={()=>{this.props.data.request_share(member.user_id)}} style={styles.scrollButton}>
+                    <Icon style={{borderColor:'black'}} size={28} name="pull-request" color={request_status_color}/>
+                    <Text style={{fontSize: 10, fontWeight: 'bold'}}>{request_status}</Text>
+                </TouchableOpacity>
+            );
         }
-
         else if (member.share_status == "pending")
         {
             request_status = "Requested";
             request_status_color = "#6D6875";
-        }
-        else
-        {
-            return {}
-        }
-
-        return {
-            // text: 'request',
-            backgroundColor: '',
-            component: (
+            return (
                 <View style={styles.scrollButton}>
                     <Icon style={{borderColor:'black'}} size={28} name="pull-request" color={request_status_color}/>
-                    <Text style={{fontSize: 10}}>{request_status}</Text>
+                    <Text style={{fontSize: 10, fontWeight: 'bold'}}>{request_status}</Text>
                 </View>
-            ),
-            onPress: ()=>{
-                if (request_status == "Request") {
-                    this.props.data.request_share(member.user_id);
-                }
-
-            }
+            );
         }
     },
     _renderRow: function(value, index) {
         var icon_name, icon_color;
+
         if (value.share_status == "own_stash") {
-            icon_color= '#2ECC71';
-            icon_name="android-checkmark-circle";
+            icon_color = '#2ECC71';
+            icon_name ="android-checkmark-circle";
         }
         else if (value.share_status == "missing") {
-            icon_color= '#E74C3C';
-            icon_name="minus-circled"
+            icon_color = '#E74C3C';
+            icon_name ="minus-circled"
         }
-        else { //pending
-            icon_color= '#FFB4A2';
-            icon_name="minus-circled"
+        else if (value.share_status == "pending") {
+            icon_color = '#E74C3C';
+            icon_name ="minus-circled"
         }
         return (
             <View style={styles.row} key={index}>
-                <Swipeout autoClose={true} right={[this._buttonRequestShare(value)]} backgroundColor={'#EAEAEA'}>
-                    <View style={{flexDirection: 'row',alignItems: 'center'}}>
-                        <View style={styles.shareExistsIcon}>
-                            <Icon size={28} name={icon_name} color={icon_color}/>
-                        </View>
-                        <Text>{value.email}</Text>
+                <View style={{flexDirection: 'row',alignItems: 'center'}}>
+                    <View style={styles.shareExistsIcon}>
+                        <Icon size={28} name={icon_name} color={icon_color}/>
                     </View>
-                </Swipeout>
+                    <Text style={{flex: 1}}>{value.email}</Text>
+                    <View style={styles.scrollButtons}>
+                        {this._approveShareButton(value)}
+                        {this._requestShareButton(value)}
+                    </View>
+                </View>
             </View>
         )
     },
@@ -103,19 +112,25 @@ var styles = StyleSheet.create({
         flexDirection: 'column'
     },
     row: {
+        backgroundColor: '#EAEAEA',
         borderColor: '#d6d7da',
         borderWidth: 2,
         flex: 1,
         height: 50,
         marginTop: 2,
-        marginBottom: 2,
+        marginBottom: 2
+    },
+    scrollButtons: {
+        flexDirection: 'row',
+        height: 45
     },
     scrollButton: {
-        height: 45,
         flexDirection: 'column',
         backgroundColor: '#EAEAEA',
         alignItems: 'center',
-        justifyContent: 'center'
+        justifyContent: 'space-around',
+        marginRight:10
+
     },
     shareExistsIcon: {
         height: 45,

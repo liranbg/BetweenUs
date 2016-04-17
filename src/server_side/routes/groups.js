@@ -17,8 +17,8 @@ router.post('/create_group', function (req, res) {
         errors_util.ReturnNotLoggedInError(res);
     }
     else {
-        var users_email_list = req.body['member_list[]'],
-            group_name = req.body.group_name;
+        var group_name = req.body.group_name;
+        var users_email_list = req.body.member_list;
         if (!Array.isArray(users_email_list)) {
             users_email_list = [users_email_list];
         }
@@ -29,7 +29,8 @@ router.post('/create_group', function (req, res) {
             user_docs = users_doc;
             /* Verify we got as many emails as we inputted. */
             if (users_doc.rows.length != users_email_list.length) {
-                reject("Couldn't find all users.");
+                res.status(400).json({success: false, error: "Couldn't find all users." });
+                return;
             }
             var list_of_users_ids = [];
             for (var i in users_doc.rows) {

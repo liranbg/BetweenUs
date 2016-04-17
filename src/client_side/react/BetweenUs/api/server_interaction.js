@@ -2,7 +2,7 @@ var GLOBAL = require('../env');
 
 class BetweenUsServer {
 
-    static Login(email, password) {
+    static login(email, password) {
         return new Promise(function(resolve, reject)
         {
             fetch(GLOBAL.DB_SERVER + "/users/login",
@@ -20,6 +20,28 @@ class BetweenUsServer {
                         })
                 })
                 .then((response) => response.json())
+                .then((responseJSON)=>{resolve(responseJSON)})
+                .catch((err)=>{reject(err)});
+        });
+    }
+    static register(email, password, public_key) {
+        return new Promise(function(resolve, reject)
+        {
+            fetch(GLOBAL.DB_SERVER + "/users/register_user", 
+                {
+                    method: 'POST',
+                    credentials: 'include',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            email: email,
+                            password: password,
+                            public_key: public_key
+                        })
+                })
+                .then((response) => {if (response.status != 201) reject(response); else response.json() })
                 .then((responseJSON)=>{resolve(responseJSON)})
                 .catch((err)=>{reject(err)});
         });
@@ -94,6 +116,22 @@ class BetweenUsServer {
                 .catch((error) => {reject(error); });
             });
     }
+    static fetchTransactionsNotifications(transaction_id) {
+        return new Promise(function(resolve, reject)
+        {
+            fetch(GLOBAL.DB_SERVER + "/notifications/get_notifications_for_transaction?transaction_id=" + transaction_id,
+                {
+                    method: 'GET',
+                    headers:
+                    {
+                        'Accept': 'application/json'
+                    }
+                })
+                .then((response) => response.json())
+                .then((response_json) => {response_json.success?resolve(response_json.notifications):reject(response_json);})
+                .catch((error) => {reject(error); });
+        });
+    }
     static requestShareFrom(transaction_id, from_user_id) {
         return new Promise(function(resolve, reject)
         {
@@ -107,6 +145,65 @@ class BetweenUsServer {
                 })
                 .then((response) => response.json())
                 .then((response_json) => {response_json.success?resolve(response_json):reject(response_json);})
+                .catch((error) => {reject(error); });
+        });
+    }
+    static get_my_share(transaction_id) {
+        return new Promise(function(resolve, reject)
+        {
+            fetch(GLOBAL.DB_SERVER + "/transactions/get_my_share?transaction_id=" + transaction_id,
+                {
+                    method: 'GET',
+                    headers:
+                    {
+                        'Accept': 'application/json'
+                    }
+                })
+                .then((response) => response.json())
+                .then((response_json) => {response_json.success?resolve(response_json.share):reject(response_json);})
+                .catch((error) => {reject(error); });
+        });
+
+    }
+    static get_public_key_for_user(user_id) {
+        return new Promise(function(resolve, reject)
+        {
+            fetch(GLOBAL.DB_SERVER + "/users/get_public_key?user_id=" + user_id,
+                {
+                    method: 'GET',
+                    headers:
+                    {
+                        'Accept': 'application/json'
+                    }
+                })
+                .then((response) => response.json())
+                .then((response_json) => {response_json.success?resolve(response_json.public_key):reject(response_json);})
+                .catch((error) => {reject(error); });
+        });
+        
+    }
+    static commit_share(target_user_id, encrypted_share, transaction_id) {
+        var data = JSON.stringify({
+            transaction_id: transaction_id,
+            target_user_id: target_user_id,
+            encrypted_share: encrypted_share
+        });
+        console.warn(target_user_id);
+        console.warn(encrypted_share);
+        console.warn(transaction_id);
+        return new Promise(function(resolve, reject)
+        {
+            fetch(GLOBAL.DB_SERVER + "/transactions/commit_share",
+                {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: data
+                })
+                .then((response) => response.json())
+                .then((response_json) => {if (!response_json.success) reject(response_json); else resolve(response_json)})
                 .catch((error) => {reject(error); });
         });
     }
@@ -155,6 +252,48 @@ class BetweenUsServer {
                 })
                 .catch((error) => {reject(error); });
         });
+    }
+    static getMembersPublicKeys(group_id) {
+        return new Promise(function(resolve, reject)
+        {
+            fetch(GLOBAL.DB_SERVER + "/groups/get_members_public_keys/" + group_id,
+                {
+                    method: 'GET',
+                    headers:
+                    {
+                        'Accept': 'application/json'
+                    }
+                })
+                .then((response) => response.json())
+                .then((response_json) => {response_json.success?resolve(response_json):reject(response_json);})
+                .catch((error) => {reject(error); });
+        });
+
+    }
+    static createTransaction(group_id,cipher_Data,threshold,transaction_name,stash_list) {
+        var data = JSON.stringify({
+            group_id: group_id,
+            cipher_data: cipher_Data,
+            share_threshold: parseInt(threshold),
+            transaction_name: transaction_name,
+            stash_list: stash_list
+        });
+        return new Promise(function(resolve, reject)
+        {
+            fetch(GLOBAL.DB_SERVER + "/transactions/create_transaction",
+                {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: data
+                })
+                .then((response) => response.json())
+                .then((response_json) => {response_json.success?resolve(response_json):reject(response_json);})
+                .catch((error) => {reject(error); });
+        });
+
     }
 }
 module.exports = BetweenUsServer;

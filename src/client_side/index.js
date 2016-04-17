@@ -562,12 +562,16 @@ function AcceptRequestOnClick(transaction_id, target_user) {
 
 function _CommitShareToServer(share, target_user_public_key, target_user_id, transaction_id) {
     var encrypted_share = _mock_rsa_public_encrypt(share, target_user_public_key);
-    var data = {target_user_id: target_user_id, encrypted_share: JSON.stringify(encrypted_share), transaction_id: transaction_id};
+    var data = {target_user_id: target_user_id, encrypted_share: encrypted_share, transaction_id: transaction_id};
     $.ajax({
         type: "POST",
         url: server + "/transactions/commit_share",
         dataType:'json',
-        data: data,
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
+        data: JSON.stringify(data),
         xhrFields: {withCredentials: true},
         success: function(data, status, xhr) {
         },
@@ -683,7 +687,11 @@ function SubmitNewTransactionOnClick(share_table_id, sym_key_field_id, member_ta
         type: "POST",
         url: server + "/transactions/create_transaction",
         dataType:'json',
-        data: {json_data : JSON.stringify(json_data) }, // Must stringify due to encryption including wierd chars
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
+        data: JSON.stringify(json_data), // Must stringify due to encryption including wierd chars
         xhrFields: {withCredentials: true},
         success: function(data, status, xhr) {
             alert("SUCCESS!");

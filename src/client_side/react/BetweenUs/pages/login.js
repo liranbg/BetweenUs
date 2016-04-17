@@ -8,24 +8,28 @@ const { MKButton, MKColor,MKTextField } = MK;
 
 var LogIn = React.createClass({
     getInitialState: function() {
-        if (this.props.user_info != undefined) {
-            return this.props.user_info
-        }
         return {
             loginState: 'idle',
-            email: 'alice',
+            email: 'bob',
             password: '1'
         };
     },
     componentDidMount: function() {
-        this.clickToLogIn();
+        if (this.props.user_info != undefined) {
+            this.setState({
+                loginState: 'idle',
+                email: this.props.user_info.email,
+                password: this.props.user_info.password
+            });
+        }
+        // this.clickToLogIn();
     },
     clickToRegister: function() {
         this.props.navigator.push({id: 'register'});
     },
     clickToLogIn: function() {
         this.setState({ loginState: 'busy' });
-        ServerAPI.Login(this.state.email,this.state.password)
+        ServerAPI.login(this.state.email,this.state.password)
             .then((response) => {
                 this.setState({
                     loginState: 'success',

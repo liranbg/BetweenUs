@@ -92,32 +92,14 @@ router.get('/get_share_stash', function (req, res) {
  */
 router.post('/create_transaction', function (req, res) {
     var initiator = session_util.GetUserId(req.session);
-    var data = JSON.parse(req.body.json_data);
+    // var initiator = "3b242d964fa296d41f12dcc9cebfa674";
+    var data = req.body;
     var cipher_data = data.cipher_data;
     var stash_list = data.stash_list; //[{user_id:"123123", share:"asdasdasdasd"},{},{},...]
     var group_id = data.group_id;
     var transaction_name = data.transaction_name;
     var share_threshold = data.share_threshold;
-    var email_list = [];
-    for (var i in stash_list) {
-        email_list.push(stash_list[i].user_id);
-    }
-    database_interface.GetUsersByEmailList(email_list)
-    .then((data) => {
-        console.log("Get users by email list returned:", data);
-        if (data.rows.length != email_list.length) {
-            reject("Bad input list, not all emails could be mapped to registered users.")
-        }
-        else {
-            for (var i in data.rows) {
-                stash_list[i].user_id = data.rows[i].id;
-            }
-        }
-        return data.rows;
-    })
-    .then((data) => {
-        return database_interface.CreateStashList(stash_list, group_id);
-    })
+    database_interface.CreateStashList(stash_list, group_id)
     .then((share_stashes) => {
         /* Build the data structure to put inside the 'transaction' object, to hold a list of user_id=>share_stash_id for the
          new transaction.
@@ -301,7 +283,7 @@ router.post('/commit_share', function(req,res) {
     var user_id = session_util.GetUserId(req.session);
     var transaction_id = req.body.transaction_id;
     var target_user_id = req.body.target_user_id;
-    var encrypted_share = JSON.parse(req.body.encrypted_share);
+    var encrypted_share = req.body.encrypted_share;
 
     /* Check if user is logged in. */
     if (user_id == null) {

@@ -121,31 +121,65 @@ var Transaction = React.createClass({
         }
     },
     request_share(from_user_id) {
-        var transaction_id = this.props.data.transaction_id;
-
-        ServerAPI.requestShareFrom(transaction_id, from_user_id)
+        ServerAPI.requestShareFrom(this.state.transaction.id, from_user_id)
             .then((data) => {
-                //change status for requester to pending
+                //TODO: change status for requester to pending
 
             })
             .catch((error)=> {
                 Alert.alert('ERROR', error.error, [{text: 'OK' ,  style: 'ok'}]);
             })
     },
+    approve_share(target_user_id) {
+        var my_own_share;
+        var my_own_decrypted;
+        var target_user_pk;
+        var encrypted_share_for_target_user;
+        Promise.all([
+                ServerAPI.get_my_share(this.state.transaction.id),
+                ServerAPI.get_public_key_for_user(target_user_id)
+            ])
+            .then((all)=> {
+                my_own_share = all[0];
+                my_own_decrypted = betweenUs.AsymmetricDecrypt(my_own_share, "");
+                target_user_pk = all[1].public_key.public_key;
+                encrypted_share_for_target_user = betweenUs.AsymmetricEncrypt(my_own_decrypted, target_user_pk);
+                return encrypted_share_for_target_user;
+            })
+            .then((data) => ServerAPI.commit_share(target_user_id, data, this.state.transaction.id))
+            .then((data) => { console.warn(JSON.stringify(data))})
+            .catch((error) => {
+            console.warn(error);
+        });
+
+    },
     fetchTransactionData() {
         Promise.all([
-                ServerAPI.fetchTransactionData(this.props.data.transaction_id),
-                ServerAPI.fetchTransactionSharesData(this.props.data.transaction_id)
+                ServerAPI.fetchTransactionData(this.state.transaction.id),
+                ServerAPI.fetchTransactionSharesData(this.state.transaction.id),
+                ServerAPI.fetchTransactionsNotifications(this.state.transaction.id)
             ])
             .then((all)=> {
                 var data = all[0].transaction;
                 var member_list = [];
                 var count_for_threshold = 0;
-                for (var i = 0; i < all[1].transaction_data.length; ++i) {
+                var i;
+                for (i = 0; i < all[1].transaction_data.length; ++i) {
                     if (all[1].transaction_data[i].user_id != this.state.user_info.user_id) {
                         if (all[1].transaction_data[i].share_status == "own_stash")
                             count_for_threshold++;
                         member_list.push(all[1].transaction_data[i]);
+                    }
+                }
+                for (i = 0; i < all[2].length; ++i) {
+                    if (all[2][i].status == "pending") {
+                        for (var j = 0; i < member_list.length; ++i) {
+                            if (member_list[j].user_id == all[2][i].sender.user_id)
+                            {
+                                member_list[j].pending_request = all[2][i];
+                                break;
+                            }
+                        }
                     }
                 }
                 this.setState({
@@ -212,7 +246,11 @@ var Transaction = React.createClass({
                         }
                     }
                 )()}
-                <MemberSlider data={{members_list:this.state.transaction.transaction_shares_data, request_share: this.request_share}}/>
+                <MemberSlider data={{
+                    members_list:this.state.transaction.transaction_shares_data,
+                    request_share: this.request_share,
+                    approve_share: this.approve_share
+                 }}/>
 
                 <View style={{marginBottom:20}}/>
                 <Button onPress={this.fetchTransactionData}>Get Data</Button>

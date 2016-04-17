@@ -4,7 +4,7 @@ var AllGroupsScene = require('../pages/groups');
 var GroupScene = require("../pages/group");
 var TransactionScene = require("../pages/transaction");
 var GroupCreation = require("../pages/create_group");
-//var GroupScene = require('../pages/group');
+var TransactionCreation = require("../pages/create_transaction");
 import React, {
     BackAndroid,
     Navigator,
@@ -17,19 +17,17 @@ import React, {
     Dimensions
 } from "react-native";
 
-var {height, width} = Dimensions.get('window');
-
 var INITIAL_ROUTES = [
     {id: 'groups'},
     {id: 'transaction'},
     {id: 'group'},
     {id: 'notification'},
-    {id: 'create_group'}
+    {id: 'create_group'},
+    {id: 'create_transaction'}
 ];
 
 var JumpingNavBar = React.createClass({
     render() {
-        var jump_to;
         var currentRoutes = this.props.navigator.getCurrentRoutes();
         return (
             <View style={styles.tabs}>
@@ -95,6 +93,9 @@ var JumpingNav = React.createClass({
                 break;
             case 'create_group':
                 response = (<GroupCreation data={route.data} user_info={this.props.user_info} navigator={nav}/>);
+                break;
+            case 'create_transaction':
+                response = (<TransactionCreation data={route.data} user_info={this.props.user_info} navigator={nav}/>);
                 break;
             default:
                 response = (<Text>Default</Text>);

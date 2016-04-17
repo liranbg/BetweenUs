@@ -30,17 +30,30 @@ var Groups = React.createClass({
     fetchTransactionThenShow(transaction_id) {
         Promise.all([
                 ServerAPI.fetchTransactionData(transaction_id),
-                ServerAPI.fetchTransactionSharesData(transaction_id)
+                ServerAPI.fetchTransactionSharesData(transaction_id),
+                ServerAPI.fetchTransactionsNotifications(transaction_id)
             ])
             .then((all)=> {
                 var data = all[0].transaction;
+                var i;
                 var member_list = [];
                 var count_for_threshold = 0;
-                for (var i = 0; i < all[1].transaction_data.length; ++i) {
+                for (i = 0; i < all[1].transaction_data.length; ++i) {
                     if (all[1].transaction_data[i].user_id != this.state.user_info.user_id) {
                         if (all[1].transaction_data[i].share_status == "own_stash")
                             count_for_threshold++;
                         member_list.push(all[1].transaction_data[i]);
+                    }
+                }
+                for (i = 0; i < all[2].length; ++i) {
+                    if (all[2][i].status == "pending") {
+                        for (var j = 0; i < member_list.length; ++i) {
+                            if (member_list[j].user_id == all[2][i].sender.user_id)
+                            {
+                                member_list[j].pending_request = all[2][i];
+                                break;
+                            }
+                        }
                     }
                 }
                 return {
@@ -95,7 +108,9 @@ var Groups = React.createClass({
                         </Text>
                     </MKButton>
                 </View>
-                <CreateButton title="Create Transaction" onPress={()=>{console.warn("hey");}}/>
+                <CreateButton title="Create Transaction" onPress={()=>{
+                this.props.navigator.push({id:"create_transaction", data:{group_id:this.state.group_id, group_member_list_length:this.state.member_list.length}})
+                }}/>
             </View>
         );
     }

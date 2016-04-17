@@ -15,7 +15,7 @@ var BetweenUs = React.createClass({
     renderScene: function(route, nav) {
         switch (route.id) {
             case 'login':
-                return <LoginScene navigator={nav} />;
+                return <LoginScene navigator={nav} user_info={route.user_info}/>;
             case 'register':
                 return <RegisterScene navigator={nav} />;
             case 'logged_in':
