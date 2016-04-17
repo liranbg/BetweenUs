@@ -1,5 +1,5 @@
 var express = require('express');
-var database_interface = require('../cloudant_interaction');
+var database_interface = new require('../cloudant_interaction');
 var session_util = require('../utils/session');
 var errors_util = require('../utils/errors');
 var router = express.Router();

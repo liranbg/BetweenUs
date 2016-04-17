@@ -81,7 +81,7 @@ class ServerInteraction {
             share_request_status: {
                 map: function (doc) {
                     for (var i in doc.notification_list) {
-                        emit([doc.notification_list[i].transaction_id, doc.notification_list[i].sender],
+                        emit([doc.notification_list[i].transaction_id, doc.notification_list[i].sender.user_id],
                             { share_status: doc.notification_list[i].status, requested_from: doc.user_id });
                     }
                 }.toString()
@@ -122,7 +122,7 @@ class ServerInteraction {
         };
         this._InitialDataBasesConnectionVariables();
         this._InitDataBases();
-        this._TestFunctions();
+        //this._TestFunctions();
     }
 
     _TestFunctions() {
