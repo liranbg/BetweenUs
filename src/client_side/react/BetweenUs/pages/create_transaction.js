@@ -3,12 +3,13 @@ var MK = require('react-native-material-kit');
 var LoginInputStyles = require("../styles/email_password.js");
 var ServerAPI = require('../api/server_interaction');
 const { MKSlider, MKButton, MKColor,MKTextField } = MK;
+var Slider = require('react-native-slider');
 var betweenUs = require('../api/betweenus');
 
 var TransactionCreation = React.createClass({
     getInitialState() {
         return( {
-            threshold:1,
+            threshold:2,
             group_id:"",
             group_member_list_length:1,
             transaction_data: "TrTest12",
@@ -24,6 +25,15 @@ var TransactionCreation = React.createClass({
         }
     },
     clickToCreateTransaction () {
+        if ((this.state.threshold < 2) || (!this.state.group_id) || (this.state.transaction_data == "") || (this.state.transaction_name == ""))
+        {
+            console.warn(this.state.threshold);
+            //TODO: mark all empty fields
+            return false;
+        }
+        else {
+            return true;
+        }
         var symmetric_key = "";
         var encrypted_text = "";
         var assigned_shares = [];
@@ -36,22 +46,14 @@ var TransactionCreation = React.createClass({
             })
             .then((sym_key)=> {
                 symmetric_key = sym_key;
-                console.warn('Symmetric Key: ' + JSON.stringify(symmetric_key));
-                console.warn('Generating cipher text using previously generated symmetric key...');
                 return betweenUs.SymmetricEncrypt(this.state.transaction_data, symmetric_key);
             })
             .then((enc_text) => {
                 encrypted_text = enc_text;
-                console.warn('Encryption done.');
-                console.warn('Cipher text: ' + encrypted_text);
-                console.warn('Using Shamir\'s Secret Sharing to split symmetric key into shares with', parseInt(this.state.threshold), 'threshold');
                 return betweenUs.MakeShares(symmetric_key, assigned_shares.length, parseInt(this.state.threshold), 0);
             })
             .then((shares) => {
-                console.warn('Done splitting to shares.');
-                console.warn('Starting encryption with RSA');
                 for (var i in shares) {
-                    console.warn('EMAIL: ' + assigned_shares[i].email + ', Share: ' + shares[i]);
                     assigned_shares[i].share = betweenUs.AsymmetricEncrypt(shares[i], assigned_shares[i].public_key);
                 }
                 return assigned_shares;
@@ -59,8 +61,55 @@ var TransactionCreation = React.createClass({
             .then((ready_shares) => {
                 ServerAPI.createTransaction(this.state.group_id, encrypted_text, parseInt(this.state.threshold), this.state.transaction_name, ready_shares)
                     .then((result)=> {
-                        //TODO: push to transaction with new transaction information
                         console.warn(JSON.stringify(result));
+                        var data = result.data;
+                        var i;
+                        var member_list = [];
+                        var count_for_threshold = 1; //my own share
+                        for (i = 0; i < assigned_shares.length; ++i) {
+                            if (assigned_shares[i].user_id != this.props.user_info.user_id) {
+                                member_list.push({
+                                    user_id:assigned_shares[i].user_id,
+                                    share:"",
+                                    email:assigned_shares[i].email,
+                                    share_status:"missing"
+                                });
+                            }
+                            else {
+                                member_list.push({
+                                    user_id:assigned_shares[i].user_id,
+                                    share:assigned_shares[i].share,
+                                    email:assigned_shares[i].email,
+                                    share_status:"own_stash"
+                                });
+                            }
+                        }
+                        return ({
+                            transaction: {
+                                id: data.id,
+                                name: data.transaction_name,
+                                threshold: data.threshold,
+                                initiator: {
+                                    id: data.initiator.initiator_id,
+                                    email: data.initiator.initiator_email
+                                },
+                                group: {
+                                    id:data.group_id,
+                                    name:data.my_stash
+                                },
+                                data: {
+                                    type:data.cipher_meta_data.type,
+                                    content:data.cipher_meta_data.data
+                                },
+                                members_list: data.members_list,
+                                my_stash_id: "",
+                                can_decrypt: count_for_threshold >= data.threshold,
+                                transaction_shares_data: member_list
+                            }
+                        })
+                    })
+                    .then((transaction_data)=> {
+                        this.props.navigator.replace({id:"transaction", data:transaction_data});
                     });
             })
             .catch((error) => console.warn(error));
@@ -80,16 +129,15 @@ var TransactionCreation = React.createClass({
                             onChangeText={(transaction_name) => this.setState({transaction_name})}
                         />
                     </View>
-                    <View style={styles.textInputContainer}>
-                        <Text>Threshold: {this.state.threshold}</Text>
-                        <MKSlider
-                            ref="sliderWithValue"
-                            min={1}
-                            max={this.state.group_member_list_length}
+                    <View style={[styles.textInputContainer]}>
+                        <Text style={{marginRight:10}}>Threshold: {this.state.threshold}</Text>
+                        <Slider
+                            style={{flex:1, marginRight:10}}
+                            minimumValue={1}
+                            step={1}
+                            maximumValue={this.state.group_member_list_length}
                             value={this.state.threshold}
-                            trackSize={1}
-                            style={styles.slider}
-                            onChange={(threshold) => this.setState({threshold: threshold.toFixed(0)})}
+                            onValueChange={(threshold) => this.setState({threshold})}
                         />
                     </View>
                     <View style={styles.textInputContainer}>
@@ -102,21 +150,20 @@ var TransactionCreation = React.createClass({
                             onChangeText={(transaction_data) => this.setState({transaction_data})}
                         />
                     </View>
-                    <MKButton
-                        backgroundColor={MKColor.Teal}
-                        shadowRadius={2}
-                        shadowOffset={{width:0, height:2}}
-                        shadowOpacity={.7}
-                        shadowColor="black"
-                        style={LoginInputStyles.button}
-                        onPress={this.clickToCreateTransaction}>
-                        <Text pointerEvents="none"
-                              style={{color: 'white', fontWeight: 'bold'}}>
-                            Create Transaction
-                        </Text>
-                    </MKButton>
-
                 </View>
+                <MKButton
+                    backgroundColor={MKColor.Teal}
+                    shadowRadius={2}
+                    shadowOffset={{width:0, height:2}}
+                    shadowOpacity={.7}
+                    shadowColor="black"
+                    style={styles.createButton}
+                    onPress={this.clickToCreateTransaction}>
+                    <Text pointerEvents="none"
+                          style={{color: 'white', fontWeight: 'bold'}}>
+                        Create Transaction
+                    </Text>
+                </MKButton>
             </View>
         );
     }
@@ -153,6 +200,12 @@ var styles = StyleSheet.create({
     },
     slider: {
         flex: 1
+    },
+    createButton:{
+        height:45,
+        margin: 10,
+        justifyContent: 'center',
+        alignItems: 'center'
     }
 });
 

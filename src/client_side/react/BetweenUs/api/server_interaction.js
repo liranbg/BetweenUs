@@ -27,19 +27,19 @@ class BetweenUsServer {
     static register(email, password, public_key) {
         return new Promise(function(resolve, reject)
         {
-            fetch(GLOBAL.DB_SERVER + "/users/register_user", 
+            fetch(GLOBAL.DB_SERVER + "/users/register_user",
                 {
                     method: 'POST',
                     credentials: 'include',
-                        headers: {
-                            'Accept': 'application/json',
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            email: email,
-                            password: password,
-                            public_key: public_key
-                        })
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: email,
+                        password: password,
+                        public_key: public_key
+                    })
                 })
                 .then((response) => {if (response.status != 201) reject(response); else response.json() })
                 .then((responseJSON)=>{resolve(responseJSON)})
@@ -114,7 +114,7 @@ class BetweenUsServer {
                 })
                 .then((response) => resolve(response.json()))
                 .catch((error) => {reject(error); });
-            });
+        });
     }
     static fetchTransactionsNotifications(transaction_id) {
         return new Promise(function(resolve, reject)
@@ -180,7 +180,7 @@ class BetweenUsServer {
                 .then((response_json) => {response_json.success?resolve(response_json.public_key):reject(response_json);})
                 .catch((error) => {reject(error); });
         });
-        
+
     }
     static commit_share(target_user_id, encrypted_share, transaction_id) {
         var data = JSON.stringify({
@@ -279,20 +279,22 @@ class BetweenUsServer {
             stash_list: stash_list
         });
         return new Promise(function(resolve, reject)
-        {
-            fetch(GLOBAL.DB_SERVER + "/transactions/create_transaction",
-                {
-                    method: 'POST',
-                    headers: {
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
-                    },
-                    body: data
-                })
-                .then((response) => response.json())
-                .then((response_json) => {response_json.success?resolve(response_json):reject(response_json);})
-                .catch((error) => {reject(error); });
-        });
+            {
+
+                fetch(GLOBAL.DB_SERVER + "/transactions/create_transaction",
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        },
+                        body: data
+                    })
+                    .then((response) => response.json())
+                    .then((response_json) => {response_json.success?resolve(response_json):reject(response_json);})
+                    .catch((error) => {reject(error); });
+            }
+        );
 
     }
 }

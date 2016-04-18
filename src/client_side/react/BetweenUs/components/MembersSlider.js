@@ -34,8 +34,6 @@ var MemberSlider = React.createClass({
                 </TouchableOpacity>
             );
         }
-        else
-            return (<View></View>);
     },
     _requestShareButton(member) {
         var request_status = "";
@@ -55,10 +53,10 @@ var MemberSlider = React.createClass({
             request_status = "Requested";
             request_status_color = "#6D6875";
             return (
-                <View style={styles.scrollButton}>
+                <TouchableOpacity onPress={()=>{}} style={styles.scrollButton}>
                     <Icon style={{borderColor:'black'}} size={28} name="pull-request" color={request_status_color}/>
                     <Text style={{fontSize: 10, fontWeight: 'bold'}}>{request_status}</Text>
-                </View>
+                </TouchableOpacity>
             );
         }
     },
@@ -75,13 +73,13 @@ var MemberSlider = React.createClass({
         }
         else if (value.share_status == "pending") {
             icon_color = '#E74C3C';
-            icon_name ="minus-circled"
+            icon_name = "load-a"
         }
         return (
             <View style={styles.row} key={index}>
                 <View style={{flexDirection: 'row',alignItems: 'center'}}>
                     <View style={styles.shareExistsIcon}>
-                        <Icon size={28} name={icon_name} color={icon_color}/>
+                         <Icon size={28} name={icon_name} color={icon_color}/>
                     </View>
                     <Text style={{flex: 1}}>{value.email}</Text>
                     <View style={styles.scrollButtons}>
@@ -134,6 +132,7 @@ var styles = StyleSheet.create({
     },
     shareExistsIcon: {
         height: 45,
+        marginLeft:10,
         marginRight:10,
         backgroundColor: '#EAEAEA',
         flexDirection: 'row',

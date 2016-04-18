@@ -149,8 +149,8 @@ var Transaction = React.createClass({
             .then((data) => ServerAPI.commit_share(target_user_id, data, this.state.transaction.id))
             .then((data) => { console.warn(JSON.stringify(data))})
             .catch((error) => {
-            console.warn(error);
-        });
+                console.warn(error);
+            });
 
     },
     fetchTransactionData() {
@@ -165,11 +165,9 @@ var Transaction = React.createClass({
                 var count_for_threshold = 0;
                 var i;
                 for (i = 0; i < all[1].transaction_data.length; ++i) {
-                    if (all[1].transaction_data[i].user_id != this.state.user_info.user_id) {
-                        if (all[1].transaction_data[i].share_status == "own_stash")
-                            count_for_threshold++;
-                        member_list.push(all[1].transaction_data[i]);
-                    }
+                    if ((all[1].transaction_data[i].share_status == "own_stash") || (all[1].transaction_data[i].share))
+                        count_for_threshold++;
+                    member_list.push(all[1].transaction_data[i]);
                 }
                 for (i = 0; i < all[2].length; ++i) {
                     if (all[2][i].status == "pending") {
@@ -215,22 +213,36 @@ var Transaction = React.createClass({
         var index = 0;
         while ((shares_to_decrypt.length < this.state.transaction.threshold) && (index < this.state.transaction.transaction_shares_data.length)) {
             if (this.state.transaction.transaction_shares_data[index].share) {
-                shares_to_decrypt.push(this.state.transaction.transaction_shares_data[index].share);
+                shares_to_decrypt.push(betweenUs.AsymmetricDecrypt(this.state.transaction.transaction_shares_data[index].share,""));
             }
             index+=1;
         }
         if (shares_to_decrypt.length >= this.state.transaction.threshold) {
             var from_shares_symmetric_key_dictionary = betweenUs.CombineShares(shares_to_decrypt);
+            try{
             var decrypted_buffer = betweenUs.SymmetricDecrypt(this.state.transaction.data.content, from_shares_symmetric_key_dictionary);
-            Alert.alert(
-                'Response',
-                decrypted_buffer,
-                [
-                    // {text: 'Ask me later', onPress: () => console.warn('Ask me later pressed')},
-                    // {text: 'Cancel', onPress: () => console.warn('Cancel Pressed'), style: 'cancel'},
-                    {text: 'OK' ,  style: 'ok'}
-                ]
-            );
+                Alert.alert(
+                    'Response',
+                    decrypted_buffer,
+                    [
+                        // {text: 'Ask me later', onPress: () => console.warn('Ask me later pressed')},
+                        // {text: 'Cancel', onPress: () => console.warn('Cancel Pressed'), style: 'cancel'},
+                        {text: 'OK' ,  style: 'ok'}
+                    ]
+                );
+                // );
+            } catch(e) {
+                Alert.alert(
+                    'Error reading response',
+                    "Response has been malformed",
+                    [
+                        // {text: 'Ask me later', onPress: () => console.warn('Ask me later pressed')},
+                        // {text: 'Cancel', onPress: () => console.warn('Cancel Pressed'), style: 'cancel'},
+                        {text: 'OK' ,  style: 'ok'}
+                    ]
+                );
+            }
+
         }
     },
     render(){
