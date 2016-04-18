@@ -82,7 +82,7 @@ class ServerInteraction {
                 map: function (doc) {
                     for (var i in doc.notification_list) {
                         emit([doc.notification_list[i].transaction_id, doc.notification_list[i].sender.user_id],
-                            { share_status: doc.notification_list[i].status, requested_from: doc.user_id });
+                            { share_status: doc.notification_list[i].status, requested_from: doc.user_id, doc: doc.notification_list[i] });
                     }
                 }.toString()
             }
@@ -122,11 +122,13 @@ class ServerInteraction {
         };
         this._InitialDataBasesConnectionVariables();
         this._InitDataBases();
-        //this._TestFunctions();
+        this._TestFunctions();
     }
 
     _TestFunctions() {
-        this.GetShareStatus("b03fe9f22dcbf2a95bfcc304f32b2ca5","0e99b5cccd51354bb2b9024d17fd650c");
+        //this.GetShareStatus("b03fe9f22dcbf2a95bfcc304f32b2ca5","0e99b5cccd51354bb2b9024d17fd650c");
+        this.SetShareStatusToCommited("cd98740b15651c52c1a1376c9991b049", "32c56ded0ca8e3c7697804c344e45fe8", "4a331a1257189ec950063475697150f4");
+
     }
 
     static get instance() {
@@ -1071,7 +1073,48 @@ class ServerInteraction {
                     reject(data);
                 })
         })
+    }
 
+    /**
+     *
+     * @param transaction_id
+     * @param requester_user_id The user who requested the share.
+     * @param commiting_user_id The user who received the request,
+     *        the status needs to be changed from pending to committed in his notification list.
+     * @returns {Promise}
+     * @constructor
+     */
+    SetShareStatusToCommited(transaction_id, requester_user_id, committing_user_id) {
+        return new Promise((resolve, reject) => {
+            this.notification_stash_db.query(this._db_module_config.notification_stash_db.api.get_share_status, {
+                key: [ transaction_id, requester_user_id ],
+                include_docs: true
+            })
+            .then((data) => {
+                for (var j in data.rows) {
+                    if (data.rows[j].doc.user_id == committing_user_id) {
+                        var notification_list = data.rows[j].doc.notification_list;
+                        for (var i in notification_list) {
+                            // sender.user_id is the user_id of the user that requested the share.
+                            if (notification_list[i].sender.user_id == requester_user_id) {
+                                // If found the notification, set status to committed, replace the doc's notification list,
+                                // And then submit the new doc back to the notification list database.
+                                notification_list[i].status = "committed";
+                                data.rows[j].doc.notification_list = notification_list;
+                                return this.notification_stash_db.post(data.rows[j].doc);
+                            }
+                        }
+                    }
+                }
+                reject("Couldn't find share request.");
+                })
+                .then((data) => {
+                    resolve(data);
+                })
+                .catch((err) => {
+                    reject(data);
+                })
+        })
 
     }
 
