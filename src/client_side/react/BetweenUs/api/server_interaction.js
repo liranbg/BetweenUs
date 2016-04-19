@@ -278,24 +278,23 @@ class BetweenUsServer {
             transaction_name: transaction_name,
             stash_list: stash_list
         });
-        console.warn(JSON.stringify(data));
-        // return new Promise(function(resolve, reject)
-        //     {
-        //
-        //         fetch(GLOBAL.DB_SERVER + "/transactions/create_transaction",
-        //             {
-        //                 method: 'POST',
-        //                 headers: {
-        //                     'Accept': 'application/json',
-        //                     'Content-Type': 'application/json'
-        //                 },
-        //                 body: data
-        //             })
-        //             .then((response) => response.json())
-        //             .then((response_json) => {response_json.success?resolve(response_json):reject(response_json);})
-        //             .catch((error) => {reject(error); });
-        //     }
-        // );
+        return new Promise(function(resolve, reject)
+            {
+
+                fetch(GLOBAL.DB_SERVER + "/transactions/create_transaction",
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        },
+                        body: data
+                    })
+                    .then((response) => response.json())
+                    .then((response_json) => {response_json.success?resolve(response_json):reject(response_json);})
+                    .catch((error) => {reject(error); });
+            }
+        );
 
     }
 }
