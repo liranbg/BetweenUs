@@ -95,7 +95,7 @@ router.post('/create_transaction', function (req, res) {
     // var initiator = "3b242d964fa296d41f12dcc9cebfa674";
     var data = req.body;
     var cipher_data = data.cipher_data;
-    var stash_list = data.stash_list; //[{user_id:"123123", share:"asdasdasdasd"},{},{},...]
+    var stash_list = data.stash_list; // [{user_id:"123123", share:"asdasdasdasd"},{},{},...]
     var group_id = data.group_id;
     var transaction_name = data.transaction_name;
     var share_threshold = data.share_threshold;
@@ -304,12 +304,19 @@ router.post('/commit_share', function(req,res) {
                 if (stash.user_id == target_user_id) {
                     database_interface.GetShareStashDocByStashID(stash.stash_id)
                         .then((stash_doc) => {
-                            database_interface.CommitShareToUser(stash_doc, encrypted_share, user_id)
+                            return database_interface.CommitShareToUser(stash_doc, encrypted_share, user_id)
+                        })
+                        .then((data) => {
+                            // user_id is assumed to be the user who submits the share.
+                            // target_user_id is assumed to be the user who requested the share.
+                            // That means, we need to get the notification stash of the user who submitted the share,
+                            // and change the share status from 'pending' to 'committed' to indicate that this share has
+                            // indeed been submitted.
+                            return database_interface.SetShareStatusToCommited(transaction_id, target_user_id ,user_id);
                         })
                         .then((data) => {
                             res.status(201).json({success: true, message: "Done"});
                         })
-                        // TODO: Update notification status to be committed.
                         .catch((err) => {
                             res.status(404).json({success: false, error: err});
                         });
