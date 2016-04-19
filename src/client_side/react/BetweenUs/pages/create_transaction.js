@@ -31,9 +31,6 @@ var TransactionCreation = React.createClass({
             //TODO: mark all empty fields
             return false;
         }
-        else {
-            return true;
-        }
         var symmetric_key = "";
         var encrypted_text = "";
         var assigned_shares = [];
