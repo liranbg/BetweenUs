@@ -62,10 +62,14 @@ var MemberSlider = React.createClass({
     },
     _renderRow: function(value, index) {
         var icon_name, icon_color;
-
+        console.warn(value.share_status);
         if (value.share_status == "own_stash") {
             icon_color = '#2ECC71';
             icon_name ="android-checkmark-circle";
+        }
+        else if (value.share_status == "committed") {
+            icon_color = '#2ECC71';
+            icon_name = "paper-airplane";
         }
         else if (value.share_status == "missing") {
             icon_color = '#E74C3C';
