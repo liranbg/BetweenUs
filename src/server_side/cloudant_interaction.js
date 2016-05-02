@@ -127,7 +127,7 @@ class ServerInteraction {
 
     _TestFunctions() {
         //this.GetShareStatus("b03fe9f22dcbf2a95bfcc304f32b2ca5","0e99b5cccd51354bb2b9024d17fd650c");
-        this.SetShareStatusToCommited("cd98740b15651c52c1a1376c9991b049", "32c56ded0ca8e3c7697804c344e45fe8", "4a331a1257189ec950063475697150f4");
+        //this.SetShareStatusToCommited("cd98740b15651c52c1a1376c9991b049", "32c56ded0ca8e3c7697804c344e45fe8", "4a331a1257189ec950063475697150f4");
 
     }
 
@@ -1037,8 +1037,10 @@ class ServerInteraction {
      */
     CommitShareToUser(stash_doc, share, source_user_id) {
         return new Promise((resolve, reject) => {
+            var found = false;
             for (var i in stash_doc.share_list) {
                 if (stash_doc.share_list[i].user_id == source_user_id) {
+                    found = true;
                     stash_doc.share_list[i].share = share;
                     this.shares_stash_db.post(stash_doc)
                     .then((data) => {
@@ -1047,9 +1049,13 @@ class ServerInteraction {
                     .catch((err) => {
                         reject(err);
                     });
+                    // Exit the loop, if we found, no point to keep iterating.
+                    break;
                 }
             }
-            reject("Can't find stash id.");
+            if (found == false) {
+                reject("Can't find stash id.");
+            }
         })
     };
 

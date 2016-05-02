@@ -284,7 +284,6 @@ router.post('/commit_share', function(req,res) {
     var transaction_id = req.body.transaction_id;
     var target_user_id = req.body.target_user_id;
     var encrypted_share = req.body.encrypted_share;
-
     /* Check if user is logged in. */
     if (user_id == null) {
         errors_util.ReturnNotLoggedInError(res);
