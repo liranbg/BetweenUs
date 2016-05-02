@@ -45,7 +45,7 @@ var Groups = React.createClass({
                 }
                 for (i = 0; i < all[2].length; ++i) {
                     if (all[2][i].status == "pending") {
-                        for (var j = 0; i < member_list.length; ++i) {
+                        for (var j = 0; j < member_list.length; ++j) {
                             if (member_list[j].user_id == all[2][i].sender.user_id)
                             {
                                 member_list[j].pending_request = all[2][i];
