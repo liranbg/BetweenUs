@@ -1097,29 +1097,35 @@ class ServerInteraction {
                 include_docs: true
             })
             .then((data) => {
+                var found = false;
                 for (var j in data.rows) {
                     if (data.rows[j].doc.user_id == committing_user_id) {
                         var notification_list = data.rows[j].doc.notification_list;
                         for (var i in notification_list) {
                             // sender.user_id is the user_id of the user that requested the share.
-                            if (notification_list[i].sender.user_id == requester_user_id) {
+                            if (notification_list[i].sender.user_id == requester_user_id && notification_list[i].transaction_id == transaction_id) {
                                 // If found the notification, set status to committed, replace the doc's notification list,
                                 // And then submit the new doc back to the notification list database.
                                 notification_list[i].status = "committed";
                                 data.rows[j].doc.notification_list = notification_list;
-                                return this.notification_stash_db.post(data.rows[j].doc);
+                                // Passes on a promise to the next then in line, we can break after this.
+                                this.notification_stash_db.post(data.rows[j].doc);
+                                found = true;
+                                break;
                             }
                         }
                     }
                 }
+            if (found == false) {
                 reject("Couldn't find share request.");
-                })
-                .then((data) => {
-                    resolve(data);
-                })
-                .catch((err) => {
-                    reject(data);
-                })
+            }
+            })
+            .then((data) => {
+                resolve(data);
+            })
+            .catch((err) => {
+                reject(data);
+            })
         })
 
     }
