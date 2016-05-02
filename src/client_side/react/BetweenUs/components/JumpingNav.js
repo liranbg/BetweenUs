@@ -5,6 +5,8 @@ var GroupScene = require("../pages/group");
 var TransactionScene = require("../pages/transaction");
 var GroupCreation = require("../pages/create_group");
 var TransactionCreation = require("../pages/create_transaction");
+
+
 import React, {
     BackAndroid,
     Navigator,
@@ -26,6 +28,26 @@ var INITIAL_ROUTES = [
     {id: 'create_transaction'}
 ];
 
+/* FOR MORE ICONS IN NAV BAR
+ // <Icon style={{}}  size={36} name="android-notifications-none" color="#4F8EF7" onPress={()=>{
+ // for (var route_key in currentRoutes) {
+ //     if (currentRoutes[route_key].id == "notification") {
+ //     this.props.navigator.jumpTo(currentRoutes[route_key]);
+ //     return;
+ //     }
+ // }
+ // this.props.navigator.push({id:'notification'});
+ // }}/>
+ // <Icon style={{}}  size={36} name="android-notifications" color="#4F8EF7"  onPress={()=>{
+ // for (var route_key in currentRoutes) {
+ //     if (currentRoutes[route_key].id == "group") {
+ //     this.props.navigator.jumpTo(currentRoutes[route_key]);
+ //     return;
+ //     }
+ // }
+ // this.props.navigator.push({id:'group'});
+ // }}/>
+ */
 var JumpingNavBar = React.createClass({
     render() {
         var currentRoutes = this.props.navigator.getCurrentRoutes();
@@ -41,24 +63,7 @@ var JumpingNavBar = React.createClass({
                 }
                 this.props.navigator.push({id:'groups'});
                 }}/>
-                <Icon style={{}}  size={36} name="android-notifications-none" color="#4F8EF7" onPress={()=>{
-                for (var route_key in currentRoutes) {
-                    if (currentRoutes[route_key].id == "notification") {
-                    this.props.navigator.jumpTo(currentRoutes[route_key]);
-                    return;
-                    }
-                }
-                this.props.navigator.push({id:'notification'});
-                }}/>
-                <Icon style={{}}  size={36} name="android-notifications" color="#4F8EF7"  onPress={()=>{
-                for (var route_key in currentRoutes) {
-                    if (currentRoutes[route_key].id == "group") {
-                    this.props.navigator.jumpTo(currentRoutes[route_key]);
-                    return;
-                    }
-                }
-                this.props.navigator.push({id:'group'});
-                }}/>
+
             </View>
         );
     }
@@ -72,7 +77,7 @@ var JumpingNav = React.createClass({
     componentDidMount(){
         this.setState(this.props.user_info);
         BackAndroid.addEventListener('hardwareBackPress', () => {
-            if (this._navigator) {
+            if (this._navigator.getCurrentRoutes().length > 1) {
                 this._navigator.pop();
                 return true;
             }

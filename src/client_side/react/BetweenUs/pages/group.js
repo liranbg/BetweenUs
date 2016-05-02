@@ -39,8 +39,9 @@ var Groups = React.createClass({
                 var member_list = [];
                 var count_for_threshold = 0;
                 for (i = 0; i < all[1].transaction_data.length; ++i) {
-                    if (all[1].transaction_data[i].share_status == "own_stash")
+                    if (all[1].transaction_data[i].share) {
                         count_for_threshold++;
+                    }
                     member_list.push(all[1].transaction_data[i]);
                 }
                 for (i = 0; i < all[2].length; ++i) {

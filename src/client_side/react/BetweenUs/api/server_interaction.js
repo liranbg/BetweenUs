@@ -20,7 +20,9 @@ class BetweenUsServer {
                         })
                 })
                 .then((response) => response.json())
-                .then((responseJSON)=>{resolve(responseJSON)})
+                .then((responseJSON)=>{
+                        if (responseJSON.success) { resolve(responseJSON)} else reject(responseJSON);
+                })
                 .catch((err)=>{reject(err)});
         });
     }
@@ -41,8 +43,15 @@ class BetweenUsServer {
                         public_key: public_key
                     })
                 })
-                .then((response) => {if (response.status != 201) reject(response); else response.json() })
-                .then((responseJSON)=>{resolve(responseJSON)})
+                .then((response) => response.json())
+                .then((response) => {
+                    if (response.status != 201) {
+                        reject(response);
+                    }
+                    else {
+                        resolve(response)
+                    }
+                })
                 .catch((err)=>{reject(err)});
         });
     }

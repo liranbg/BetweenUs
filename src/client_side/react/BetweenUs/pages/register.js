@@ -1,8 +1,9 @@
-import React, {View, Text, TextInput, StyleSheet, TouchableHighlight} from 'react-native'
+import React, {Image, Alert, View, Text, TextInput, StyleSheet, TouchableHighlight} from 'react-native'
 var LoginInputStyles = require("../styles/email_password.js");
 var Icon = require('react-native-vector-icons/Ionicons');
 var MK = require('react-native-material-kit');
 var ServerAPI = require('../api/server_interaction');
+var LoadingScreen = require('../components/LoadingSpinner');
 const { MKButton, MKColor, } = MK;
 
 var Registration = React.createClass({
@@ -14,19 +15,40 @@ var Registration = React.createClass({
         };
     },
     clickToRegister: function() {
-        this.setState({ loginState: 'busy' });
+        if ((this.refs['registerBTN'] !== undefined) && (this.refs['registerBTN'].state.disabled)) {
+            return;
+        }
+        this.setState({ registrationState: 'busy' });
         ServerAPI.register(this.state.email, this.state.password, "1")
             .then((response) => {
                 this.props.navigator.push({id: 'login',user_info: {email:this.state.email, password:this.state.password, loginState: 'idle'}});
             })
             .catch((error) => {
-                console.error(JSON.stringify(error));
+                Alert.alert(
+                    'Registration Error',
+                    error.error,
+                    [
+                        {text: 'OK' ,  style: 'ok'}
+                    ]
+                );
+            })
+            .finally((data) => {
+                this.setState({ registrationState: 'idle' });
+                this.refs['registerBTN'].setState({disabled:false});
             });
     },
     render(){
         return (
-            <View>
-                <Text style={{justifyContent: 'center', flex:1, textAlign:'center', fontWeight:'bold', margin: 10, fontSize: 36}}>Join Us!</Text>
+            <View style={styles.container}>
+                <Text style={styles.welcome}>
+                    Join Us!
+                </Text>
+                <View style={styles.welcomeImageContainer}>
+                    <Image
+                        source={{uri: 'http://facebook.github.io/react/img/logo_og.png'}}
+                        style={styles.welcomeImage}
+                    />
+                </View>
                 <View style={styles.container}>
                     <View style={styles.textInputContainer}>
                         <Text style={styles.textInputLabel}><Icon name="email" size={30} color="#4F8EF7" /></Text>
@@ -47,38 +69,40 @@ var Registration = React.createClass({
                             value={this.state.password}
                         />
                     </View>
+                    <View style={LoginInputStyles.row}>
+                        <MKButton
+                            backgroundColor={MKColor.Teal}
+                            shadowRadius={2}
+                            shadowOffset={{width:0, height:2}}
+                            shadowOpacity={.7}
+                            shadowColor="black"
+                            onPress={this.props.navigator.pop}
+                            style={LoginInputStyles.button}
+                        >
+                            <Text pointerEvents="none"
+                                  style={{color: 'white', fontWeight: 'bold'}}>
+                                Cancel
+                            </Text>
+                        </MKButton>
+                        <MKButton
+                            disabled={false}
+                            ref="registerBTN"
+                            backgroundColor={MKColor.Teal}
+                            shadowRadius={2}
+                            shadowOffset={{width:0, height:2}}
+                            shadowOpacity={.7}
+                            shadowColor="black"
+                            onPress={this.clickToRegister}
+                            style={LoginInputStyles.button}
+                        >
+                            <Text pointerEvents="none"
+                                  style={{color: 'white', fontWeight: 'bold'}}>
+                                Register
+                            </Text>
+                        </MKButton>
+                    </View>
                 </View>
-                <View style={LoginInputStyles.row}>
-                    <MKButton
-                        backgroundColor={MKColor.Teal}
-                        shadowRadius={2}
-                        shadowOffset={{width:0, height:2}}
-                        shadowOpacity={.7}
-                        shadowColor="black"
-                        onPress={this.props.navigator.pop}
-                        style={LoginInputStyles.button}
-                    >
-                        <Text pointerEvents="none"
-                              style={{color: 'white', fontWeight: 'bold'}}>
-                            Cancel
-                        </Text>
-                    </MKButton>
-                    <MKButton
-                        backgroundColor={MKColor.Teal}
-                        shadowRadius={2}
-                        shadowOffset={{width:0, height:2}}
-                        shadowOpacity={.7}
-                        shadowColor="black"
-                        onPress={this.clickToRegister}
-                        style={LoginInputStyles.button}
-                    >
-                        <Text pointerEvents="none"
-                              style={{color: 'white', fontWeight: 'bold'}}>
-                            Register
-                        </Text>
-                    </MKButton>
-
-                </View>
+                <LoadingScreen isOpen={this.state.registrationState == 'busy'} text={"Registering..."}/>
             </View>
         );
     }
@@ -87,6 +111,21 @@ var Registration = React.createClass({
 var styles = StyleSheet.create({
     container: {
         flex: 1
+    },
+    welcome: {
+        fontSize: 36,
+        textAlign: 'center',
+        margin: 10
+    },
+    welcomeImageContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center'
+    },
+    welcomeImage: {
+        width: 200,
+        height: 200,
+        margin: 5
     },
     textInputContainer: {
         flexDirection: 'row',
@@ -99,7 +138,6 @@ var styles = StyleSheet.create({
     },
     textInput:{
         flex: 0.9
-
     }
 });
 

@@ -56,9 +56,7 @@ var GroupsSlider = React.createClass({
                                 <View style={{flexDirection: 'row'}}>
                                     <Text style={{fontSize: 11}}>Members: {value.member_list.length+1},</Text>
                                     <View style={{marginRight: 3}}/>
-                                    <Text style={{fontSize: 11}}>Transactions: {value.transaction_list.length},</Text>
-                                    <View style={{marginRight: 3}}/>
-                                    <Text style={{fontSize: 11}}>Last updated: 1/1/2007</Text>
+                                    <Text style={{fontSize: 11}}>Transactions: {value.transaction_list.length}</Text>
                                 </View>
                             </View>
                         </View>

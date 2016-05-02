@@ -9,23 +9,13 @@ const { MKButton, MKColor,MKTextField } = MK;
 var GroupMembersAdderComponent = React.createClass({
     render(){
         var rightBTN;
+        var isFocus = this.props.isFocus;
+        var actionBTN;
         if (this.props.islast) {
-            rightBTN = <MKButton
-                shadowRadius={2}
-                shadowOffset={{width:0, height:2}}
-                shadowOpacity={.7}
-                shadowColor="black"
-                style={styles.textInputLabel}
-                onPress={()=>{
-                    this.props.onPress("add", this.props.data.ref)
-
-                    }}>
-                <Text>
-                    <IconFontAwesome name='user-plus' size={24} color="#CC0000" />
-                </Text>
-            </MKButton>
+            actionBTN = ()=>{this.props.onPress("add", this.props.data.ref)};
         }
         else {
+            actionBTN = ()=>{};
             rightBTN =  <MKButton
                 shadowRadius={2}
                 shadowOffset={{width:0, height:2}}
@@ -44,6 +34,7 @@ var GroupMembersAdderComponent = React.createClass({
         return (
             <View style={styles.textInputContainer}>
                 <MKTextField
+                    autoFocus={isFocus}
                     editable={this.props.islast}
                     tintColor={MKColor.Blue}
                     textInputStyle={{color: MKColor.LightBlue}}
@@ -51,6 +42,7 @@ var GroupMembersAdderComponent = React.createClass({
                     style={styles.textInput}
                     value={this.props.data.email}
                     onChangeText={(email) => this.props.data.setEmail(this.props.data.ref, email)}
+                    onSubmitEditing={actionBTN}
                 />
                 {rightBTN}
             </View>
@@ -61,7 +53,8 @@ var GroupMembersAdder = React.createClass({
     getInitialState() {
         return( {
             amount: 0,
-            component_list: [{ref:"GroupMembersAdderComponent-0", email:""}]
+            component_list: [{ref:"GroupMembersAdderComponent-0", email:""}],
+            requestingState:false
         })
     },
     componentWillReceiveProps: function(nextProps) {
@@ -90,6 +83,9 @@ var GroupMembersAdder = React.createClass({
         return list_of_emails;
     },
     requestHandle(action, componentId){
+        if (this.state.requestingState)
+            return;
+        this.setState({requestingState:true});
         if (action == "add") {
             var email = this.getEmailForComponentId(componentId);
             if (!email) {
@@ -100,13 +96,15 @@ var GroupMembersAdder = React.createClass({
                         {text: 'OK' ,  style: 'ok'}
                     ]
                 );
-            return;
+                this.setState({requestingState:false});
+                return;
             }
             if (!this.checkEmailInList(email)) {
                 ServerAPI.checkUserExists(email)
                     .then((result)=> {if (result.success)
                     {
                         this.addMember();
+                        this.setState({requestingState:false});
                     }})
                     .catch((error)=>{
                         if (error.error.toLowerCase() == "user not found.") {
@@ -117,6 +115,7 @@ var GroupMembersAdder = React.createClass({
                                     {text: 'OK' ,  style: 'ok'}
                                 ]
                             );
+                            this.setState({requestingState:false});
                             return;
                         }
                     });
@@ -128,10 +127,13 @@ var GroupMembersAdder = React.createClass({
                     [
                         {text: 'OK' ,  style: 'ok'}
                     ]
-                );}
+                );
+                this.setState({requestingState:false});
+            }
         }
         else if (action == "delete") {
             this.removeMember(componentId);
+            this.setState({requestingState:false});
         }
     },
     checkEmailInList(email) {
@@ -181,8 +183,13 @@ var GroupMembersAdder = React.createClass({
         });
     },
     _renderGroupMembers(rowData, sectionID, rowID) {
+        var setFocus = false;
+        if (rowID == this.state.component_list.length-1) {
+            setFocus = true;
+        }
         return (<GroupMembersAdderComponent
             key={rowID}
+            isFocus={setFocus}
             islast={ rowID == this.state.component_list.length-1}
             data={{ref:rowData.ref, email:rowData.email, setEmail:this.setEmail}}
             onPress={this.requestHandle}/>)
