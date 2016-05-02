@@ -161,12 +161,13 @@ var Transaction = React.createClass({
             ])
             .then((all)=> {
                 var data = all[0].transaction;
+                var i;
                 var member_list = [];
                 var count_for_threshold = 0;
-                var i;
                 for (i = 0; i < all[1].transaction_data.length; ++i) {
-                    if ((all[1].transaction_data[i].share_status == "own_stash") || (all[1].transaction_data[i].share))
+                    if (all[1].transaction_data[i].share) {
                         count_for_threshold++;
+                    }
                     member_list.push(all[1].transaction_data[i]);
                 }
                 for (i = 0; i < all[2].length; ++i) {

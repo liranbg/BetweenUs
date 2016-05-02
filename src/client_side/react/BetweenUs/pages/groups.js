@@ -4,9 +4,7 @@ var ServerAPI = require('../api/server_interaction');
 var CreateButton = require('../components/CreateButton');
 var MK = require('react-native-material-kit');
 const { MKButton } = MK;
-
 var GroupsSlider = require('../components/GroupsSlider');
-
 var {height, width} = Dimensions.get('window');
 
 

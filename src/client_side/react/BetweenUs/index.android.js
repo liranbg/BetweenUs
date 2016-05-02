@@ -4,7 +4,9 @@
 var LoginScene = require('./pages/login');
 var RegisterScene = require('./pages/register');
 var JumpingNav = require('./components/JumpingNav');
+
 import React, {
+    View,
     AppRegistry,
     Navigator,
     StyleSheet
@@ -13,18 +15,26 @@ import React, {
 
 var BetweenUs = React.createClass({
     renderScene: function(route, nav) {
+        var response;
+
         switch (route.id) {
             case 'login':
-                return <LoginScene navigator={nav} user_info={route.user_info}/>;
+                response = <LoginScene navigator={nav} user_info={route.user_info}/>;
+                break;
             case 'register':
-                return <RegisterScene navigator={nav} />;
+                response = <RegisterScene navigator={nav} />;
+                break;
             case 'logged_in':
-                return <JumpingNav navigator={nav} user_info={route.data}/>;
+                response = <JumpingNav navigator={nav} user_info={route.data}/>;
+                break;
             default:
-                return (
-                    <JumpingNav navigator={nav}/>
-                );
+                response = <JumpingNav navigator={nav}/>;
         }
+        return(
+            <View style={styles.scene}>
+                {response}
+            </View>
+        )
     },
     render() {
         return (

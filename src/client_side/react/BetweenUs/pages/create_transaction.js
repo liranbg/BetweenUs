@@ -130,7 +130,7 @@ var TransactionCreation = React.createClass({
                         <Text style={{marginRight:10}}>Threshold: {this.state.threshold}</Text>
                         <Slider
                             style={{flex:1, marginRight:10}}
-                            minimumValue={1}
+                            minimumValue={2}
                             step={1}
                             maximumValue={this.state.group_member_list_length}
                             value={this.state.threshold}

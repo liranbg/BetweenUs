@@ -1,20 +1,23 @@
 'use strict';
-import React, {View, Text, StyleSheet, TouchableHighlight, Image, TextInput,ScrollView} from 'react-native'
+import React, {Alert, View, Text, StyleSheet, TouchableHighlight, Image, TextInput,ScrollView} from 'react-native'
 var LoginInputStyles = require("../styles/email_password.js");
 var Icon = require('react-native-vector-icons/Ionicons');
 var MK = require('react-native-material-kit');
 var ServerAPI = require('../api/server_interaction');
+var LoadingScreen = require('../components/LoadingSpinner');
+
+
 const { MKButton, MKColor,MKTextField } = MK;
 
 var LogIn = React.createClass({
-    getInitialState: function() {
+    getInitialState() {
         return {
             loginState: 'idle',
             email: 'bob',
             password: '1'
         };
     },
-    componentDidMount: function() {
+    componentDidMount () {
         if (this.props.user_info != undefined) {
             this.setState({
                 loginState: 'idle',
@@ -22,12 +25,15 @@ var LogIn = React.createClass({
                 password: this.props.user_info.password
             });
         }
-        // this.clickToLogIn();
     },
-    clickToRegister: function() {
+    clickToRegister() {
         this.props.navigator.push({id: 'register'});
     },
-    clickToLogIn: function() {
+    clickToLogIn() {
+        if ((this.refs['loginBTN'] !== undefined) && (this.refs['loginBTN'].state.disabled)) {
+            return;
+        }
+        this.refs['loginBTN'].setState({disabled:true});
         this.setState({ loginState: 'busy' });
         ServerAPI.login(this.state.email,this.state.password)
             .then((response) => {
@@ -37,17 +43,27 @@ var LogIn = React.createClass({
                     user_id:response.data._id
                 });
                 this.props.navigator.push({id: 'logged_in', data:{groups:response.data.groups,user_id:response.data._id}});
+            })
+            .catch((err)=>{
+                Alert.alert(
+                    'Login Error',
+                    err.message,
+                    [
+                        {text: 'OK' ,  style: 'ok'}
+                    ]
+                );
+            })
+            .finally((data) => {
+                this.setState({ loginState: 'idle' });
+                this.refs['loginBTN'].setState({disabled:false});
             });
     },
     render(){
         return (
             <View style={styles.container}>
-                <Text style={styles.welcome}>
-                    BetweenUs
-                </Text>
                 <View style={styles.welcomeImageContainer}>
                     <Image
-                        source={{uri: 'http://facebook.github.io/react/img/logo_og.png'}}
+                        source={require('../img/BetweenUsLogo.png')}
                         style={styles.welcomeImage}
                     />
                 </View>
@@ -92,22 +108,23 @@ var LogIn = React.createClass({
                             </Text>
                         </MKButton>
                         <MKButton
+                            disabled={false}
+                            ref="loginBTN"
                             backgroundColor={MKColor.Teal}
                             shadowRadius={2}
                             shadowOffset={{width:0, height:2}}
                             shadowOpacity={.7}
                             shadowColor="black"
                             style={LoginInputStyles.button}
-                            onPress={this.clickToLogIn}
-                        >
+                            onPress={this.clickToLogIn}>
                             <Text pointerEvents="none"
                                   style={{color: 'white', fontWeight: 'bold'}}>
                                 Login
                             </Text>
                         </MKButton>
                     </View>
-
                 </View>
+                <LoadingScreen isOpen={this.state.loginState == 'busy'} text={"Logging in..."}/>
             </View>
         );
     }
@@ -116,7 +133,6 @@ var LogIn = React.createClass({
 var styles = StyleSheet.create({
     container: {
         flex: 1
-        // backgroundColor: '#F5FCFF',
     },
     welcomeImageContainer: {
         flex: 1,
@@ -124,9 +140,9 @@ var styles = StyleSheet.create({
         alignItems: 'center'
     },
     welcomeImage: {
-        width: 200,
+        width: 400,
         height: 200,
-        margin: 5
+        margin: 2
     },
     welcome: {
         fontSize: 36,
