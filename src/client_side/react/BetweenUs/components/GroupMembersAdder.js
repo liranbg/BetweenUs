@@ -184,9 +184,10 @@ var GroupMembersAdder = React.createClass({
     },
     _renderGroupMembers(rowData, sectionID, rowID) {
         var setFocus = false;
-        if (rowID == this.state.component_list.length-1) {
+        if ((rowID!= 0) && (rowID == this.state.component_list.length-1)) {
             setFocus = true;
         }
+
         return (<GroupMembersAdderComponent
             key={rowID}
             isFocus={setFocus}
