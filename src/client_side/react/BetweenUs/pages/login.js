@@ -124,7 +124,7 @@ var LogIn = React.createClass({
                         </MKButton>
                     </View>
                 </View>
-                <LoadingScreen isOpen={this.state.loginState == 'busy'} text={"Logging in..."}/>
+                <LoadingScreen isOpen={this.state.loginState == 'busy'} headline="Hold on" text={"Logging in..."}/>
             </View>
         );
     }

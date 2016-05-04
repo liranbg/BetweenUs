@@ -1,6 +1,7 @@
 'use strict';
 var React = require('react-native');
-var {Text, StyleSheet} = React;
+var {View, Text, StyleSheet, Dimensions} = React;
+var {height, width} = Dimensions.get('window');
 var Modal   = require('react-native-modalbox');
 import {
     MKSpinner,
@@ -21,7 +22,7 @@ var LoadingBox = React.createClass({
     render(){
         return (
             <Modal
-                animationDuration={400}
+                animationDuration={0}
                 backdropOpacity={0.2}
                 // backdropElement={}
                 backdropPressToClose={false}
@@ -32,8 +33,14 @@ var LoadingBox = React.createClass({
                 ref={"loadingModal"}
                 isLoading={this.state.isLoading}
             >
-                <MKSpinner style={styles.spinner}/>
-                <Text style={styles.text_field}>{this.props.text}</Text>
+                <View style={styles.modalComponentBox}>
+                    <Text style={styles.headline}>{this.props.headline}</Text>
+                    <View stlye={styles.modalSpinner}>
+                        <MKSpinner style={styles.spinner}/>
+                        <Text style={styles.text_field}>{this.props.text}</Text>
+                    </View>
+                </View>
+
             </Modal>
         );
     }
@@ -45,18 +52,27 @@ var styles = StyleSheet.create({
     modal: {
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: 'rgba(255,255,255,0.8)',
         height: 150,
-        width: 150
+        width: width*0.8,
+
+    },
+    modalComponentBox: {
+        margin:10,
+        flex:1,
+
+    },
+    modalSpinner: {
+
     },
     spinner: {
-        width: 90,
-        height: 90
+        width: 60,
+        height: 60
+    },
+    headline:{
+        fontSize: 18,
+        marginBottom: 15
     },
     text_field:{
+
     },
-    background: {
-        flex: 1,
-        justifyContent: 'center'
-    }
 });

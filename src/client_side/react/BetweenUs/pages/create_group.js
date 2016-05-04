@@ -1,24 +1,47 @@
-import React, {View, Text, StyleSheet} from 'react-native'
+import React, {Alert, View, Text, StyleSheet} from 'react-native'
 var MK = require('react-native-material-kit');
 var LoginInputStyles = require("../styles/email_password.js");
 var GroupMembersAdder = require('../components/GroupMembersAdder');
 var Icon = require('react-native-vector-icons/Ionicons');
 var ServerAPI = require('../api/server_interaction');
+var LoadingScreen = require('../components/LoadingSpinner');
 const { MKButton, MKColor,MKTextField } = MK;
 
 var GroupCreation = React.createClass({
 
     getInitialState() {
         return( {
-            group_name:""
+            group_name:"",
+            is_creating_group: false
         })
     },
     clickToCreateGroup () {
+        if (this.state.group_name == "") {
+            this.refs['group_name_input'].focus();
+            return;
+        }
+        else if (this.refs.GroupMembersAdder.getAllEmails().length < 3) {
+            Alert.alert(
+                'Group creatoin error',
+                "You must provide at least 2 unique members (not including you)",
+                [
+                    {text: 'OK' ,  style: 'ok'}
+                ]
+            );
+            return;
+        }
+        else if (this.state.is_creating_group) {
+            return;
+        }
+        this.setState({is_creating_group:true});
         ServerAPI.createGroup(this.state.group_name,this.refs.GroupMembersAdder.getAllEmails() )
             .then((response) => {
                 this.props.navigator.replace({id:"group", data:response});
             })
             .catch((error)=> console.warn(JSON.stringify(error)))
+            .finally((done) => {
+                this.setState({is_creating_group:false});
+            })
     },
     render(){
         return (
@@ -30,6 +53,7 @@ var GroupCreation = React.createClass({
                             tintColor={'#86CDAD'}
                             textInputStyle={{color: '#86CDAD'}}
                             placeholder="Group Name"
+                            ref="group_name_input"
                             style={styles.textInput}
                             value={this.state.group_name}
                             onChangeText={(group_name) => this.setState({group_name})}
@@ -52,6 +76,7 @@ var GroupCreation = React.createClass({
                     </MKButton>
 
                 </View>
+                <LoadingScreen isOpen={this.state.is_creating_group} headline="Please wait while" text={"Creating a group for you :)"}/>
             </View>
         );
     }

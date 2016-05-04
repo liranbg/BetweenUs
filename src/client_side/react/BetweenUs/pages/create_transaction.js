@@ -1,9 +1,10 @@
-import React, {View, Text, StyleSheet,TextInput} from 'react-native'
+import React, {Alert, View, Text, StyleSheet,TextInput} from 'react-native'
 var MK = require('react-native-material-kit');
 var LoginInputStyles = require("../styles/email_password.js");
 var ServerAPI = require('../api/server_interaction');
 const { MKSlider, MKButton, MKColor,MKTextField } = MK;
 var Slider = require('react-native-slider');
+var LoadingScreen = require('../components/LoadingSpinner');
 var betweenUs = require('../api/betweenus');
 
 var TransactionCreation = React.createClass({
@@ -12,8 +13,9 @@ var TransactionCreation = React.createClass({
             threshold:2,
             group_id:"",
             group_member_list_length:1,
-            transaction_data: "TrTest12",
-            transaction_name:"TrTest1"
+            transaction_data: "",
+            transaction_name:"",
+            is_creating_transaction: false
         })
     },
     componentDidMount() {
@@ -25,12 +27,39 @@ var TransactionCreation = React.createClass({
         }
     },
     clickToCreateTransaction () {
-        if ((this.state.threshold < 2) || (!this.state.group_id) || (this.state.transaction_data == "") || (this.state.transaction_name == ""))
-        {
-            console.warn(this.state.threshold);
-            //TODO: mark all empty fields
-            return false;
+        if (this.state.is_creating_transaction) {
+            return;
         }
+        let check_for_errors = false;
+        let error_message = "";
+        if (this.state.threshold < 2)
+        {
+            check_for_errors = true;
+            error_message = "Threshold must be at least 2";
+        }
+        else if (!this.state.group_id) {
+            check_for_errors = true;
+            error_message = "No such group id";
+        }
+        else if (this.state.transaction_data == "") {
+            check_for_errors = true;
+            error_message = "Please provide the data you would like to encrypt";
+        }
+        else if (this.state.transaction_name == "") {
+            check_for_errors = true;
+            error_message = "Please fill in the transaction name";
+        }
+        if (check_for_errors) {
+            Alert.alert(
+                'Transaction creation error',
+                error_message,
+                [
+                    {text: 'OK' ,  style: 'ok'}
+                ]
+            );
+            return;
+        }
+        this.setState({is_creating_transaction:true});
         var symmetric_key = "";
         var encrypted_text = "";
         var assigned_shares = [];
@@ -58,7 +87,6 @@ var TransactionCreation = React.createClass({
             .then((ready_shares) => {
                 ServerAPI.createTransaction(this.state.group_id, encrypted_text, parseInt(this.state.threshold), this.state.transaction_name, ready_shares)
                     .then((result)=> {
-                        console.warn(JSON.stringify(result));
                         var data = result.data;
                         var i;
                         var member_list = [];
@@ -109,7 +137,10 @@ var TransactionCreation = React.createClass({
                         this.props.navigator.replace({id:"transaction", data:transaction_data});
                     });
             })
-            .catch((error) => console.warn(error));
+            .catch((error) => console.warn(error))
+            .finally((data) => {
+                this.setState({is_creating_transaction:false});
+            });
     },
     render(){
         return (
@@ -161,6 +192,7 @@ var TransactionCreation = React.createClass({
                         Create Transaction
                     </Text>
                 </MKButton>
+                <LoadingScreen isOpen={this.state.is_creating_transaction} headline="Please wait while" text={"Encrypting your data..."}/>
             </View>
         );
     }

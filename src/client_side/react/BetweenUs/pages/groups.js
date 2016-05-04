@@ -5,6 +5,7 @@ var CreateButton = require('../components/CreateButton');
 var MK = require('react-native-material-kit');
 const { MKButton } = MK;
 var GroupsSlider = require('../components/GroupsSlider');
+var LoadingScreen = require('../components/LoadingSpinner');
 var {height, width} = Dimensions.get('window');
 
 
@@ -17,6 +18,7 @@ var Groups = React.createClass({
                 index: -1
             },
             user_info: this.props.user_info,
+            is_loading_group: false,
             groups: []
         })
     },
@@ -31,9 +33,18 @@ var Groups = React.createClass({
         });
     },
     fetchGroupThenShow: function(group_id) {
-        ServerAPI.FetchGroupData(group_id).then((response)=>{
-            this.props.navigator.push({id:"group", data:response});
-        }).catch((error) => {console.warn(error);});
+        if (this.state.is_loading_group) {
+            return;
+        }
+        this.setState({is_loading_group:true});
+        ServerAPI.FetchGroupData(group_id)
+            .then((response)=>{
+                this.props.navigator.push({id:"group", data:response});
+            })
+            .catch((error) => {console.warn(error);})
+            .finally((done)=> {
+                this.setState({is_loading_group:false});
+            });
     },
     showMemberListModal(group_id) {
         ServerAPI.FetchGroupData(group_id)
@@ -84,6 +95,7 @@ var Groups = React.createClass({
                 <CreateButton title="Create Group" onPress={()=>{
                 this.props.navigator.push({id:"create_group", data:{}})
                 }}/>
+                <LoadingScreen isOpen={this.state.is_loading_group} headline="Please wait while" text={"Fetching group\'s data..."}/>
             </View>
         );
     }

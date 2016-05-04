@@ -3,6 +3,7 @@ var ServerAPI = require('../api/server_interaction');
 var TransactionsSlider = require('../components/TransactionsSlider');
 var CreateButton = require('../components/CreateButton');
 var MK = require('react-native-material-kit');
+var LoadingScreen = require('../components/LoadingSpinner');
 const { MKButton } = MK;
 
 var Groups = React.createClass({
@@ -13,7 +14,8 @@ var Groups = React.createClass({
             group_id: "",
             user_info: this.props.user_info,
             member_list: [],
-            transaction_list: []
+            transaction_list: [],
+            is_loading_transaction: false
         })
     },
     componentDidMount: function() {
@@ -28,6 +30,11 @@ var Groups = React.createClass({
             }).catch((error) => {console.warn(error);});
     },
     fetchTransactionThenShow(transaction_id) {
+        if (this.state.is_loading_transaction)
+        {
+            return;
+        }
+        this.setState({is_loading_transaction: true});
         Promise.all([
                 ServerAPI.fetchTransactionData(transaction_id),
                 ServerAPI.fetchTransactionSharesData(transaction_id),
@@ -80,9 +87,11 @@ var Groups = React.createClass({
 
                 }})
             .then((data)=> {
+                this.setState({is_loading_transaction: false});
                 this.props.navigator.push({id:"transaction", data:data});
             })
             .catch((error) => {
+                this.setState({is_loading_transaction: false});
                 console.warn(error);
             });
     },
@@ -110,6 +119,7 @@ var Groups = React.createClass({
                 <CreateButton title="Create Transaction" onPress={()=>{
                 this.props.navigator.push({id:"create_transaction", data:{group_id:this.state.group_id, group_member_list_length:this.state.member_list.length}})
                 }}/>
+                <LoadingScreen isOpen={this.state.is_loading_transaction} headline="Please wait while" text={"Fetching transaction\'s data..."}/>
             </View>
         );
     }
