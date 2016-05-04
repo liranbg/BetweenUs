@@ -46,9 +46,7 @@ var TransactionsSlider = React.createClass({
                                     <Text style={{fontSize: 20}}>{value.transaction_name}</Text>
                                 </View>
                                 <View style={{flexDirection: 'row'}}>
-                                    <Text style={{fontSize: 11}}>Threshold: {value.threshold} ,</Text>
-                                    <View style={{marginRight: 3}}/>
-                                    <Text style={{fontSize: 11}}>Last updated: 1/1/2007</Text>
+                                    <Text style={{fontSize: 11}}>Threshold: {value.threshold}</Text>
                                 </View>
                             </View>
                         </View>

@@ -35,10 +35,7 @@ var Transaction = React.createClass({
             var clients_to_share_with = [client_1, client_2, client_3];
             var symmetric_key;
             var encrypted_buffer;
-            console.warn("-------------------");
-            console.warn('Starting BetweenUs flow on text:');
-            console.warn('"' + text_to_encrypt + '"');
-            console.warn('Generating Symmetric Key...');
+
             betweenUs.GenerateSymmetricKey()
                 .then((result) => {
                     console.warn('Done.');
@@ -147,7 +144,6 @@ var Transaction = React.createClass({
                 return encrypted_share_for_target_user;
             })
             .then((data) => ServerAPI.commit_share(target_user_id, data, this.state.transaction.id))
-            .then((data) => { console.warn(JSON.stringify(data))})
             .catch((error) => {
                 console.warn(error);
             });
