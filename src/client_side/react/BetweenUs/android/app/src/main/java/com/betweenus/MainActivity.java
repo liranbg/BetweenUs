@@ -7,6 +7,10 @@ import com.github.xinthink.rnmk.ReactMaterialKitPackage;
 import com.oblador.vectoricons.VectorIconsPackage;
 import com.bitgo.randombytes.RandomBytesPackage;
 
+import com.walkme.sdk.api.WalkMe;
+import android.app.Activity;
+import android.os.Bundle;
+
 import java.util.Arrays;
 import java.util.List;
 
@@ -19,6 +23,11 @@ public class MainActivity extends ReactActivity {
     @Override
     protected String getMainComponentName() {
         return "BetweenUs";
+    }
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        WalkMe.startWalkMe(getApplication(), "52500fb388334eeeac578e71f9d9fbea");
     }
 
     /**
