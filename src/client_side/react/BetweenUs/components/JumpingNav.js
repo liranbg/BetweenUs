@@ -5,9 +5,8 @@ var GroupScene = require("../pages/group");
 var TransactionScene = require("../pages/transaction");
 var GroupCreation = require("../pages/create_group");
 var TransactionCreation = require("../pages/create_transaction");
-
-
-import React, {
+import React from 'react';
+import {
     BackAndroid,
     Navigator,
     StyleSheet,

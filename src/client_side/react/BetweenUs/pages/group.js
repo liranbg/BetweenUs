@@ -1,4 +1,5 @@
-import React, {View, Text, StyleSheet, TouchableHighlight, ScrollView} from 'react-native'
+import {View, Text, StyleSheet, TouchableHighlight, ScrollView} from 'react-native'
+import React, { Component } from 'react';
 var ServerAPI = require('../api/server_interaction');
 var TransactionsSlider = require('../components/TransactionsSlider');
 var CreateButton = require('../components/CreateButton');

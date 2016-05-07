@@ -1,5 +1,6 @@
 'use strict';
-import React, {Alert, View, Text, StyleSheet, TouchableHighlight, Image, TextInput,ScrollView} from 'react-native'
+import {Alert, View, Text, StyleSheet, TouchableHighlight, Image, TextInput,ScrollView} from 'react-native'
+import React, { Component } from 'react';
 var LoginInputStyles = require("../styles/email_password.js");
 var Icon = require('react-native-vector-icons/Ionicons');
 var MK = require('react-native-material-kit');

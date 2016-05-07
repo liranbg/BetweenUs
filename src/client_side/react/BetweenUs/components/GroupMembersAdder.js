@@ -1,7 +1,6 @@
-import React, {Alert, View, Text, StyleSheet, ListView, TextInput} from 'react-native'
+import {Alert, View, Text, StyleSheet, ListView, TextInput} from 'react-native'
+import React from 'react';
 var MK = require('react-native-material-kit');
-var LoginInputStyles = require("../styles/email_password.js");
-var Icon = require('react-native-vector-icons/Ionicons');
 var IconFontAwesome = require('react-native-vector-icons/FontAwesome');
 var ServerAPI = require('../api/server_interaction');
 const { MKButton, MKColor,MKTextField } = MK;

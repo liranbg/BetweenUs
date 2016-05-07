@@ -4,8 +4,8 @@
 var LoginScene = require('./pages/login');
 var RegisterScene = require('./pages/register');
 var JumpingNav = require('./components/JumpingNav');
-
-import React, {
+import React, { Component } from 'react';
+import {
     View,
     AppRegistry,
     Navigator,

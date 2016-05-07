@@ -1,10 +1,9 @@
 'use strict';
-
-var React = require('react-native');
+var React = require('react');
 var LoginScreen = require("./login.js");
 var RegisterScreen = require("./register.js");
 var Groups = require("./groups.js");
-var {View, Text, StyleSheet,ScrollView} = React;
+import {View, Text, StyleSheet,ScrollView} from 'react-native';
 
 
 var TabView = React.createClass({

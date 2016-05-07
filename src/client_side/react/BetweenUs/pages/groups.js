@@ -1,4 +1,6 @@
-import React, {Dimensions, View, Text, StyleSheet, TouchableHighlight, ListView} from "react-native";
+import {Dimensions, View, Text, StyleSheet, TouchableHighlight, ListView} from "react-native";
+import React, { Component } from 'react';
+
 var Modal   = require('react-native-modalbox');
 var ServerAPI = require('../api/server_interaction');
 var CreateButton = require('../components/CreateButton');
@@ -39,11 +41,11 @@ var Groups = React.createClass({
         this.setState({is_loading_group:true});
         ServerAPI.FetchGroupData(group_id)
             .then((response)=>{
-                this.props.navigator.push({id:"group", data:response});
+                // this.props.navigator.push({id:"group", data:response});
             })
             .catch((error) => {console.warn(error);})
             .finally((done)=> {
-                this.setState({is_loading_group:false});
+                // this.setState({is_loading_group:false});
             });
     },
     showMemberListModal(group_id) {

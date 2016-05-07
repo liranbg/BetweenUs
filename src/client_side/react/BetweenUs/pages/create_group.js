@@ -1,4 +1,5 @@
-import React, {Alert, View, Text, StyleSheet} from 'react-native'
+import {Alert, View, Text, StyleSheet} from 'react-native'
+import React, { Component } from 'react';
 var MK = require('react-native-material-kit');
 var LoginInputStyles = require("../styles/email_password.js");
 var GroupMembersAdder = require('../components/GroupMembersAdder');

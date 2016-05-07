@@ -1,4 +1,5 @@
-import React, {StyleSheet} from 'react-native';
+import {StyleSheet} from 'react-native';
+import React from 'react';
 import ActionButton from 'react-native-action-button';
 import Icon from 'react-native-vector-icons/Ionicons';
 

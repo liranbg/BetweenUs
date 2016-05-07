@@ -1,14 +1,7 @@
-var React = require('react-native');
+import React from 'react';
+import {Alert, StyleSheet,ScrollView, TouchableOpacity, View, Text} from 'react-native';
 var Swipeout = require('react-native-swipeout');
 var Icon = require('react-native-vector-icons/Ionicons');
-var {
-    Alert,
-    StyleSheet,
-    ScrollView,
-    TouchableOpacity,
-    View,
-    Text,
-} = React;
 
 var MemberSlider = React.createClass({
     getInitialState: function() {

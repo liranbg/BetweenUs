@@ -1,13 +1,7 @@
-var React = require('react-native');
+var React = require('react');
+import {TouchableOpacity, StyleSheet, ScrollView, View, Text} from 'react-native';
 var Swipeout = require('react-native-swipeout');
 var Icon = require('react-native-vector-icons/Ionicons');
-var {
-    TouchableOpacity,
-    StyleSheet,
-    ScrollView,
-    View,
-    Text,
-} = React;
 
 var TransactionsSlider = React.createClass({
     getInitialState: function() {

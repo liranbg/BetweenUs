@@ -1,6 +1,6 @@
 'use strict';
-var React = require('react-native');
-var {View, Text, StyleSheet, Dimensions} = React;
+var React = require('react');
+import {View, Text, StyleSheet, Dimensions} from 'react-native';
 var {height, width} = Dimensions.get('window');
 var Modal   = require('react-native-modalbox');
 import {
