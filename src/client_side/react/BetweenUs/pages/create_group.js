@@ -77,7 +77,7 @@ var GroupCreation = React.createClass({
                     </MKButton>
 
                 </View>
-                <LoadingScreen isOpen={this.state.is_creating_group} headline="Please wait while" text={"Creating a group for you :)"}/>
+                <LoadingScreen isOpen={this.state.is_creating_group} headline="Please wait..." text={"Creating a group for you :)"}/>
             </View>
         );
     }

@@ -120,7 +120,7 @@ var Groups = React.createClass({
                 <CreateButton title="Create Transaction" onPress={()=>{
                 this.props.navigator.push({id:"create_transaction", data:{group_id:this.state.group_id, group_member_list_length:this.state.member_list.length}})
                 }}/>
-                <LoadingScreen isOpen={this.state.is_loading_transaction} headline="Please wait while" text={"Fetching transaction\'s data..."}/>
+                <LoadingScreen isOpen={this.state.is_loading_transaction} headline="Please wait..." text={"Fetching transaction\'s data..."}/>
             </View>
         );
     }

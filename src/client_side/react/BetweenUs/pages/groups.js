@@ -41,11 +41,11 @@ var Groups = React.createClass({
         this.setState({is_loading_group:true});
         ServerAPI.FetchGroupData(group_id)
             .then((response)=>{
-                // this.props.navigator.push({id:"group", data:response});
+                this.props.navigator.push({id:"group", data:response});
             })
             .catch((error) => {console.warn(error);})
             .finally((done)=> {
-                // this.setState({is_loading_group:false});
+                this.setState({is_loading_group:false});
             });
     },
     showMemberListModal(group_id) {
@@ -97,7 +97,7 @@ var Groups = React.createClass({
                 <CreateButton title="Create Group" onPress={()=>{
                 this.props.navigator.push({id:"create_group", data:{}})
                 }}/>
-                <LoadingScreen isOpen={this.state.is_loading_group} headline="Please wait while" text={"Fetching group\'s data..."}/>
+                <LoadingScreen isOpen={this.state.is_loading_group} headline="Please wait..." text={"Fetching group\'s data..."}/>
             </View>
         );
     }

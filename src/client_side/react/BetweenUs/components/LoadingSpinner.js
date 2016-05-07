@@ -33,14 +33,13 @@ var LoadingBox = React.createClass({
                 ref={"loadingModal"}
                 isLoading={this.state.isLoading}
             >
-                <View style={styles.modalComponentBox}>
+                <View style={styles.modalHeadLine}>
                     <Text style={styles.headline}>{this.props.headline}</Text>
-                    <View stlye={styles.modalSpinner}>
-                        <MKSpinner style={styles.spinner}/>
-                        <Text style={styles.text_field}>{this.props.text}</Text>
-                    </View>
                 </View>
-
+                <View style={styles.modalSpinner}>
+                    <MKSpinner style={styles.spinner}/>
+                    <Text style={styles.text_field}>{this.props.text}</Text>
+                </View>
             </Modal>
         );
     }
@@ -50,29 +49,28 @@ module.exports = LoadingBox;
 
 var styles = StyleSheet.create({
     modal: {
-        justifyContent: 'center',
-        alignItems: 'center',
         height: 150,
-        width: width*0.8,
-
+        width: width*0.8
     },
-    modalComponentBox: {
-        margin:10,
-        flex:1,
-
-    },
-    modalSpinner: {
-
-    },
-    spinner: {
-        width: 60,
-        height: 60
+    modalHeadLine: {
+        margin:5,
+        paddingLeft:5
     },
     headline:{
         fontSize: 18,
-        marginBottom: 15
+        marginBottom: 15,
+        marginTop: 5
+    },
+    modalSpinner: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center'
+    },
+    spinner: {
+        width: 70,
+        height: 70,
+        marginRight: 20
     },
     text_field:{
-
-    },
+    }
 });

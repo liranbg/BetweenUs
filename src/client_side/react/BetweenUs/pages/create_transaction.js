@@ -193,7 +193,7 @@ var TransactionCreation = React.createClass({
                         Create Transaction
                     </Text>
                 </MKButton>
-                <LoadingScreen isOpen={this.state.is_creating_transaction} headline="Please wait while" text={"Encrypting your data..."}/>
+                <LoadingScreen isOpen={this.state.is_creating_transaction} headline="Please wait..." text={"Encrypting your data..."}/>
             </View>
         );
     }
