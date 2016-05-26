@@ -45,7 +45,7 @@ class BetweenUsServer {
                 })
                 .then((response) => response.json())
                 .then((response) => {
-                    if (response.status != 201) {
+                    if (response.success != true) {
                         reject(response);
                     }
                     else {
