@@ -4,6 +4,7 @@ import com.facebook.react.ReactActivity;
 import com.facebook.react.ReactPackage;
 import com.facebook.react.shell.MainReactPackage;
 import com.github.xinthink.rnmk.ReactMaterialKitPackage;
+import com.betweenus.rsatools.RSAUtilPackage;
 import com.oblador.vectoricons.VectorIconsPackage;
 import com.bitgo.randombytes.RandomBytesPackage;
 
@@ -49,6 +50,7 @@ public class MainActivity extends ReactActivity {
             new MainReactPackage(),
             new VectorIconsPackage(),
             new RandomBytesPackage(),
+            new RSAUtilPackage(),
             new ReactMaterialKitPackage()
         );
     }

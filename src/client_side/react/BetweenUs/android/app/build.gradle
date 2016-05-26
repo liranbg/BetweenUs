@@ -122,9 +122,10 @@ android {
 dependencies {
     compile fileTree(dir: "libs", include: ["*.jar"])
     compile "com.android.support:appcompat-v7:23.0.1"
-    compile "com.facebook.react:react-native:+"  // From node_modules
+    compile 'com.facebook.react:react-native:0.20.+'
     compile 'com.walkme.sdk:walkmesdk:1.0.+'
     compile project(':RNMaterialKit')
     compile project(':react-native-vector-icons')
     compile project(':randombytes')
+    compile project(':rsatools')
 }

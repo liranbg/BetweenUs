@@ -4,6 +4,7 @@ var ServerAPI = require('../api/server_interaction');
 var MemberSlider = require('../components/MembersSlider');
 var Button = require('react-native-button');
 var betweenUs = require('../api/betweenus');
+var RSATools = require('../utils/rsa/index');
 
 var Transaction = React.createClass({
     statics: {
@@ -36,58 +37,87 @@ var Transaction = React.createClass({
             var clients_to_share_with = [client_1, client_2, client_3];
             var symmetric_key;
             var encrypted_buffer;
-
-            betweenUs.GenerateSymmetricKey()
+            var private_key = "";
+            var public_key = "";
+            var encrypted_cipher = "";
+            var text_to_rsa_encrypt = "liran";
+            RSATools.GenerateKeys(1024)
                 .then((result) => {
-                    console.warn('Done.');
-                    console.warn('Key: ' + JSON.stringify(result));
-                    return result;
+                    console.warn("Generating private and public keys...");
+                    private_key = result["private"];
+                    public_key = result["public"];
+                    console.warn("Generating is done");
+                    console.warn("Encrypting...");
+                    return RSATools.EncryptWithPublicKey(text_to_rsa_encrypt, public_key);
                 })
-                .then((result_symmetric_key) => {
-                    symmetric_key = result_symmetric_key;
-                    console.warn('Generating cipher text using previously generated symmetric key...');
-                    return betweenUs.SymmetricEncrypt(text_to_encrypt, symmetric_key);
+                .then((result) => {
+                    console.warn("Encrypting is done");
+                    encrypted_cipher = result;
+                    console.warn(JSON.stringify(encrypted_cipher));
+                    console.warn("Decrypting...");
+                    return RSATools.DecryptWithPrivateKey(encrypted_cipher, private_key);
                 })
-                .then((result_encrypted_buffer) => {
-                    encrypted_buffer = result_encrypted_buffer;
-                    console.warn('Encryption done.');
-                    console.warn('Cipher text: ' + encrypted_buffer);
-                    console.warn('Using Shamir\'s Secret Sharing to split symmetric key into shares.');
-                    return symmetric_key;
+                .then((result) => {
+                    console.warn("Decrypting is done");
+                    console.warn(JSON.stringify(result));
                 })
-                .then((symmetric_key) => betweenUs.MakeShares(symmetric_key, clients_to_share_with.length, 2, 0))
-                .then((shares) => {
-                    console.warn('Done.');
-                    console.warn('Starting encryption with RSA');
-                    var assigned_shares = [];
-                    for (var i in shares) {
-                        console.warn('ID: ' + clients_to_share_with[i].id + ', Share: ' + shares[i]);
-                        assigned_shares.push({
-                            belong_to: clients_to_share_with[i].id,
-                            share: betweenUs.AsymmetricEncrypt(shares[i], clients_to_share_with[i].assymetric_key.rsa_key)
-                        });
-                    }
-                    console.warn('Starting decryption client\'s shares');
-                    for (var i in clients_to_share_with) {
-                        for (var j in assigned_shares) {
-                            if (assigned_shares[j].belong_to == clients_to_share_with[i].id) {
-                                console.warn('ID: ' + clients_to_share_with[i].id + ', Encrypted Share: ' + JSON.stringify(assigned_shares[j].share));
-                                clients_to_share_with[i].owned_share = betweenUs.AsymmetricDecrypt(assigned_shares[j].share, clients_to_share_with[i].assymetric_key.rsa_key);
-                            }
-                        }
-                    }
-                    for (var i in clients_to_share_with) {
-                        if (shares.indexOf(clients_to_share_with[i].owned_share) == -1) {
-                            console.warn(clients_to_share_with[i].id);
-                        }
-                    }
-                    var shares_to_decrypt = [clients_to_share_with[0].owned_share, clients_to_share_with[1].owned_share];
-                    var from_shares_symmetric_key_dictionary = betweenUs.CombineShares(shares_to_decrypt);
-                    console.warn("Is key restored?", from_shares_symmetric_key_dictionary == symmetric_key);
-                    var decrypted_buffer = betweenUs.SymmetricDecrypt(encrypted_buffer, from_shares_symmetric_key_dictionary);
-                    console.warn(decrypted_buffer);
-                })
-                .catch((err)=> {console.warn(err)});
+                .catch((err)=> {
+                    console.warn(JSON.stringify("err"));
+                    console.warn(JSON.stringify(err));
+                });
+
+
+            // betweenUs.GenerateSymmetricKey()
+            //     .then((result) => {
+            //         console.warn('Done.');
+            //         console.warn('Key: ' + JSON.stringify(result));
+            //         return result;
+            //     })
+            //     .then((result_symmetric_key) => {
+            //         symmetric_key = result_symmetric_key;
+            //         console.warn('Generating cipher text using previously generated symmetric key...');
+            //         return betweenUs.SymmetricEncrypt(text_to_encrypt, symmetric_key);
+            //     })
+            //     .then((result_encrypted_buffer) => {
+            //         encrypted_buffer = result_encrypted_buffer;
+            //         console.warn('Encryption done.');
+            //         console.warn('Cipher text: ' + encrypted_buffer);
+            //         console.warn('Using Shamir\'s Secret Sharing to split symmetric key into shares.');
+            //         return symmetric_key;
+            //     })
+            //     .then((symmetric_key) => betweenUs.MakeShares(symmetric_key, clients_to_share_with.length, 2, 0))
+            //     .then((shares) => {
+            //         console.warn('Done.');
+            //         console.warn('Starting encryption with RSA');
+            //         var assigned_shares = [];
+            //         for (var i in shares) {
+            //             console.warn('ID: ' + clients_to_share_with[i].id + ', Share: ' + shares[i]);
+            //             assigned_shares.push({
+            //                 belong_to: clients_to_share_with[i].id,
+            //                 share: betweenUs.AsymmetricEncrypt(shares[i], clients_to_share_with[i].assymetric_key.rsa_key)
+            //             });
+            //         }
+            //         console.warn('Starting decryption client\'s shares');
+            //         for (var i in clients_to_share_with) {
+            //             for (var j in assigned_shares) {
+            //                 if (assigned_shares[j].belong_to == clients_to_share_with[i].id) {
+            //                     console.warn('ID: ' + clients_to_share_with[i].id + ', Encrypted Share: ' + JSON.stringify(assigned_shares[j].share));
+            //                     clients_to_share_with[i].owned_share = betweenUs.AsymmetricDecrypt(assigned_shares[j].share, clients_to_share_with[i].assymetric_key.rsa_key);
+            //                 }
+            //             }
+            //         }
+            //         for (var i in clients_to_share_with) {
+            //             if (shares.indexOf(clients_to_share_with[i].owned_share) == -1) {
+            //                 console.warn(clients_to_share_with[i].id);
+            //             }
+            //         }
+            //         var shares_to_decrypt = [clients_to_share_with[0].owned_share, clients_to_share_with[1].owned_share];
+            //         var from_shares_symmetric_key_dictionary = betweenUs.CombineShares(shares_to_decrypt);
+            //         console.warn("Is key restored?", from_shares_symmetric_key_dictionary == symmetric_key);
+            //         var decrypted_buffer = betweenUs.SymmetricDecrypt(encrypted_buffer, from_shares_symmetric_key_dictionary);
+            //         console.warn(decrypted_buffer);
+            //     })
+            //     .catch((err)=> {console.warn(err)});
         },
     },
     getInitialState() {
@@ -134,9 +164,9 @@ var Transaction = React.createClass({
         var target_user_pk;
         var encrypted_share_for_target_user;
         Promise.all([
-                ServerAPI.get_my_share(this.state.transaction.id),
-                ServerAPI.get_public_key_for_user(target_user_id)
-            ])
+            ServerAPI.get_my_share(this.state.transaction.id),
+            ServerAPI.get_public_key_for_user(target_user_id)
+        ])
             .then((all)=> {
                 my_own_share = all[0];
                 my_own_decrypted = betweenUs.AsymmetricDecrypt(my_own_share, "");
@@ -152,10 +182,10 @@ var Transaction = React.createClass({
     },
     fetchTransactionData() {
         Promise.all([
-                ServerAPI.fetchTransactionData(this.state.transaction.id),
-                ServerAPI.fetchTransactionSharesData(this.state.transaction.id),
-                ServerAPI.fetchTransactionsNotifications(this.state.transaction.id)
-            ])
+            ServerAPI.fetchTransactionData(this.state.transaction.id),
+            ServerAPI.fetchTransactionSharesData(this.state.transaction.id),
+            ServerAPI.fetchTransactionsNotifications(this.state.transaction.id)
+        ])
             .then((all)=> {
                 var data = all[0].transaction;
                 var i;
@@ -218,7 +248,7 @@ var Transaction = React.createClass({
         if (shares_to_decrypt.length >= this.state.transaction.threshold) {
             var from_shares_symmetric_key_dictionary = betweenUs.CombineShares(shares_to_decrypt);
             try{
-            var decrypted_buffer = betweenUs.SymmetricDecrypt(this.state.transaction.data.content, from_shares_symmetric_key_dictionary);
+                var decrypted_buffer = betweenUs.SymmetricDecrypt(this.state.transaction.data.content, from_shares_symmetric_key_dictionary);
                 Alert.alert(
                     'Response',
                     decrypted_buffer,
@@ -276,5 +306,5 @@ var styles = StyleSheet.create({
         flex: 1
     }
 });
-// Transaction.betweenus();
+Transaction.betweenus();
 module.exports = Transaction;
