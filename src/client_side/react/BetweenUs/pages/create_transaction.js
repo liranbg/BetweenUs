@@ -1,12 +1,13 @@
 import {Alert, View, Text, StyleSheet,TextInput} from 'react-native'
 import React, { Component } from 'react';
 var MK = require('react-native-material-kit');
-var LoginInputStyles = require("../styles/email_password.js");
 var ServerAPI = require('../api/server_interaction');
-const { MKSlider, MKButton, MKColor,MKTextField } = MK;
+const { MKButton, MKColor,MKTextField } = MK;
 var Slider = require('react-native-slider');
 var LoadingScreen = require('../components/LoadingSpinner');
 var betweenUs = require('../api/betweenus');
+var RSATools = require('../utils/rsa/index');
+var promiseWhile = require("../utils/promise-while");
 
 var TransactionCreation = React.createClass({
     getInitialState() {
@@ -64,6 +65,7 @@ var TransactionCreation = React.createClass({
         var symmetric_key = "";
         var encrypted_text = "";
         var assigned_shares = [];
+        betweenUs.setRSA(RSATools.EncryptWithPublicKey, RSATools.DecryptWithPrivateKey);
         ServerAPI.getMembersPublicKeys(this.state.group_id)
             .then((response)=> {
                 for (var i in response.key_info) {
@@ -80,13 +82,28 @@ var TransactionCreation = React.createClass({
                 return betweenUs.MakeShares(symmetric_key, assigned_shares.length, parseInt(this.state.threshold), 0);
             })
             .then((shares) => {
-                for (var i in shares) {
-                    assigned_shares[i].share = betweenUs.AsymmetricEncrypt(shares[i], assigned_shares[i].public_key);
-                }
-                return assigned_shares;
+                let i = 0;
+                let len = shares.length;
+                return new Promise((f_resolve, f_reject) =>{
+                    promiseWhile(
+                        function() { return i < len; },
+                        function() {
+                            return new Promise((resolve, reject) => {
+                                betweenUs.AsymmetricEncrypt(shares[i], assigned_shares[i].public_key)
+                                    .then((result)=> {
+                                        assigned_shares[i].share = result;
+                                        ++i;
+                                        resolve();
+                                    });
+                            });
+                        })
+                        .then(()=>{
+                            f_resolve(assigned_shares);
+                        });
+                });
             })
-            .then((ready_shares) => {
-                ServerAPI.createTransaction(this.state.group_id, encrypted_text, parseInt(this.state.threshold), this.state.transaction_name, ready_shares)
+            .then((assigned_shares) => {
+                ServerAPI.createTransaction(this.state.group_id, encrypted_text, parseInt(this.state.threshold), this.state.transaction_name, assigned_shares)
                     .then((result)=> {
                         var data = result.data;
                         var i;

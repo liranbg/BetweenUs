@@ -5,6 +5,7 @@ var GroupScene = require("../pages/group");
 var TransactionScene = require("../pages/transaction");
 var GroupCreation = require("../pages/create_group");
 var TransactionCreation = require("../pages/create_transaction");
+var Settings = require("../pages/settings");
 import React from 'react';
 import {
     BackAndroid,
@@ -27,26 +28,6 @@ var INITIAL_ROUTES = [
     {id: 'create_transaction'}
 ];
 
-/* FOR MORE ICONS IN NAV BAR
- // <Icon style={{}}  size={36} name="android-notifications-none" color="#4F8EF7" onPress={()=>{
- // for (var route_key in currentRoutes) {
- //     if (currentRoutes[route_key].id == "notification") {
- //     this.props.navigator.jumpTo(currentRoutes[route_key]);
- //     return;
- //     }
- // }
- // this.props.navigator.push({id:'notification'});
- // }}/>
- // <Icon style={{}}  size={36} name="android-notifications" color="#4F8EF7"  onPress={()=>{
- // for (var route_key in currentRoutes) {
- //     if (currentRoutes[route_key].id == "group") {
- //     this.props.navigator.jumpTo(currentRoutes[route_key]);
- //     return;
- //     }
- // }
- // this.props.navigator.push({id:'group'});
- // }}/>
- */
 var JumpingNavBar = React.createClass({
     render() {
         var currentRoutes = this.props.navigator.getCurrentRoutes();
@@ -61,6 +42,16 @@ var JumpingNavBar = React.createClass({
                     }
                 }
                 this.props.navigator.push({id:'groups'});
+                }}/>
+                <Icon style={{ borderColor:'black'}} size={36} name="settings" color="#4F8EF7"  onPress={()=>
+                {
+                for (var route_key in currentRoutes) {
+                    if (currentRoutes[route_key].id == "settings") {
+                    this.props.navigator.jumpTo(currentRoutes[route_key]);
+                    return;
+                    }
+                }
+                this.props.navigator.push({id:'settings'});
                 }}/>
 
             </View>
@@ -87,7 +78,10 @@ var JumpingNav = React.createClass({
         var response;
         switch (route.id) {
             case 'groups':
-                response = (<AllGroupsScene navigator={nav} user_info={this.props.user_info}/>);
+                response = (<AllGroupsScene user_info={this.props.user_info} navigator={nav}/>);
+                break;
+            case 'settings':
+                response = (<Settings data={route.data} user_info={this.props.user_info} navigator={nav}/>);
                 break;
             case 'group':
                 response = (<GroupScene data={route.data} user_info={this.props.user_info} navigator={nav}/>);

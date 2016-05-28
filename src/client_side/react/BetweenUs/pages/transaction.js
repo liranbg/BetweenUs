@@ -5,121 +5,162 @@ var MemberSlider = require('../components/MembersSlider');
 var Button = require('react-native-button');
 var betweenUs = require('../api/betweenus');
 var RSATools = require('../utils/rsa/index');
+var promiseWhile = require("../utils/promise-while");
+
+
+String.prototype.replaceAll = function(search, replacement) {
+    var target = this;
+    return target.replace(new RegExp(search, 'g'), replacement);
+};
+
 
 var Transaction = React.createClass({
     statics: {
-
         betweenus: function() {
             betweenUs.setRSA(RSATools.EncryptWithPublicKey, RSATools.DecryptWithPrivateKey);
             var text_to_encrypt = "Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.";
             var client_1 = {
                 id: 'client1',
-                assymetric_key: {
-                    rsa_key: null
-                },
-                owned_share: null,
-                share_hold: []
+                rsa_key: null
             };
             var client_2 = {
                 id: 'client2',
-                assymetric_key: {
-                    rsa_key: null
-                },
-                owned_share: null,
-                share_hold: []
+                rsa_key: null
             };
             var client_3 = {
                 id: 'client3',
-                assymetric_key: {
-                    rsa_key: null
-                },
-                owned_share: null,
-                share_hold: []
+                rsa_key: null
             };
             var clients_to_share_with = [client_1, client_2, client_3];
             var symmetric_key;
             var encrypted_buffer;
-            var private_key = "";
-            var public_key = "";
-            var encrypted_cipher = "";
-            var text_to_rsa_encrypt = "liran";
-            RSATools.GenerateKeys(1024)
-                .then((result) => {
-                    console.warn("Generating private and public keys...");
-                    private_key = result["private"];
-                    public_key = result["public"];
-                    console.warn("Generating is done");
-                    console.warn("Encrypting...");
-                    return betweenUs.AsymmetricEncrypt(text_to_rsa_encrypt, public_key);
-                })
-                .then((result) => {
-                    console.warn("Encrypting is done");
-                    encrypted_cipher = result;
-                    console.warn(JSON.stringify(encrypted_cipher));
-                    console.warn("Decrypting...");
-                    return betweenUs.AsymmetricDecrypt(encrypted_cipher, private_key);
-                })
-                .then((result) => {
-                    console.warn("Decrypting is done");
-                    console.warn(JSON.stringify(result));
-                })
-                .catch((err)=> {
-                    console.warn(JSON.stringify("err"));
-                    console.warn(JSON.stringify(err));
-                });
-
-
-            // betweenUs.GenerateSymmetricKey()
+            // RSATools.GenerateKeys(1024)
             //     .then((result) => {
-            //         console.warn('Done.');
-            //         console.warn('Key: ' + JSON.stringify(result));
-            //         return result;
+            //         console.warn("Generating private and public keys...");
+            //         private_key = result["private"];
+            //         public_key = result["public"];
+            //         console.warn("Generating is done");
+            //         console.warn("Encrypting...");
+            //         return betweenUs.AsymmetricEncrypt(text_to_rsa_encrypt, public_key);
             //     })
-            //     .then((result_symmetric_key) => {
-            //         symmetric_key = result_symmetric_key;
-            //         console.warn('Generating cipher text using previously generated symmetric key...');
-            //         return betweenUs.SymmetricEncrypt(text_to_encrypt, symmetric_key);
+            //     .then((result) => {
+            //         console.warn("Encrypting is done");
+            //         encrypted_cipher = result;
+            //         console.warn(JSON.stringify(encrypted_cipher));
+            //         console.warn("Decrypting...");
+            //         return betweenUs.AsymmetricDecrypt(encrypted_cipher, private_key);
             //     })
-            //     .then((result_encrypted_buffer) => {
-            //         encrypted_buffer = result_encrypted_buffer;
-            //         console.warn('Encryption done.');
-            //         console.warn('Cipher text: ' + encrypted_buffer);
-            //         console.warn('Using Shamir\'s Secret Sharing to split symmetric key into shares.');
-            //         return symmetric_key;
+            //     .then((result) => {
+            //         console.warn("Decrypting is done");
+            //         console.warn(JSON.stringify(result));
             //     })
-            //     .then((symmetric_key) => betweenUs.MakeShares(symmetric_key, clients_to_share_with.length, 2, 0))
-            //     .then((shares) => {
-            //         console.warn('Done.');
-            //         console.warn('Starting encryption with RSA');
-            //         var assigned_shares = [];
-            //         for (var i in shares) {
-            //             console.warn('ID: ' + clients_to_share_with[i].id + ', Share: ' + shares[i]);
-            //             assigned_shares.push({
-            //                 belong_to: clients_to_share_with[i].id,
-            //                 share: betweenUs.AsymmetricEncrypt(shares[i], clients_to_share_with[i].assymetric_key.rsa_key)
-            //             });
-            //         }
-            //         console.warn('Starting decryption client\'s shares');
-            //         for (var i in clients_to_share_with) {
-            //             for (var j in assigned_shares) {
-            //                 if (assigned_shares[j].belong_to == clients_to_share_with[i].id) {
-            //                     console.warn('ID: ' + clients_to_share_with[i].id + ', Encrypted Share: ' + JSON.stringify(assigned_shares[j].share));
-            //                     clients_to_share_with[i].owned_share = betweenUs.AsymmetricDecrypt(assigned_shares[j].share, clients_to_share_with[i].assymetric_key.rsa_key);
-            //                 }
-            //             }
-            //         }
-            //         for (var i in clients_to_share_with) {
-            //             if (shares.indexOf(clients_to_share_with[i].owned_share) == -1) {
-            //                 console.warn(clients_to_share_with[i].id);
-            //             }
-            //         }
-            //         var shares_to_decrypt = [clients_to_share_with[0].owned_share, clients_to_share_with[1].owned_share];
-            //         var from_shares_symmetric_key_dictionary = betweenUs.CombineShares(shares_to_decrypt);
-            //         console.warn("Is key restored?", from_shares_symmetric_key_dictionary == symmetric_key);
-            //         var decrypted_buffer = betweenUs.SymmetricDecrypt(encrypted_buffer, from_shares_symmetric_key_dictionary);
-            //         console.warn(decrypted_buffer);
-            //     })
-            //     .catch((err)=> {console.warn(err)});
+            //     .catch((err)=> {
+            //         console.warn(JSON.stringify("err"));
+            //         console.warn(JSON.stringify(err));
+            //     });
+            function setRSAToClients() {
+                let i = 0;
+                let len = clients_to_share_with.length;
+                return new Promise(function(f_resolve, f_reject){
+                    promiseWhile(
+                        function() { return i < len; },
+                        function() {
+                            return new Promise(function(resolve, reject) {
+                                RSATools.GenerateKeys(2048)
+                                    .then((result)=> {
+                                        clients_to_share_with[i].rsa_key = {
+                                            public: result["public"],
+                                            private: result["private"]
+                                        };
+                                        ++i;
+                                        resolve();
+                                    });
+                            });
+                        })
+                        .then(()=>{
+                            f_resolve();
+                        });
+                });
+            }
+
+            var assigned_shares = [];
+            betweenUs.GenerateSymmetricKey()
+                .then((result) => {
+                    console.warn('Key: ' + JSON.stringify(result));
+                    return result;
+                })
+                .then((result_symmetric_key) => {
+                    symmetric_key = result_symmetric_key;
+                })
+                .then(() => setRSAToClients())
+                .then(() => {
+                    console.warn('Generating cipher text using previously generated symmetric key...');
+                    return betweenUs.SymmetricEncrypt(text_to_encrypt, symmetric_key);
+                })
+                .then((result_encrypted_buffer) => {
+                    encrypted_buffer = result_encrypted_buffer;
+                    console.warn('Encryption done.');
+                    console.warn('Cipher text: ' + encrypted_buffer);
+                    console.warn('Using Shamir\'s Secret Sharing to split symmetric key into shares.');
+                    return symmetric_key;
+                })
+                .then((symmetric_key) => betweenUs.MakeShares(symmetric_key, clients_to_share_with.length, 2, 0))
+                .then((shares) => {
+                    console.warn('Starting encryption with RSA');
+                    let i = 0;
+                    let len = shares.length;
+                    return new Promise(function(f_resolve, f_reject){
+                        promiseWhile(
+                            function() { return i < len; },
+                            function() {
+                                return new Promise(function(resolve, reject) {
+                                    console.warn('ID: ' + clients_to_share_with[i].id + ', Share: ' + shares[i]);
+                                    betweenUs.AsymmetricEncrypt(shares[i], clients_to_share_with[i].rsa_key.public)
+                                        .then((result)=> {
+                                            assigned_shares.push({
+                                                belong_to: clients_to_share_with[i].id,
+                                                share: result
+                                            });
+                                            ++i;
+                                            resolve();
+                                        });
+                                });
+                            })
+                            .then(()=>{
+                                f_resolve(assigned_shares);
+                            });
+                    });
+                })
+                .then((encrypted_shares) => {
+                    console.warn('Starting decryption client\'s shares');
+                    let i = 0;
+                    let len = encrypted_shares.length;
+                    let decrypted = [];
+                    return new Promise(function(f_resolve, f_reject){
+                        promiseWhile(
+                            function() { return i < len; },
+                            function() {
+                                return new Promise(function(resolve, reject) {
+                                    betweenUs.AsymmetricDecrypt(encrypted_shares[i].share, clients_to_share_with[i].rsa_key.private)
+                                        .then((result)=> {
+                                            decrypted.push(result);
+                                            ++i;
+                                            resolve();
+                                        });
+                                });
+                            })
+                            .then(()=>{
+                                f_resolve(decrypted);
+                            });
+                    });
+                })
+                .then((decrypted_shares) => {
+                    var from_shares_symmetric_key_dictionary = betweenUs.CombineShares(decrypted_shares);
+                    console.warn("Is key restored?", from_shares_symmetric_key_dictionary == symmetric_key);
+                    var decrypted_buffer = betweenUs.SymmetricDecrypt(encrypted_buffer, from_shares_symmetric_key_dictionary);
+                    console.warn(decrypted_buffer);
+                })
+                .catch((err)=> {console.warn(err)});
         },
     },
     getInitialState() {
@@ -161,23 +202,25 @@ var Transaction = React.createClass({
             })
     },
     approve_share(target_user_id) {
+        betweenUs.setRSA(RSATools.EncryptWithPublicKey, RSATools.DecryptWithPrivateKey);
         var my_own_share;
-        var my_own_decrypted;
         var target_user_pk;
-        var encrypted_share_for_target_user;
         Promise.all([
             ServerAPI.get_my_share(this.state.transaction.id),
             ServerAPI.get_public_key_for_user(target_user_id)
         ])
             .then((all)=> {
+                console.warn(JSON.stringify(all[1]));
                 my_own_share = all[0];
-                my_own_decrypted = betweenUs.AsymmetricDecrypt(my_own_share, "");
-                target_user_pk = all[1].public_key.public_key;
-                encrypted_share_for_target_user = betweenUs.AsymmetricEncrypt(my_own_decrypted, target_user_pk);
-                return encrypted_share_for_target_user;
+                target_user_pk = all[1].public_key;
+                return betweenUs.AsymmetricDecrypt(my_own_share, this.props.user_info.private_key.replaceAll("\n",""))
+            })
+            .then((my_own_decrypted) => {
+                return betweenUs.AsymmetricEncrypt(my_own_decrypted, target_user_pk.replaceAll("\n",""));
             })
             .then((data) => ServerAPI.commit_share(target_user_id, data, this.state.transaction.id))
             .catch((error) => {
+                console.warn("error");
                 console.warn(error);
             });
 
@@ -239,41 +282,67 @@ var Transaction = React.createClass({
         });
     },
     showFile(){
+        betweenUs.setRSA(RSATools.EncryptWithPublicKey, RSATools.DecryptWithPrivateKey);
         var shares_to_decrypt = [];
         var index = 0;
-        while ((shares_to_decrypt.length < this.state.transaction.threshold) && (index < this.state.transaction.transaction_shares_data.length)) {
-            if (this.state.transaction.transaction_shares_data[index].share) {
-                shares_to_decrypt.push(betweenUs.AsymmetricDecrypt(this.state.transaction.transaction_shares_data[index].share,""));
-            }
-            index+=1;
+        var transaction = this.state.transaction;
+        var private_key = this.props.user_info.private_key.replaceAll("\n","");
+        function decryptshares() {
+            return new Promise((f_resolve, f_reject) =>{
+                promiseWhile(
+                    function() { return ((shares_to_decrypt.length < transaction.threshold) && (index < transaction.transaction_shares_data.length)); },
+                    function() {
+                        if (transaction.transaction_shares_data[index].share) {
+                            return new Promise((resolve, reject) => {
+                                betweenUs.AsymmetricDecrypt(transaction.transaction_shares_data[index].share, private_key)
+                                    .then((result)=> {
+                                        shares_to_decrypt.push(result);
+                                        ++index;
+                                        resolve();
+                                    });
+                            });
+                        }
+                        else {
+                            return new Promise((resolve, reject) => {
+                                ++index;
+                                resolve();
+                            });
+                        }
+                    })
+                    .then(()=>{
+                        f_resolve(shares_to_decrypt);
+                    });
+            });
         }
-        if (shares_to_decrypt.length >= this.state.transaction.threshold) {
-            var from_shares_symmetric_key_dictionary = betweenUs.CombineShares(shares_to_decrypt);
-            try{
-                var decrypted_buffer = betweenUs.SymmetricDecrypt(this.state.transaction.data.content, from_shares_symmetric_key_dictionary);
-                Alert.alert(
-                    'Response',
-                    decrypted_buffer,
-                    [
-                        // {text: 'Ask me later', onPress: () => console.warn('Ask me later pressed')},
-                        // {text: 'Cancel', onPress: () => console.warn('Cancel Pressed'), style: 'cancel'},
-                        {text: 'OK' ,  style: 'ok'}
-                    ]
-                );
-                // );
-            } catch(e) {
-                Alert.alert(
-                    'Error reading response',
-                    "Response has been malformed",
-                    [
-                        // {text: 'Ask me later', onPress: () => console.warn('Ask me later pressed')},
-                        // {text: 'Cancel', onPress: () => console.warn('Cancel Pressed'), style: 'cancel'},
-                        {text: 'OK' ,  style: 'ok'}
-                    ]
-                );
-            }
+        decryptshares().then((shares_to_decrypt)=> {
+            if (shares_to_decrypt.length >= transaction.threshold) {
+                var from_shares_symmetric_key_dictionary = betweenUs.CombineShares(shares_to_decrypt);
+                try{
+                    var decrypted_buffer = betweenUs.SymmetricDecrypt(transaction.data.content, from_shares_symmetric_key_dictionary);
+                    Alert.alert(
+                        'Response',
+                        decrypted_buffer,
+                        [
+                            // {text: 'Ask me later', onPress: () => console.warn('Ask me later pressed')},
+                            // {text: 'Cancel', onPress: () => console.warn('Cancel Pressed'), style: 'cancel'},
+                            {text: 'OK' ,  style: 'ok'}
+                        ]
+                    );
+                    // );
+                } catch(e) {
+                    Alert.alert(
+                        'Error reading response',
+                        "Response has been malformed",
+                        [
+                            // {text: 'Ask me later', onPress: () => console.warn('Ask me later pressed')},
+                            // {text: 'Cancel', onPress: () => console.warn('Cancel Pressed'), style: 'cancel'},
+                            {text: 'OK' ,  style: 'ok'}
+                        ]
+                    );
+                }
 
-        }
+            }
+        });
     },
     render(){
         return (
@@ -308,5 +377,5 @@ var styles = StyleSheet.create({
         flex: 1
     }
 });
-Transaction.betweenus();
+// Transaction.betweenus();
 module.exports = Transaction;

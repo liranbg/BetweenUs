@@ -1,6 +1,6 @@
 'use strict';
-import {Alert, View, Text, StyleSheet, TouchableHighlight, Image, TextInput,ScrollView} from 'react-native'
-import React, { Component } from 'react';
+import {AsyncStorage, Alert, View, Text, StyleSheet, TouchableHighlight, Image, TextInput,ScrollView} from 'react-native'
+import React from 'react';
 var LoginInputStyles = require("../styles/email_password.js");
 var Icon = require('react-native-vector-icons/Ionicons');
 var MK = require('react-native-material-kit');
@@ -14,7 +14,7 @@ var LogIn = React.createClass({
     getInitialState() {
         return {
             loginState: 'idle',
-            email: 'bob',
+            email: 'alice',
             password: '1'
         };
     },
@@ -41,9 +41,27 @@ var LogIn = React.createClass({
                 this.setState({
                     loginState: 'success',
                     groups:response.data.groups,
-                    user_id:response.data._id
+                    user_id:response.data._id,
+                    user_email: response.data.email,
+                    user_public_key: response.data.public_key
                 });
-                this.props.navigator.push({id: 'logged_in', data:{groups:response.data.groups,user_id:response.data._id}});
+            })
+            .then(() => {
+                return AsyncStorage.getItem("betweenus/private/"+this.state.email);
+            })
+            .then((private_keys) => {
+                this.props.navigator.push(
+                    {
+                        id: 'logged_in',
+                        data:{
+                            groups:this.state.groups,
+                            user_id:this.state.user_id,
+                            user_email:this.state.user_email,
+                            private_key: private_keys,
+                            public_key: this.state.user_public_key
+                        }
+                    }
+                );
             })
             .catch((err)=>{
                 Alert.alert(

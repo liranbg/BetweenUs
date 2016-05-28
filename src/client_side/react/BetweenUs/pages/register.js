@@ -1,10 +1,11 @@
-import {Image, Alert, View, Text, TextInput, StyleSheet, TouchableHighlight} from 'react-native'
+import {AsyncStorage, Image, Alert, View, Text, TextInput, StyleSheet, TouchableHighlight} from 'react-native'
 import React, { Component } from 'react';
 var LoginInputStyles = require("../styles/email_password.js");
 var Icon = require('react-native-vector-icons/Ionicons');
 var MK = require('react-native-material-kit');
 var ServerAPI = require('../api/server_interaction');
 var LoadingScreen = require('../components/LoadingSpinner');
+var RSATools = require('../utils/rsa/index');
 const { MKButton, MKColor, } = MK;
 
 var Registration = React.createClass({
@@ -20,14 +21,21 @@ var Registration = React.createClass({
             return;
         }
         this.setState({ registrationState: 'busy' });
-        ServerAPI.register(this.state.email, this.state.password, "1")
+        var keys_to_store;
+        RSATools.GenerateKeys(2048)
+            .then((keys) => {
+                keys_to_store = keys;
+                return ServerAPI.register(this.state.email, this.state.password,  keys_to_store["public"]);
+            })
             .then((response) => {
-                this.props.navigator.push({id: 'login',user_info: {email:this.state.email, password:this.state.password, loginState: 'idle'}});
+                AsyncStorage.setItem("betweenus/private/"+this.state.email, keys_to_store["private"]);
+                this.props.navigator.push({id: 'login', user_info: {email:this.state.email, password:this.state.password, loginState: 'idle'}});
             })
             .catch((error) => {
+                AsyncStorage.removeItem("betweenus/private/"+this.state.email);
                 Alert.alert(
                     'Registration Error',
-                    error.error,
+                    error.error | error,
                     [
                         {text: 'OK' ,  style: 'ok'}
                     ]

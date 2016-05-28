@@ -76,6 +76,10 @@ class RSAUtilModule extends ReactContextBaseJavaModule {
             
             // encrypt the plain text using the public key
             cipher.init(Cipher.ENCRYPT_MODE, newPublicKey);
+            if (text_to_encrypt.getBytes().length > 245)
+            {
+                throw new Exception("String length (" + text_to_encrypt.getBytes().length + ") must be less than 246");
+            }
             cipherText = cipher.doFinal(text_to_encrypt.getBytes());
             stringCipherText = Base64.encodeToString(cipherText, Base64.DEFAULT);
             promise.resolve(stringCipherText);
