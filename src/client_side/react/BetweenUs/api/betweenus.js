@@ -8,23 +8,23 @@ _secrets.setRNG("asyncRandomBytes");
 
 class BetweenUsSSS {
 
-    static get defaults() {
-        return {
-            aes_128: {
-                algorithm_name: 'aes-128-ctr',
-                passphrase_byte_size: 16,
-                init_vector_byte_size: 16
-            },
-            aes_256:{
-                algorithm_name: 'aes-256-ctr',
-                passphrase_byte_size: 32,
-                init_vector_byte_size: 16
-            },
-            random_bytes_length: 512,
-            max_bit: 8 // Determines the maximum amount of shares possible - maximum shares is calculated this way: (2^max_bits - 1).
-        };
+    static defaults = {
+        rsa: {
 
-    }
+        },
+        aes_128: {
+            algorithm_name: 'aes-128-ctr',
+            passphrase_byte_size: 16,
+            init_vector_byte_size: 16
+        },
+        aes_256:{
+            algorithm_name: 'aes-256-ctr',
+            passphrase_byte_size: 32,
+            init_vector_byte_size: 16
+        },
+        random_bytes_length: 512,
+        max_bit: 8 // Determines the maximum amount of shares possible - maximum shares is calculated this way: (2^max_bits - 1).
+    };
 
     /**
      * Check type and expected type. throws an error if types isn't matching.
@@ -100,18 +100,40 @@ class BetweenUsSSS {
         return _secrets.combine(shares);
     };
 
-    static AsymmetricEncrypt(share_plain, rsa_key) {
-        //var data_to_encrypt = rsa_key.encrypt(share_plain, 'Base64');
-        return share_plain;
+    /**
+     * This  function applying encryption and decryption function to this module
+     * @param encrypt_func
+     * @param decrypt_func
+     */
+    static setRSA(encrypt_func, decrypt_func) {
+        if ((!encrypt_func) || (!decrypt_func)) {
+            throw new Error("You must provide both encryption and decryption functions");
+        }
+        if ((encrypt_func && typeof encrypt_func !== "function") || (decrypt_func && typeof decrypt_func !== "function")) {
+            throw new Error(encrypt_func + "or" + decrypt_func + "is not a function.");
+        }
+        this.defaults.rsa = {
+            encrypt: encrypt_func,
+            decrypt: decrypt_func
+        }
     };
 
-    static AsymmetricDecrypt(encrypted_share, rsa_key) {
-        //encrypted_share = rsa_key.decrypt(encrypted_share, 'utf8');
-        return encrypted_share;
+    static AsymmetricEncrypt(share_plain, public_key) {
+        if (this.defaults.rsa === undefined) {
+            throw new Error("You must set the  RSA function before.");
+        }
+        return this.defaults.rsa.encrypt(share_plain, public_key);
+    };
+
+    static AsymmetricDecrypt(encrypted_share, private_key) {
+        if (this.defaults.rsa === undefined) {
+            throw new Error("You must set the RSA function before.");
+        }
+        return this.defaults.rsa.decrypt(encrypted_share, private_key);
     };
 
     /**
-     * Passing a rng functoin to secrets. this function generates random bytes
+     * Passing a rng function to secrets. this function generates random bytes
      * @param func
      */
     static setRNG(func) {
