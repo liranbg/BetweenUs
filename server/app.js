@@ -63,7 +63,15 @@ app.use(function(err, req, res, next) {
     });
 });
 console.log("SETTING PORT!!! ")
-var port= process.env.VCAP_APP_PORT;
+var port;
+if (process.env.VCAP_APP_PORT === undefined)
+{
+
+    port = 3000;
+}
+else {
+    port= process.env.VCAP_APP_PORT;
+}
 console.log("THIS IS THE PORT:!!!!!!! " + port);
 var server = app.listen(port, function () {
     var host = "localhost";

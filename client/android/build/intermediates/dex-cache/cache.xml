@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<items version="2" >
+
+    <item
+        jar="C:\Users\liran\WebstormProjects\BetweenUs\src\client_side\react\BetweenUs\android\app\build\intermediates\exploded-aar\com.android.support\animated-vector-drawable\23.2.0\jars\classes.jar"
+        jumboMode="false"
+        revision="23.0.1"
+        sha1="8c108c22c99e794eff255bb34d2a461200c4cbb0">
+        <dex dex="C:\Users\liran\WebstormProjects\BetweenUs\src\client_side\react\BetweenUs\android\app\build\intermediates\pre-dexed\debug\classes-97f4af352d1b2fcfdc09697c732452c425bdb5f8.jar" />
+    </item>
+    <item
+        jar="C:\Users\liran\WebstormProjects\BetweenUs\src\client_side\react\BetweenUs\android\app\build\intermediates\exploded-aar\com.android.support\support-vector-drawable\23.2.0\jars\classes.jar"
+        jumboMode="false"
+        revision="23.0.1"
+        sha1="292a9fa091757208efa65e77eef63088247e51f3">
+        <dex dex="C:\Users\liran\WebstormProjects\BetweenUs\src\client_side\react\BetweenUs\android\app\build\intermediates\pre-dexed\debug\classes-4e37bf020ec0e5e45700bb75348ae8701aa12ecf.jar" />
+    </item>
+    <item
+        jar="C:\Users\liran\WebstormProjects\BetweenUs\src\client_side\react\BetweenUs\android\app\build\intermediates\exploded-aar\BetweenUs\rsatools\unspecified\jars\classes.jar"
+        jumboMode="false"
+        revision="23.0.1"
+        sha1="8554686851a8559988d12c3d6b13e9ef4e2c6ecb">
+        <dex dex="C:\Users\liran\WebstormProjects\BetweenUs\src\client_side\react\BetweenUs\android\app\build\intermediates\pre-dexed\debug\classes-cd2a5fd6b28e3b858dffa9db0a5dc099fc625558.jar" />
+    </item>
+    <item
+        jar="C:\Users\liran\WebstormProjects\BetweenUs\src\client_side\react\BetweenUs\android\app\build\intermediates\exploded-aar\com.android.support\appcompat-v7\23.2.0\jars\classes.jar"
+        jumboMode="false"
+        revision="23.0.1"
+        sha1="6e3578f92f7462d1a935a1d36173e3bdd1234976">
+        <dex dex="C:\Users\liran\WebstormProjects\BetweenUs\src\client_side\react\BetweenUs\android\app\build\intermediates\pre-dexed\debug\classes-0aeafdf8503dab2b102be4efef9ca3193982e726.jar" />
+    </item>
+
+</items>
