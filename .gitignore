@@ -5,9 +5,8 @@ info.json
 npm-debug.log*
 
 # Do not track .env in the revision history
-src/.env
-src/server_side/.env
-.idea/*
+.env
+env.js
 
 # Runtime data
 pids
@@ -38,4 +37,18 @@ src/server_side/node_modules
 .npm
 
 # Optional REPL history
-.node_repl_history
+.node_repl_histor
+
+
+# Android/IJ
+#
+.idea
+.gradle
+local.properties
+
+# node.js
+#
+node_modules
+client/utils/rsa/app/build
+client/android/app/build
+npm-debug.log
