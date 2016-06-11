@@ -202,6 +202,16 @@ var Transaction = React.createClass({
             })
     },
     approve_share(target_user_id) {
+        if (this.props.user_info.private_key == null) {
+            Alert.alert(
+                'Approving share error',
+                "Please load your private key before opening the file",
+                [
+                    {text: 'OK' ,  style: 'ok'}
+                ]
+            );
+            return;
+        }
         betweenUs.setRSA(RSATools.EncryptWithPublicKey, RSATools.DecryptWithPrivateKey);
         var my_own_share;
         var target_user_pk;
@@ -210,7 +220,6 @@ var Transaction = React.createClass({
             ServerAPI.get_public_key_for_user(target_user_id)
         ])
             .then((all)=> {
-                console.warn(JSON.stringify(all[1]));
                 my_own_share = all[0];
                 target_user_pk = all[1].public_key;
                 return betweenUs.AsymmetricDecrypt(my_own_share, this.props.user_info.private_key.replaceAll("\n",""))
@@ -220,7 +229,6 @@ var Transaction = React.createClass({
             })
             .then((data) => ServerAPI.commit_share(target_user_id, data, this.state.transaction.id))
             .catch((error) => {
-                console.warn("error");
                 console.warn(error);
             });
 

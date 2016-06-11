@@ -60,7 +60,7 @@ var MemberSlider = React.createClass({
         }
         else if (value.share_status == "committed") {
             icon_color = '#2ECC71';
-            icon_name = "send";
+            icon_name = "done-all";
         }
         else if (value.share_status == "missing") {
             icon_color = '#E74C3C';
