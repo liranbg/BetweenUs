@@ -1,6 +1,5 @@
 import {Dimensions, View, Text, StyleSheet, TouchableHighlight, ListView} from "react-native";
 import React, { Component } from 'react';
-
 var Modal   = require('react-native-modalbox');
 var ServerAPI = require('../api/server_interaction');
 var CreateButton = require('../components/CreateButton');
@@ -8,7 +7,6 @@ var MK = require('react-native-material-kit');
 const { MKButton } = MK;
 var GroupsSlider = require('../components/GroupsSlider');
 var LoadingScreen = require('../components/LoadingSpinner');
-var {height, width} = Dimensions.get('window');
 
 
 var Groups = React.createClass({

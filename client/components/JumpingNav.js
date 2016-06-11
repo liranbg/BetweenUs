@@ -1,5 +1,5 @@
 'use strict';
-var Icon = require('react-native-vector-icons/Ionicons');
+import Icon from 'react-native-vector-icons/MaterialIcons';
 var AllGroupsScene = require('../pages/groups');
 var GroupScene = require("../pages/group");
 var TransactionScene = require("../pages/transaction");
@@ -33,7 +33,7 @@ var JumpingNavBar = React.createClass({
         var currentRoutes = this.props.navigator.getCurrentRoutes();
         return (
             <View style={styles.tabs}>
-                <Icon style={{ borderColor:'black'}} size={36} name="ios-people" color="#4F8EF7"  onPress={()=>
+                <Icon style={{ borderColor:'black'}} size={36} name="group" color="#4F8EF7"  onPress={()=>
                 {
                 for (var route_key in currentRoutes) {
                     if (currentRoutes[route_key].id == "groups") {

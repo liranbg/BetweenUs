@@ -1,7 +1,7 @@
 import {Alert, View, Text, StyleSheet, ListView, TextInput} from 'react-native'
 import React from 'react';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 var MK = require('react-native-material-kit');
-var IconFontAwesome = require('react-native-vector-icons/FontAwesome');
 var ServerAPI = require('../api/server_interaction');
 const { MKButton, MKColor,MKTextField } = MK;
 
@@ -26,7 +26,7 @@ var GroupMembersAdderComponent = React.createClass({
 
                     }}>
                 <Text>
-                    <IconFontAwesome name='user-times' size={24} color="#CC0000" />
+                    <Icon name='delete' size={24} color="#CC0000" />
                 </Text>
             </MKButton>
         }

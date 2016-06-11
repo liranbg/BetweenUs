@@ -1,7 +1,7 @@
 import {AsyncStorage, Image, Alert, View, Text, TextInput, StyleSheet, TouchableHighlight} from 'react-native'
 import React, { Component } from 'react';
 var LoginInputStyles = require("../styles/email_password.js");
-var Icon = require('react-native-vector-icons/Ionicons');
+import Icon from 'react-native-vector-icons/MaterialIcons';
 var MK = require('react-native-material-kit');
 var ServerAPI = require('../api/server_interaction');
 var LoadingScreen = require('../components/LoadingSpinner');
@@ -79,7 +79,7 @@ var Registration = React.createClass({
                         />
                     </View>
                     <View style={styles.textInputContainer}>
-                        <Text style={styles.textInputLabel}><Icon name="locked" size={30} color="#4F8EF7" /></Text>
+                        <Text style={styles.textInputLabel}><Icon name="lock" size={30} color="#4F8EF7" /></Text>
                         <TextInput
                             style={styles.textInput}
                             placeholder="Password"

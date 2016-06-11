@@ -1,7 +1,7 @@
 var React = require('react');
 import {TouchableOpacity, StyleSheet, ScrollView, View, Text} from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 var Swipeout = require('react-native-swipeout');
-var Icon = require('react-native-vector-icons/Ionicons');
 
 var TransactionsSlider = React.createClass({
     getInitialState: function() {
@@ -19,7 +19,7 @@ var TransactionsSlider = React.createClass({
             backgroundColor: '',
             component: (
                 <View style={styles.scrollButton}>
-                    <Icon style={{borderColor:'black'}} size={28} name="pull-request" color="#2980B9"/>
+                    <Icon style={{borderColor:'black'}} size={28} name="settings" color="#2980B9"/>
                     <Text style={{fontSize: 10}}>Settings</Text>
                 </View>
             ),
@@ -33,7 +33,7 @@ var TransactionsSlider = React.createClass({
                     <TouchableOpacity onPress={()=>this.props.data.fetchTransactionThenShow(value.transaction_id)}>
                         <View style={{flexDirection: 'row',alignItems: 'center'}}>
                             <View style={styles.shareExistsIcon}>
-                                <Icon size={28} name='social-freebsd-devil' color='#2980B9'/>
+                                <Icon size={28} name='label' color='#2980B9'/>
                             </View>
                             <View style={{flexDirection: 'column'}}>
                                 <View>

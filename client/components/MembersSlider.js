@@ -1,7 +1,6 @@
 import React from 'react';
 import {Alert, StyleSheet,ScrollView, TouchableOpacity, View, Text} from 'react-native';
-var Swipeout = require('react-native-swipeout');
-var Icon = require('react-native-vector-icons/Ionicons');
+import Icon from 'react-native-vector-icons/MaterialIcons';
 
 var MemberSlider = React.createClass({
     getInitialState: function() {
@@ -22,7 +21,7 @@ var MemberSlider = React.createClass({
             request_status_color = "#2ECC71";
             return (
                 <TouchableOpacity onPress={()=>{this.props.data.approve_share(member.user_id)}} style={styles.scrollButton}>
-                    <Icon style={{borderColor:'black'}} size={28} name="ios-checkmark" color={request_status_color}/>
+                    <Icon style={{borderColor:'black'}} size={28} name="send" color={request_status_color}/>
                     <Text style={{fontSize: 10, fontWeight: 'bold'}}>{request_status}</Text>
                 </TouchableOpacity>
             );
@@ -36,7 +35,7 @@ var MemberSlider = React.createClass({
             request_status_color = "#2980B9";
             return (
                 <TouchableOpacity onPress={()=>{this.props.data.request_share(member.user_id)}} style={styles.scrollButton}>
-                    <Icon style={{borderColor:'black'}} size={28} name="pull-request" color={request_status_color}/>
+                    <Icon style={{borderColor:'black'}} size={28} name="swap-vert" color={request_status_color}/>
                     <Text style={{fontSize: 10, fontWeight: 'bold'}}>{request_status}</Text>
                 </TouchableOpacity>
             );
@@ -47,7 +46,7 @@ var MemberSlider = React.createClass({
             request_status_color = "#6D6875";
             return (
                 <TouchableOpacity onPress={()=>{}} style={styles.scrollButton}>
-                    <Icon style={{borderColor:'black'}} size={28} name="pull-request" color={request_status_color}/>
+                    <Icon style={{borderColor:'black'}} size={28} name="swap-vertical-circle" color={request_status_color}/>
                     <Text style={{fontSize: 10, fontWeight: 'bold'}}>{request_status}</Text>
                 </TouchableOpacity>
             );
@@ -57,19 +56,19 @@ var MemberSlider = React.createClass({
         var icon_name, icon_color;
         if (value.share_status == "own_stash") {
             icon_color = '#2ECC71';
-            icon_name ="android-checkmark-circle";
+            icon_name ="done-all";
         }
         else if (value.share_status == "committed") {
             icon_color = '#2ECC71';
-            icon_name = "paper-airplane";
+            icon_name = "send";
         }
         else if (value.share_status == "missing") {
             icon_color = '#E74C3C';
-            icon_name ="minus-circled"
+            icon_name ="block"
         }
         else if (value.share_status == "pending") {
             icon_color = '#E74C3C';
-            icon_name = "load-a"
+            icon_name = "watch-later"
         }
         return (
             <View style={styles.row} key={index}>

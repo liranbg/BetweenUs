@@ -1,7 +1,7 @@
 import {StyleSheet} from 'react-native';
 import React from 'react';
 import ActionButton from 'react-native-action-button';
-import Icon from 'react-native-vector-icons/Ionicons';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 
 
 var CreateButton = React.createClass({
@@ -21,7 +21,7 @@ var CreateButton = React.createClass({
         return (
             <ActionButton position="right" buttonColor="rgba(231,76,60,1)">
                 <ActionButton.Item buttonColor='#9b59b6' title={this.state.title} onPress={() => {if (this.state.onPress) this.state.onPress()}}>
-                    <Icon name="android-create" style={styles.actionButtonIcon} />
+                    <Icon name="create" style={styles.actionButtonIcon} />
                 </ActionButton.Item>
             </ActionButton>
         );

@@ -1,4 +1,4 @@
-var React = require('react');
+import React from 'react';
 import {Alert, View, Text, StyleSheet,ScrollView, TouchableHighlight, ListView} from 'react-native'
 var ServerAPI = require('../api/server_interaction');
 var MemberSlider = require('../components/MembersSlider');
@@ -286,7 +286,17 @@ var Transaction = React.createClass({
         var shares_to_decrypt = [];
         var index = 0;
         var transaction = this.state.transaction;
-        var private_key = this.props.user_info.private_key.replaceAll("\n","");
+        var private_key = this.props.user_info.private_key;
+        if (private_key === null) {
+            Alert.alert(
+                'Show File',
+                "Please load your private key before opening the file",
+                [
+                    {text: 'OK' ,  style: 'ok'}
+                ]
+            );
+            return;
+        }
         function decryptshares() {
             return new Promise((f_resolve, f_reject) =>{
                 promiseWhile(
@@ -294,7 +304,7 @@ var Transaction = React.createClass({
                     function() {
                         if (transaction.transaction_shares_data[index].share) {
                             return new Promise((resolve, reject) => {
-                                betweenUs.AsymmetricDecrypt(transaction.transaction_shares_data[index].share, private_key)
+                                betweenUs.AsymmetricDecrypt(transaction.transaction_shares_data[index].share, private_key.replaceAll("\n",""))
                                     .then((result)=> {
                                         shares_to_decrypt.push(result);
                                         ++index;

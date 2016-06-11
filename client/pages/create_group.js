@@ -3,7 +3,6 @@ import React, { Component } from 'react';
 var MK = require('react-native-material-kit');
 var LoginInputStyles = require("../styles/email_password.js");
 var GroupMembersAdder = require('../components/GroupMembersAdder');
-var Icon = require('react-native-vector-icons/Ionicons');
 var ServerAPI = require('../api/server_interaction');
 var LoadingScreen = require('../components/LoadingSpinner');
 const { MKButton, MKColor,MKTextField } = MK;
