@@ -62,21 +62,20 @@ app.use(function(err, req, res, next) {
         error: err.message
     });
 });
-console.log("SETTING PORT!!! ")
+
+
 var port;
 if (process.env.VCAP_APP_PORT === undefined)
 {
-
     port = 3000;
 }
 else {
     port= process.env.VCAP_APP_PORT;
 }
-console.log("THIS IS THE PORT:!!!!!!! " + port);
+console.log("Starting listening on port " + port);
 var server = app.listen(port, function () {
-    var host = "localhost";
     var port = server.address().port;
-    console.log('BetweenUs is up & listening at http://%s:%s', host, port);
+    console.log('BetweenUs is up & listening on port %s', port);
 });
 
 

@@ -148,7 +148,7 @@ class ServerInteraction {
     }
 
     _InitDataBases() {
-        /* TODO: Check for database existence. create if doesn't exist. */
+        this._InitialDataBasesConnectionVariables();
         Promise.all([
             this._InitUsersDB(),
             this._InitGroupsDB(),
