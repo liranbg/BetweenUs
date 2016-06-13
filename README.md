@@ -27,3 +27,17 @@ node app.js start
 ```
 
 That's it, the server should be up and running at this point.
+
+A good indication of this working is:
+```
+$ node app.js start
+Starting listening on port 3000
+BetweenUs is up & listening on port 3000
+Start creating databases indexes
+[ 'UsersDB indexes has been created successfully',
+  'GroupsDB indexes has been created successfully',
+  'TransactionsDB indexes has been created successfully',
+  'Notification stash DB indexes has been created successfully',
+  'Done' ]
+Done creating databases indexes
+```
