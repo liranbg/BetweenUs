@@ -20,3 +20,10 @@ Create an **.env** file and put the credentials for the Cloudant account (Databa
 cloudant_username=USERNAME_HERE
 cloudant_password=PASSWORD_HERE
 ```
+
+And in the same path, run the following command:
+```
+node app.js start
+```
+
+That's it, the server should be up and running at this point.
