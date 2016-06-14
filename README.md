@@ -11,6 +11,11 @@ To achieve that, we've used a combination of several cryptography algorithms, wh
 - [AES Cryptography](https://en.wikipedia.org/wiki/Advanced_Encryption_Standard)
 - [RSA Cryptography](https://en.wikipedia.org/wiki/RSA_(cryptosystem))
 
+We've implemented a certain flow containing said algorithms in a client side, and then set up a server to be a mediator between the clients.
+
+The entire heavy lifting of encrypting / decrypting is done at the client side. The server is just the (encrypted) data broker.
+
+
 > ###Repository Information
 #### Issues Manager
 [Issues Backlog](https://waffle.io/liranbg/JCEFinalProject)
