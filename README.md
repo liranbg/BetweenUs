@@ -1,4 +1,15 @@
 # BetweenUS
+## About the project
+We're two 4th year students of Software Engineering and this is our graduation project.
+
+In this project we implement an algorithm that will allow to share data between several participants in a secure manner.
+
+The data shared in a party would be only decryptable by a participant (never by the server) once a certain threshold of confirmations by the party members has been received.
+
+To achieve that, we've used a combination of several cryptography algorithms, which includes:
+- [Shamir Secret Sharing](https://en.wikipedia.org/wiki/Shamir%27s_Secret_Sharing)
+- [AES Cryptography](https://en.wikipedia.org/wiki/Advanced_Encryption_Standard)
+- [RSA Cryptography](https://en.wikipedia.org/wiki/RSA_(cryptosystem))
 
 > ###Repository Information
 #### Issues Manager
