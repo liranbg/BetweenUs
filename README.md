@@ -57,3 +57,32 @@ Start creating databases indexes
   'Done' ]
 Done creating databases indexes
 ```
+
+
+
+# Client usage:
+## Installation
+
+In order to install the client, make sure npm (node.js package manager) is installed.
+
+Then you will need to install react-native version 0.27.2 (npm install react-native) or from [github](https://github.com/facebook/react-native)
+
+Navigate to the directory of the client-side (/client), Install the dependencies, by executing the following command:
+```
+npm install
+```
+
+Then, start an adnroid emulator and in the command line type:
+```
+react-native run-android
+```
+Once the installation is done, type:
+```
+react-native start
+```
+
+and wait couple of seconds untill you will see the client-sidee app running on the android emulator
+
+That's it, the client should be up and running at this point.
+
+More information about running a react-native app on android can be found [here](https://facebook.github.io/react-native/)
