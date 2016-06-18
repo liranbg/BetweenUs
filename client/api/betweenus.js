@@ -118,6 +118,12 @@ class BetweenUsSSS {
         }
     };
 
+    /**
+     * Encrypts a message with the A-symmetric key data dictionary.
+     * @param  {string}     share_plain             [Plain text to be encrypted.]
+     * @param  {string }    public_key              [The public key for encrypting the plain text.]
+     * @return {string}                             [String containing the output data - the cipher text.]
+     */
     static AsymmetricEncrypt(share_plain, public_key) {
         if (this.defaults.rsa === undefined) {
             throw new Error("You must set the  RSA function before.");
@@ -125,6 +131,12 @@ class BetweenUsSSS {
         return this.defaults.rsa.encrypt(share_plain, public_key);
     };
 
+    /**
+     * Receives an encrypted message, and the symmetric key to decrypt the message.
+     * @param  {string} encrypted_share           [Encrypted message]
+     * @param  {string} private_key               [A private key that uses to decrypt the data.]
+     * @return {string}                           [Decrypted cipher text.]
+     */
     static AsymmetricDecrypt(encrypted_share, private_key) {
         if (this.defaults.rsa === undefined) {
             throw new Error("You must set the RSA function before.");
