@@ -197,6 +197,7 @@ var Transaction = React.createClass({
                 //TODO: change status for requester to pending
 
             })
+            .then(this.fetchTransactionData)
             .catch((error)=> {
                 Alert.alert('ERROR', error.error, [{text: 'OK' ,  style: 'ok'}]);
             })
