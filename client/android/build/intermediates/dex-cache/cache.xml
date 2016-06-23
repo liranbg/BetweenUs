@@ -2,186 +2,18 @@
 <items version="2" >
 
     <item
-        jar="C:\Users\liran\.gradle\caches\modules-2\files-2.1\com.squareup.okhttp3\okhttp\3.2.0\f7873a2ebde246a45c2a8d6f3247108b4c88a879\okhttp-3.2.0.jar"
+        jar="C:\Users\liran\.gradle\caches\modules-2\files-2.1\org.greenrobot\eventbus\3.0.0\ddd99896e9569eaababbe81b35d80e1b91c4ad85\eventbus-3.0.0.jar"
         jumboMode="false"
         revision="23.0.1"
-        sha1="f7873a2ebde246a45c2a8d6f3247108b4c88a879">
-        <dex dex="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\pre-dexed\debug\okhttp-3.2.0-26f1721020ac4590de4bbe271a3347ca6a45ad45.jar" />
+        sha1="ddd99896e9569eaababbe81b35d80e1b91c4ad85">
+        <dex dex="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\pre-dexed\debug\eventbus-3.0.0-aca781826f896d958649f5160e0107738edca346.jar" />
     </item>
     <item
-        jar="C:\Users\liran\.gradle\caches\modules-2\files-2.1\com.squareup.okio\okio\1.8.0\5ea7af56cc7c567ed9856d99efb30740e9b17ff\okio-1.8.0.jar"
+        jar="C:\Users\liran\.gradle\caches\modules-2\files-2.1\com.google.code.gson\gson\2.5\686c608d1805b6d4d425ec4459e88164ffc85870\gson-2.5.jar"
         jumboMode="false"
         revision="23.0.1"
-        sha1="05ea7af56cc7c567ed9856d99efb30740e9b17ff">
-        <dex dex="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\pre-dexed\debug\okio-1.8.0-1524d3914f3f10fed974eece6c5377d25e686f21.jar" />
-    </item>
-    <item
-        jar="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\exploded-aar\com.facebook.fresco\fbcore\0.10.0\jars\classes.jar"
-        jumboMode="false"
-        revision="23.0.1"
-        sha1="d323cf4983bdfce7136a1ce5e32710e1b36b20fe">
-        <dex dex="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\pre-dexed\debug\classes-206aef4ee1ec7747efccb839c434ae2e467abb88.jar" />
-    </item>
-    <item
-        jar="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\exploded-aar\com.jakewharton.timber\timber\4.1.0\jars\classes.jar"
-        jumboMode="false"
-        revision="23.0.1"
-        sha1="f45a0143e9c43a459f3f331a6b3e7daf13981ef4">
-        <dex dex="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\pre-dexed\debug\classes-776368fad01979d97bf8e0aa04a78e1c17ba5023.jar" />
-    </item>
-    <item
-        jar="C:\Users\liran\.gradle\caches\modules-2\files-2.1\com.fasterxml.jackson.core\jackson-core\2.2.3\1a0113da2cab5f4c216b4e5e7c1dbfaa67087e14\jackson-core-2.2.3.jar"
-        jumboMode="false"
-        revision="23.0.1"
-        sha1="1a0113da2cab5f4c216b4e5e7c1dbfaa67087e14">
-        <dex dex="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\pre-dexed\debug\jackson-core-2.2.3-fc82a8132bf82a0f9c8783958c4eb76b90865914.jar" />
-    </item>
-    <item
-        jar="C:\Users\liran\.gradle\caches\modules-2\files-2.1\com.google.code.findbugs\jsr305\3.0.0\5871fb60dc68d67da54a663c3fd636a10a532948\jsr305-3.0.0.jar"
-        jumboMode="false"
-        revision="23.0.1"
-        sha1="5871fb60dc68d67da54a663c3fd636a10a532948">
-        <dex dex="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\pre-dexed\debug\jsr305-3.0.0-20c1c66138fc68538c3d1f924164e35cb9b79c1e.jar" />
-    </item>
-    <item
-        jar="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\exploded-aar\com.android.support\appcompat-v7\23.2.0\jars\classes.jar"
-        jumboMode="false"
-        revision="23.0.1"
-        sha1="6e3578f92f7462d1a935a1d36173e3bdd1234976">
-        <dex dex="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\pre-dexed\debug\classes-f908b1c8a235dcc52c50f7920bc0adb7c3984a25.jar" />
-    </item>
-    <item
-        jar="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\exploded-aar\com.facebook.fresco\fresco\0.10.0\jars\classes.jar"
-        jumboMode="false"
-        revision="23.0.1"
-        sha1="857099e23430445aeb65cf703d5adf646ff280f1">
-        <dex dex="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\pre-dexed\debug\classes-04510a797c7630e6be680537fd3751cf85dd778c.jar" />
-    </item>
-    <item
-        jar="C:\Users\liran\.gradle\caches\modules-2\files-2.1\com.squareup.okhttp3\okhttp-ws\3.2.0\1ea229d6984444c8c58b8e97ba4c8429d9d135b3\okhttp-ws-3.2.0.jar"
-        jumboMode="false"
-        revision="23.0.1"
-        sha1="1ea229d6984444c8c58b8e97ba4c8429d9d135b3">
-        <dex dex="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\pre-dexed\debug\okhttp-ws-3.2.0-a7ec2262a535949a31ec80dd03c95c60341877af.jar" />
-    </item>
-    <item
-        jar="C:\Users\liran\.gradle\caches\modules-2\files-2.1\com.parse.bolts\bolts-android\1.1.4\129874135e6081269ace2312092031558865de12\bolts-android-1.1.4.jar"
-        jumboMode="false"
-        revision="23.0.1"
-        sha1="129874135e6081269ace2312092031558865de12">
-        <dex dex="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\pre-dexed\debug\bolts-android-1.1.4-f953994f38968fd97a57578861fc2338b4efd438.jar" />
-    </item>
-    <item
-        jar="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\exploded-aar\com.walkme.sdk\walkmesdk\1.0.5\jars\classes.jar"
-        jumboMode="false"
-        revision="23.0.1"
-        sha1="791db360d4427d1350f1849316d664c8e0c33843">
-        <dex dex="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\pre-dexed\debug\classes-f838bd5818e449cd88af1873527a1af84e607995.jar" />
-    </item>
-    <item
-        jar="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\exploded-aar\com.facebook.react\react-native\0.27.2\jars\classes.jar"
-        jumboMode="false"
-        revision="23.0.1"
-        sha1="36e26cb6307d65fd1480e7556ec071da88280722">
-        <dex dex="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\pre-dexed\debug\classes-f1e18c73334c51e816f7e05aef58e59ca329343d.jar" />
-    </item>
-    <item
-        jar="C:\Users\liran\.gradle\caches\modules-2\files-2.1\javax.inject\javax.inject\1\6975da39a7040257bd51d21a231b76c915872d38\javax.inject-1.jar"
-        jumboMode="false"
-        revision="23.0.1"
-        sha1="6975da39a7040257bd51d21a231b76c915872d38">
-        <dex dex="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\pre-dexed\debug\javax.inject-1-860b31d0abd8c93032b0efa84b916cfcee269569.jar" />
-    </item>
-    <item
-        jar="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\exploded-aar\com.facebook.fresco\imagepipeline-base\0.10.0\jars\classes.jar"
-        jumboMode="false"
-        revision="23.0.1"
-        sha1="5e88a2a26ac71cd7f8fd8bd9f9381fa06d1a47a3">
-        <dex dex="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\pre-dexed\debug\classes-b92efb53cf14d85a9c424a8d4e58e983e42c9b43.jar" />
-    </item>
-    <item
-        jar="D:\Development\AndroidSDK\extras\android\m2repository\com\android\support\support-annotations\23.2.1\support-annotations-23.2.1.jar"
-        jumboMode="false"
-        revision="23.0.1"
-        sha1="ccb693bc0774fcb637246f7360de25b4af7df318">
-        <dex dex="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\pre-dexed\debug\support-annotations-23.2.1-df5d5681d3621b908bb296bebf0424705801ac19.jar" />
-    </item>
-    <item
-        jar="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\exploded-aar\com.facebook.fresco\drawee\0.10.0\jars\classes.jar"
-        jumboMode="false"
-        revision="23.0.1"
-        sha1="65f0c887ee1f57cd0ea65b228e39b7f35372b798">
-        <dex dex="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\pre-dexed\debug\classes-847120b737f2f7eb357f7d466de9cbace27a818d.jar" />
-    </item>
-    <item
-        jar="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\exploded-aar\BetweenUs\randombytes\unspecified\jars\classes.jar"
-        jumboMode="false"
-        revision="23.0.1"
-        sha1="922c7e5383934039ba319627fae25f8ae1968994">
-        <dex dex="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\pre-dexed\debug\classes-9757950c2dd0c314298c2df78d2463228daba0dc.jar" />
-    </item>
-    <item
-        jar="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\exploded-aar\com.android.support\customtabs\23.2.1\jars\classes.jar"
-        jumboMode="false"
-        revision="23.0.1"
-        sha1="0e5a66a941515d873a34065fe44fbba6ef422a1b">
-        <dex dex="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\pre-dexed\debug\classes-4fb1183272b2bbf02cb0c387230bc187462e32f9.jar" />
-    </item>
-    <item
-        jar="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\exploded-aar\com.android.support\recyclerview-v7\23.0.1\jars\classes.jar"
-        jumboMode="false"
-        revision="23.0.1"
-        sha1="4356e230a981d1bbf047d848b91bc0d9b7c5bacc">
-        <dex dex="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\pre-dexed\debug\classes-357cb50444f4fb6bee3274c56d0205c07bc0a66d.jar" />
-    </item>
-    <item
-        jar="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\exploded-aar\com.facebook.react\react-native\0.27.2\jars\libs\infer-annotations-1.5.jar"
-        jumboMode="false"
-        revision="23.0.1"
-        sha1="cbdbf93189a97ea1b78ce66efdf5c2e225833b3c">
-        <dex dex="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\pre-dexed\debug\infer-annotations-1.5-a1f51fec2983a8119e4b7d91e829e49f7da0173b.jar" />
-    </item>
-    <item
-        jar="C:\Users\liran\.gradle\caches\modules-2\files-2.1\com.squareup.okhttp3\okhttp-urlconnection\3.2.0\6f8a4b1435c9e0a6f9c5fe4a1be46627b848fd0c\okhttp-urlconnection-3.2.0.jar"
-        jumboMode="false"
-        revision="23.0.1"
-        sha1="6f8a4b1435c9e0a6f9c5fe4a1be46627b848fd0c">
-        <dex dex="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\pre-dexed\debug\okhttp-urlconnection-3.2.0-19d8bc7ee1b6a70f6e322a3de19ece422040835e.jar" />
-    </item>
-    <item
-        jar="C:\Users\liran\.gradle\caches\modules-2\files-2.1\com.google.dagger\dagger\2.0.1\1261dfca5bae89a866a2855552da26feab7f8fad\dagger-2.0.1.jar"
-        jumboMode="false"
-        revision="23.0.1"
-        sha1="1261dfca5bae89a866a2855552da26feab7f8fad">
-        <dex dex="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\pre-dexed\debug\dagger-2.0.1-d19787a027b59fb782191737253ccc3d424f911d.jar" />
-    </item>
-    <item
-        jar="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\exploded-aar\com.android.support\support-v4\23.2.1\jars\libs\internal_impl-23.2.1.jar"
-        jumboMode="false"
-        revision="23.0.1"
-        sha1="607a3d0b8013b4ccbfeb0b7cb293351994e021fb">
-        <dex dex="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\pre-dexed\debug\internal_impl-23.2.1-bb4b089874732061723558308972352569acd1d0.jar" />
-    </item>
-    <item
-        jar="C:\Users\liran\.gradle\caches\modules-2\files-2.1\com.nineoldandroids\library\2.4.0\e9b63380f3a242dbdbf103a2355ad7e43bad17cb\library-2.4.0.jar"
-        jumboMode="false"
-        revision="23.0.1"
-        sha1="e9b63380f3a242dbdbf103a2355ad7e43bad17cb">
-        <dex dex="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\pre-dexed\debug\library-2.4.0-efe67d6522db23c1b9280464df3e021459b2716f.jar" />
-    </item>
-    <item
-        jar="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\exploded-aar\BetweenUs\react-native-vector-icons\unspecified\jars\classes.jar"
-        jumboMode="false"
-        revision="23.0.1"
-        sha1="515daf98016a50f42ec0df232897dbc4c0825346">
-        <dex dex="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\pre-dexed\debug\classes-beeadaf6eeb1efa96b96cb3b24d40574ee03ee52.jar" />
-    </item>
-    <item
-        jar="C:\Users\liran\.gradle\caches\modules-2\files-2.1\eu.inloop\volley\1.1.0\ce4553e9643f90ee935dc0adebbd979f835ffb0f\volley-1.1.0.jar"
-        jumboMode="false"
-        revision="23.0.1"
-        sha1="ce4553e9643f90ee935dc0adebbd979f835ffb0f">
-        <dex dex="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\pre-dexed\debug\volley-1.1.0-45273c12c43b55f3ab652bdc82df5b733984dd02.jar" />
+        sha1="686c608d1805b6d4d425ec4459e88164ffc85870">
+        <dex dex="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\pre-dexed\debug\gson-2.5-d2a5686ef38675226b384755942edb8c27ed71c9.jar" />
     </item>
     <item
         jar="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\exploded-aar\BetweenUs\RNMaterialKit\unspecified\jars\classes.jar"
@@ -191,18 +23,158 @@
         <dex dex="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\pre-dexed\debug\classes-7b851279cf0c36f4940e1e788f30f8cd943ada5b.jar" />
     </item>
     <item
-        jar="C:\Users\liran\.gradle\caches\modules-2\files-2.1\org.greenrobot\eventbus\3.0.0\ddd99896e9569eaababbe81b35d80e1b91c4ad85\eventbus-3.0.0.jar"
+        jar="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\exploded-aar\com.walkme.sdk\walkmesdk\1.0.5\jars\classes.jar"
         jumboMode="false"
         revision="23.0.1"
-        sha1="ddd99896e9569eaababbe81b35d80e1b91c4ad85">
-        <dex dex="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\pre-dexed\debug\eventbus-3.0.0-aca781826f896d958649f5160e0107738edca346.jar" />
+        sha1="791db360d4427d1350f1849316d664c8e0c33843">
+        <dex dex="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\pre-dexed\debug\classes-f838bd5818e449cd88af1873527a1af84e607995.jar" />
     </item>
     <item
-        jar="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\exploded-aar\BetweenUs\rsatools\unspecified\jars\classes.jar"
+        jar="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\exploded-aar\com.facebook.fresco\imagepipeline-base\0.10.0\jars\classes.jar"
         jumboMode="false"
         revision="23.0.1"
-        sha1="efe0992fc6ddd219a330e6d0cea8610e51fc6d32">
-        <dex dex="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\pre-dexed\debug\classes-10f9974319b54ac13def860753187e9abea4ebc3.jar" />
+        sha1="5e88a2a26ac71cd7f8fd8bd9f9381fa06d1a47a3">
+        <dex dex="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\pre-dexed\debug\classes-b92efb53cf14d85a9c424a8d4e58e983e42c9b43.jar" />
+    </item>
+    <item
+        jar="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\exploded-aar\com.facebook.fresco\imagepipeline-okhttp3\0.10.0\jars\classes.jar"
+        jumboMode="false"
+        revision="23.0.1"
+        sha1="53880c6e24bb574c2f03fd0f743a268ccc502f45">
+        <dex dex="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\pre-dexed\debug\classes-76e7739d554f353c5b08ef71a31e0adf5b900fe8.jar" />
+    </item>
+    <item
+        jar="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\exploded-aar\com.android.support\support-v4\23.2.1\jars\libs\internal_impl-23.2.1.jar"
+        jumboMode="false"
+        revision="23.0.1"
+        sha1="607a3d0b8013b4ccbfeb0b7cb293351994e021fb">
+        <dex dex="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\pre-dexed\debug\internal_impl-23.2.1-bb4b089874732061723558308972352569acd1d0.jar" />
+    </item>
+    <item
+        jar="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\exploded-aar\com.android.support\customtabs\23.2.1\jars\classes.jar"
+        jumboMode="false"
+        revision="23.0.1"
+        sha1="0e5a66a941515d873a34065fe44fbba6ef422a1b">
+        <dex dex="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\pre-dexed\debug\classes-4fb1183272b2bbf02cb0c387230bc187462e32f9.jar" />
+    </item>
+    <item
+        jar="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\exploded-aar\com.facebook.fresco\drawee\0.10.0\jars\classes.jar"
+        jumboMode="false"
+        revision="23.0.1"
+        sha1="65f0c887ee1f57cd0ea65b228e39b7f35372b798">
+        <dex dex="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\pre-dexed\debug\classes-847120b737f2f7eb357f7d466de9cbace27a818d.jar" />
+    </item>
+    <item
+        jar="C:\Users\liran\.gradle\caches\modules-2\files-2.1\com.fasterxml.jackson.core\jackson-core\2.2.3\1a0113da2cab5f4c216b4e5e7c1dbfaa67087e14\jackson-core-2.2.3.jar"
+        jumboMode="false"
+        revision="23.0.1"
+        sha1="1a0113da2cab5f4c216b4e5e7c1dbfaa67087e14">
+        <dex dex="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\pre-dexed\debug\jackson-core-2.2.3-fc82a8132bf82a0f9c8783958c4eb76b90865914.jar" />
+    </item>
+    <item
+        jar="C:\Users\liran\.gradle\caches\modules-2\files-2.1\com.nineoldandroids\library\2.4.0\e9b63380f3a242dbdbf103a2355ad7e43bad17cb\library-2.4.0.jar"
+        jumboMode="false"
+        revision="23.0.1"
+        sha1="e9b63380f3a242dbdbf103a2355ad7e43bad17cb">
+        <dex dex="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\pre-dexed\debug\library-2.4.0-efe67d6522db23c1b9280464df3e021459b2716f.jar" />
+    </item>
+    <item
+        jar="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\exploded-aar\com.android.support\recyclerview-v7\23.0.1\jars\classes.jar"
+        jumboMode="false"
+        revision="23.0.1"
+        sha1="4356e230a981d1bbf047d848b91bc0d9b7c5bacc">
+        <dex dex="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\pre-dexed\debug\classes-357cb50444f4fb6bee3274c56d0205c07bc0a66d.jar" />
+    </item>
+    <item
+        jar="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\exploded-aar\com.facebook.react\react-native\0.27.2\jars\classes.jar"
+        jumboMode="false"
+        revision="23.0.1"
+        sha1="36e26cb6307d65fd1480e7556ec071da88280722">
+        <dex dex="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\pre-dexed\debug\classes-f1e18c73334c51e816f7e05aef58e59ca329343d.jar" />
+    </item>
+    <item
+        jar="C:\Users\liran\.gradle\caches\modules-2\files-2.1\com.squareup.okhttp3\okhttp-urlconnection\3.2.0\6f8a4b1435c9e0a6f9c5fe4a1be46627b848fd0c\okhttp-urlconnection-3.2.0.jar"
+        jumboMode="false"
+        revision="23.0.1"
+        sha1="6f8a4b1435c9e0a6f9c5fe4a1be46627b848fd0c">
+        <dex dex="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\pre-dexed\debug\okhttp-urlconnection-3.2.0-19d8bc7ee1b6a70f6e322a3de19ece422040835e.jar" />
+    </item>
+    <item
+        jar="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\exploded-aar\BetweenUs\randombytes\unspecified\jars\classes.jar"
+        jumboMode="false"
+        revision="23.0.1"
+        sha1="922c7e5383934039ba319627fae25f8ae1968994">
+        <dex dex="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\pre-dexed\debug\classes-9757950c2dd0c314298c2df78d2463228daba0dc.jar" />
+    </item>
+    <item
+        jar="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\exploded-aar\com.facebook.fresco\fresco\0.10.0\jars\classes.jar"
+        jumboMode="false"
+        revision="23.0.1"
+        sha1="857099e23430445aeb65cf703d5adf646ff280f1">
+        <dex dex="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\pre-dexed\debug\classes-04510a797c7630e6be680537fd3751cf85dd778c.jar" />
+    </item>
+    <item
+        jar="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\exploded-aar\com.jakewharton.timber\timber\4.1.0\jars\classes.jar"
+        jumboMode="false"
+        revision="23.0.1"
+        sha1="f45a0143e9c43a459f3f331a6b3e7daf13981ef4">
+        <dex dex="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\pre-dexed\debug\classes-776368fad01979d97bf8e0aa04a78e1c17ba5023.jar" />
+    </item>
+    <item
+        jar="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\exploded-aar\com.facebook.react\react-native\0.27.2\jars\libs\infer-annotations-1.5.jar"
+        jumboMode="false"
+        revision="23.0.1"
+        sha1="cbdbf93189a97ea1b78ce66efdf5c2e225833b3c">
+        <dex dex="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\pre-dexed\debug\infer-annotations-1.5-a1f51fec2983a8119e4b7d91e829e49f7da0173b.jar" />
+    </item>
+    <item
+        jar="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\exploded-aar\com.android.support\appcompat-v7\23.2.0\jars\classes.jar"
+        jumboMode="false"
+        revision="23.0.1"
+        sha1="6e3578f92f7462d1a935a1d36173e3bdd1234976">
+        <dex dex="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\pre-dexed\debug\classes-f908b1c8a235dcc52c50f7920bc0adb7c3984a25.jar" />
+    </item>
+    <item
+        jar="C:\Users\liran\.gradle\caches\modules-2\files-2.1\com.google.code.findbugs\jsr305\3.0.0\5871fb60dc68d67da54a663c3fd636a10a532948\jsr305-3.0.0.jar"
+        jumboMode="false"
+        revision="23.0.1"
+        sha1="5871fb60dc68d67da54a663c3fd636a10a532948">
+        <dex dex="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\pre-dexed\debug\jsr305-3.0.0-20c1c66138fc68538c3d1f924164e35cb9b79c1e.jar" />
+    </item>
+    <item
+        jar="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\exploded-aar\com.facebook.fresco\fbcore\0.10.0\jars\classes.jar"
+        jumboMode="false"
+        revision="23.0.1"
+        sha1="d323cf4983bdfce7136a1ce5e32710e1b36b20fe">
+        <dex dex="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\pre-dexed\debug\classes-206aef4ee1ec7747efccb839c434ae2e467abb88.jar" />
+    </item>
+    <item
+        jar="C:\Users\liran\.gradle\caches\modules-2\files-2.1\com.squareup.okhttp3\okhttp\3.2.0\f7873a2ebde246a45c2a8d6f3247108b4c88a879\okhttp-3.2.0.jar"
+        jumboMode="false"
+        revision="23.0.1"
+        sha1="f7873a2ebde246a45c2a8d6f3247108b4c88a879">
+        <dex dex="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\pre-dexed\debug\okhttp-3.2.0-26f1721020ac4590de4bbe271a3347ca6a45ad45.jar" />
+    </item>
+    <item
+        jar="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\exploded-aar\BetweenUs\react-native-vector-icons\unspecified\jars\classes.jar"
+        jumboMode="false"
+        revision="23.0.1"
+        sha1="515daf98016a50f42ec0df232897dbc4c0825346">
+        <dex dex="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\pre-dexed\debug\classes-beeadaf6eeb1efa96b96cb3b24d40574ee03ee52.jar" />
+    </item>
+    <item
+        jar="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\exploded-aar\com.facebook.fresco\imagepipeline\0.10.0\jars\classes.jar"
+        jumboMode="false"
+        revision="23.0.1"
+        sha1="6e1ed00013584399dbe27d45ac1fd6a9828c9fca">
+        <dex dex="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\pre-dexed\debug\classes-15347bfe94852d048122c3824071c9f84f860d3a.jar" />
+    </item>
+    <item
+        jar="C:\Users\liran\.gradle\caches\modules-2\files-2.1\com.parse.bolts\bolts-android\1.1.4\129874135e6081269ace2312092031558865de12\bolts-android-1.1.4.jar"
+        jumboMode="false"
+        revision="23.0.1"
+        sha1="129874135e6081269ace2312092031558865de12">
+        <dex dex="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\pre-dexed\debug\bolts-android-1.1.4-f953994f38968fd97a57578861fc2338b4efd438.jar" />
     </item>
     <item
         jar="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\exploded-aar\com.android.support\support-v4\23.2.1\jars\classes.jar"
@@ -219,6 +191,13 @@
         <dex dex="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\pre-dexed\debug\classes-f58e13cd6799ff51f0817268c99d3a76314b76d9.jar" />
     </item>
     <item
+        jar="C:\Users\liran\.gradle\caches\modules-2\files-2.1\com.google.dagger\dagger\2.0.1\1261dfca5bae89a866a2855552da26feab7f8fad\dagger-2.0.1.jar"
+        jumboMode="false"
+        revision="23.0.1"
+        sha1="1261dfca5bae89a866a2855552da26feab7f8fad">
+        <dex dex="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\pre-dexed\debug\dagger-2.0.1-d19787a027b59fb782191737253ccc3d424f911d.jar" />
+    </item>
+    <item
         jar="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\exploded-aar\com.android.support\support-vector-drawable\23.2.0\jars\classes.jar"
         jumboMode="false"
         revision="23.0.1"
@@ -226,25 +205,46 @@
         <dex dex="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\pre-dexed\debug\classes-003227fbf8389e058d8362ba29fc99a59008760a.jar" />
     </item>
     <item
-        jar="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\exploded-aar\com.facebook.fresco\imagepipeline-okhttp3\0.10.0\jars\classes.jar"
+        jar="C:\Users\liran\.gradle\caches\modules-2\files-2.1\eu.inloop\volley\1.1.0\ce4553e9643f90ee935dc0adebbd979f835ffb0f\volley-1.1.0.jar"
         jumboMode="false"
         revision="23.0.1"
-        sha1="53880c6e24bb574c2f03fd0f743a268ccc502f45">
-        <dex dex="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\pre-dexed\debug\classes-76e7739d554f353c5b08ef71a31e0adf5b900fe8.jar" />
+        sha1="ce4553e9643f90ee935dc0adebbd979f835ffb0f">
+        <dex dex="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\pre-dexed\debug\volley-1.1.0-45273c12c43b55f3ab652bdc82df5b733984dd02.jar" />
     </item>
     <item
-        jar="C:\Users\liran\.gradle\caches\modules-2\files-2.1\com.google.code.gson\gson\2.5\686c608d1805b6d4d425ec4459e88164ffc85870\gson-2.5.jar"
+        jar="D:\Development\AndroidSDK\extras\android\m2repository\com\android\support\support-annotations\23.2.1\support-annotations-23.2.1.jar"
         jumboMode="false"
         revision="23.0.1"
-        sha1="686c608d1805b6d4d425ec4459e88164ffc85870">
-        <dex dex="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\pre-dexed\debug\gson-2.5-d2a5686ef38675226b384755942edb8c27ed71c9.jar" />
+        sha1="ccb693bc0774fcb637246f7360de25b4af7df318">
+        <dex dex="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\pre-dexed\debug\support-annotations-23.2.1-df5d5681d3621b908bb296bebf0424705801ac19.jar" />
     </item>
     <item
-        jar="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\exploded-aar\com.facebook.fresco\imagepipeline\0.10.0\jars\classes.jar"
+        jar="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\exploded-aar\BetweenUs\rsatools\unspecified\jars\classes.jar"
         jumboMode="false"
         revision="23.0.1"
-        sha1="6e1ed00013584399dbe27d45ac1fd6a9828c9fca">
-        <dex dex="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\pre-dexed\debug\classes-15347bfe94852d048122c3824071c9f84f860d3a.jar" />
+        sha1="efe0992fc6ddd219a330e6d0cea8610e51fc6d32">
+        <dex dex="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\pre-dexed\debug\classes-10f9974319b54ac13def860753187e9abea4ebc3.jar" />
+    </item>
+    <item
+        jar="C:\Users\liran\.gradle\caches\modules-2\files-2.1\javax.inject\javax.inject\1\6975da39a7040257bd51d21a231b76c915872d38\javax.inject-1.jar"
+        jumboMode="false"
+        revision="23.0.1"
+        sha1="6975da39a7040257bd51d21a231b76c915872d38">
+        <dex dex="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\pre-dexed\debug\javax.inject-1-860b31d0abd8c93032b0efa84b916cfcee269569.jar" />
+    </item>
+    <item
+        jar="C:\Users\liran\.gradle\caches\modules-2\files-2.1\com.squareup.okio\okio\1.8.0\5ea7af56cc7c567ed9856d99efb30740e9b17ff\okio-1.8.0.jar"
+        jumboMode="false"
+        revision="23.0.1"
+        sha1="05ea7af56cc7c567ed9856d99efb30740e9b17ff">
+        <dex dex="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\pre-dexed\debug\okio-1.8.0-1524d3914f3f10fed974eece6c5377d25e686f21.jar" />
+    </item>
+    <item
+        jar="C:\Users\liran\.gradle\caches\modules-2\files-2.1\com.squareup.okhttp3\okhttp-ws\3.2.0\1ea229d6984444c8c58b8e97ba4c8429d9d135b3\okhttp-ws-3.2.0.jar"
+        jumboMode="false"
+        revision="23.0.1"
+        sha1="1ea229d6984444c8c58b8e97ba4c8429d9d135b3">
+        <dex dex="C:\Users\liran\WebstormProjects\BetweenUs\client\android\app\build\intermediates\pre-dexed\debug\okhttp-ws-3.2.0-a7ec2262a535949a31ec80dd03c95c60341877af.jar" />
     </item>
 
 </items>

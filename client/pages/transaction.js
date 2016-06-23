@@ -382,7 +382,7 @@ var Transaction = React.createClass({
                  }}/>
 
                 <View style={{marginBottom:20}}/>
-                <Button onPress={this.fetchTransactionData}>Get Data</Button>
+                <Button onPress={this.fetchTransactionData}>Fetch Data</Button>
             </View>
         );
     }

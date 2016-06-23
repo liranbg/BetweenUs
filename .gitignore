@@ -52,3 +52,5 @@ node_modules
 client/utils/rsa/app/build
 client/android/app/build
 npm-debug.log
+
+*.keystore

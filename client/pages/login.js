@@ -14,8 +14,8 @@ var LogIn = React.createClass({
     getInitialState() {
         return {
             loginState: 'idle',
-            email: 'alice',
-            password: '1'
+            email: '',
+            password: ''
         };
     },
     componentDidMount () {

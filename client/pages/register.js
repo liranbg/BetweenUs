@@ -12,8 +12,8 @@ var Registration = React.createClass({
     getInitialState: function() {
         return {
             registrationState: 'idle',
-            email: 'alice',
-            password: '1'
+            email: '',
+            password: ''
         };
     },
     clickToRegister: function() {
