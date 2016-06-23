@@ -75,7 +75,7 @@ var Groups = React.createClass({
                         onPress={()=>this.closeMemberListModal()}>
                         <Text pointerEvents="none"
                               style={{color: '#0079FE', fontWeight: 'bold'}}>
-                            Close ({this.state.member_list_modal.isOpen ? "true" : "false"})
+                            Close
                         </Text>
                     </MKButton>
                 </Modal>

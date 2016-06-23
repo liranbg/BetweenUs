@@ -14,24 +14,38 @@ var TransactionsSlider = React.createClass({
             values: nextProps.data.transaction_list
         });
     },
+    _buttonTransaction: function() {
+        return {
+            backgroundColor: '',
+            component: (
+                <View style={styles.scrollButton}>
+                    <Icon style={{borderColor:'black'}} size={28} name="settings" color="#2980B9"/>
+                    <Text style={{fontSize: 10}}>Settings</Text>
+                </View>
+            ),
+            onPress: null
+        }
+    },
     _renderRow: function(value, index) {
         return (
             <View style={styles.row} key={index}>
-                <TouchableOpacity onPress={()=>this.props.data.fetchTransactionThenShow(value.transaction_id)}>
-                <View style={{flexDirection: 'row',alignItems: 'center'}}>
-                    <View style={styles.shareExistsIcon}>
-                        <Icon size={28} name='label' color='#2980B9'/>
-                    </View>
-                    <View style={styles.scrollButtons} style={{flexDirection: 'column'}}>
-                        <View>
-                            <Text style={{fontSize: 20}}>{value.transaction_name}</Text>
+                <Swipeout autoClose={true} right={[this._buttonTransaction()]} backgroundColor={'#EAEAEA'}>
+                    <TouchableOpacity onPress={()=>this.props.data.fetchTransactionThenShow(value.transaction_id)}>
+                        <View style={{flexDirection: 'row',alignItems: 'center'}}>
+                            <View style={styles.shareExistsIcon}>
+                                <Icon size={28} name='label' color='#2980B9'/>
+                            </View>
+                            <View style={{flexDirection: 'column'}}>
+                                <View>
+                                    <Text style={{fontSize: 20}}>{value.transaction_name}</Text>
+                                </View>
+                                <View style={{flexDirection: 'row'}}>
+                                    <Text style={{fontSize: 11}}>Threshold: {value.threshold}</Text>
+                                </View>
+                            </View>
                         </View>
-                        <View style={{flexDirection: 'row'}}>
-                            <Text style={{fontSize: 11}}>Threshold: {value.threshold}</Text>
-                        </View>
-                    </View>
-                </View>
-                </TouchableOpacity>
+                    </TouchableOpacity>
+                </Swipeout>
             </View>
         )
     },
@@ -55,7 +69,6 @@ var styles = StyleSheet.create({
         flexDirection: 'column'
     },
     row: {
-        backgroundColor: '#EAEAEA',
         borderColor: '#d6d7da',
         borderWidth: 2,
         flex: 1,

@@ -228,6 +228,7 @@ var Transaction = React.createClass({
                 return betweenUs.AsymmetricEncrypt(my_own_decrypted, target_user_pk.replaceAll("\n",""));
             })
             .then((data) => ServerAPI.commit_share(target_user_id, data, this.state.transaction.id))
+            .then(this.fetchTransactionData)
             .catch((error) => {
                 console.warn(error);
             });
