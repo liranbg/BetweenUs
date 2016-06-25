@@ -986,7 +986,7 @@ class ServerInteraction {
         var doc;
         for (var i in users_doc.rows) {
             doc = users_doc.rows[i].doc;
-            doc.groups.push(group_doc.id);
+            doc.groups.push(group_doc._id);
             docs_to_update.push(doc);
         }
         return new Promise((resolve, reject) => {
