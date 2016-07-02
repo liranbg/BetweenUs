@@ -110,7 +110,3 @@ More information about running a react-native app on android can be found [here]
 
 ### Bugs:
 If you know about any bugs, let us know [here](https://github.com/liranbg/BetweenUs/issues/new)
-
-
-
-
