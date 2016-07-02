@@ -94,14 +94,14 @@ Once its done, execute:
 react-native start
 ```
 
-and wait couple of seconds untill you will see the client-side app running on the android emulator\your own device
+and wait couple of seconds until you will see the client-side app running on the android emulator\your own device
 
 That's it, the client should be up and running at this point.
 
 More information about running a react-native app on android can be found [here](https://facebook.github.io/react-native/)
 ### Todo
 - [ ] Add Auto login with passphrase 
-- [ ] Set long-polling to get automatical updates from server
+- [ ] Set long-polling to get automatic updates from server
 - [ ] Add in User-settings to change password and edit-email
 - [ ] An option to import\export private key
 - [ ] An option to leave\delete groups\transactions
