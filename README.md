@@ -58,6 +58,13 @@ Start creating databases indexes
   'Done' ]
 Done creating databases indexes
 ```
+### Todo
+- [ ] When one of the steps in a complex flow against the database fails, rollback the changes committed to db up until the step - so there's no residue of the failure. 
+- [ ] Store user password in a non-plain manner, possibly salted hash.
+- [ ] Add an API to remove group / transaction.
+- [ ] In a transaction, mark the users that have already received enough shares and has requested the secret. (serves as an indicator to who has the secret information, in case of a leak).
+- [ ] Add an option to leave a group.
+- [ ] Add confirmation (share) revoking functionality.
 
 ## Client Side:
 ### Installation
@@ -95,7 +102,8 @@ More information about running a react-native app on android can be found [here]
 - [ ] Add in User-settings to change password and edit-email
 - [ ] An option to import\export private key
 - [ ] An option to leave\delete groups\transactions
-
+- [ ] A button to implement 'Request all shares' in a transaction.
+- [ ] A recall button, to enable revoking a confirmation (share) if it hasn't been used it. 
 ### Bugs:
 If you know about any bugs, let us know [here](https://github.com/liranbg/BetweenUs/issues/new)
 
