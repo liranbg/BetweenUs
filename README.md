@@ -65,23 +65,27 @@ Done creating databases indexes
 
 In order to install the client, make sure npm (node.js package manager) is installed.
 
-Then you will need to install react-native version 0.27.2 (npm install react-native) or from [github](https://github.com/facebook/react-native)
+Then you will need to install react-native cli tools:
+```
+npm install react-native-cli
+```
 
-Navigate to the directory of the client-side (/client), Install the dependencies, by executing the following command:
+Navigate to the directory of the client-side (/client),
+Install the dependencies, by executing the following command:
 ```
 npm install
 ```
 
-Then, start an adnroid emulator and in the command line type:
+Then, start an adnroid emulator\your own device and execute the following command:
 ```
 react-native run-android
 ```
-Once the installation is done, type:
+Once its done, execute:
 ```
 react-native start
 ```
 
-and wait couple of seconds untill you will see the client-sidee app running on the android emulator
+and wait couple of seconds untill you will see the client-side app running on the android emulator\your own device
 
 That's it, the client should be up and running at this point.
 
