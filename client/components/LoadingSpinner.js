@@ -1,12 +1,11 @@
 'use strict';
-var React = require('react');
+import React from 'react';
 import {View, Text, StyleSheet, Dimensions} from 'react-native';
-var {height, width} = Dimensions.get('window');
-var Modal   = require('react-native-modalbox');
 import {
     MKSpinner,
 } from 'react-native-material-kit';
-
+var {width} = Dimensions.get('window');
+var Modal   = require('react-native-modalbox');
 
 var LoadingBox = React.createClass({
     getInitialState: function() {

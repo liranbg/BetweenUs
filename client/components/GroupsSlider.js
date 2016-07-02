@@ -1,7 +1,7 @@
 import React from 'react';
 import {View, Alert, Text,ScrollView, StyleSheet, TouchableOpacity, Dimensions} from 'react-native'
+import Icon from 'react-native-vector-icons/MaterialIcons';
 var Swipeout = require('react-native-swipeout');
-var Icon = require('react-native-vector-icons/Ionicons');
 
 var GroupsSlider = React.createClass({
     getInitialState: function() {
@@ -21,7 +21,7 @@ var GroupsSlider = React.createClass({
             backgroundColor: '',
             component: (
                 <View style={styles.scrollButton}>
-                    <Icon style={{borderColor:'black'}} size={28} name="information" color="#2980B9"/>
+                    <Icon style={{borderColor:'black'}} size={28} name="info" color="#2980B9"/>
                     <Text style={{fontSize: 10}}>Members</Text>
                 </View>
             ),
@@ -40,7 +40,7 @@ var GroupsSlider = React.createClass({
                     <TouchableOpacity onPress={()=>this.props.data.fetchGroupThenShow(value._id)}>
                         <View style={{flexDirection: 'row',alignItems: 'center'}}>
                             <View style={styles.shareExistsIcon}>
-                                <Icon size={28} name="ios-people" color="#247BA0"/>
+                                <Icon size={28} name="group" color="#247BA0"/>
                             </View>
                             <View style={{flexDirection: 'column'}}>
                                 <View>

@@ -1,7 +1,7 @@
 import {AsyncStorage, Image, Alert, View, Text, TextInput, StyleSheet, TouchableHighlight} from 'react-native'
 import React, { Component } from 'react';
 var LoginInputStyles = require("../styles/email_password.js");
-var Icon = require('react-native-vector-icons/Ionicons');
+import Icon from 'react-native-vector-icons/MaterialIcons';
 var MK = require('react-native-material-kit');
 var ServerAPI = require('../api/server_interaction');
 var LoadingScreen = require('../components/LoadingSpinner');
@@ -12,12 +12,22 @@ var Registration = React.createClass({
     getInitialState: function() {
         return {
             registrationState: 'idle',
-            email: 'alice',
-            password: '1'
+            email: '',
+            password: ''
         };
     },
     clickToRegister: function() {
         if ((this.refs['registerBTN'] !== undefined) && (this.refs['registerBTN'].state.disabled)) {
+            return;
+        }
+        if ((this.state.email == "") || (this.state.password == "")) {
+            Alert.alert(
+                'Registration Error',
+                "Please check your credentials",
+                [
+                    {text: 'OK' ,  style: 'ok'}
+                ]
+            );
             return;
         }
         this.setState({ registrationState: 'busy' });
@@ -35,7 +45,7 @@ var Registration = React.createClass({
                 AsyncStorage.removeItem("betweenus/private/"+this.state.email);
                 Alert.alert(
                     'Registration Error',
-                    error.error | error,
+                    error.error,
                     [
                         {text: 'OK' ,  style: 'ok'}
                     ]
@@ -54,7 +64,7 @@ var Registration = React.createClass({
                 </Text>
                 <View style={styles.welcomeImageContainer}>
                     <Image
-                        source={{uri: 'http://facebook.github.io/react/img/logo_og.png'}}
+                        source={require('../img/BetweenUsLogo.png')}
                         style={styles.welcomeImage}
                     />
                 </View>
@@ -69,7 +79,7 @@ var Registration = React.createClass({
                         />
                     </View>
                     <View style={styles.textInputContainer}>
-                        <Text style={styles.textInputLabel}><Icon name="locked" size={30} color="#4F8EF7" /></Text>
+                        <Text style={styles.textInputLabel}><Icon name="lock" size={30} color="#4F8EF7" /></Text>
                         <TextInput
                             style={styles.textInput}
                             placeholder="Password"
@@ -132,9 +142,9 @@ var styles = StyleSheet.create({
         alignItems: 'center'
     },
     welcomeImage: {
-        width: 200,
+        width: 400,
         height: 200,
-        margin: 5
+        margin: 2
     },
     textInputContainer: {
         flexDirection: 'row',

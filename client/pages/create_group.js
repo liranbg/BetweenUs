@@ -3,7 +3,6 @@ import React, { Component } from 'react';
 var MK = require('react-native-material-kit');
 var LoginInputStyles = require("../styles/email_password.js");
 var GroupMembersAdder = require('../components/GroupMembersAdder');
-var Icon = require('react-native-vector-icons/Ionicons');
 var ServerAPI = require('../api/server_interaction');
 var LoadingScreen = require('../components/LoadingSpinner');
 const { MKButton, MKColor,MKTextField } = MK;
@@ -21,7 +20,7 @@ var GroupCreation = React.createClass({
             this.refs['group_name_input'].focus();
             return;
         }
-        else if (this.refs.GroupMembersAdder.getAllEmails().length < 3) {
+        else if (this.refs.GroupMembersAdder.getAllEmails().length < 2) {
             Alert.alert(
                 'Group creatoin error',
                 "You must provide at least 2 unique members (not including you)",
@@ -35,7 +34,7 @@ var GroupCreation = React.createClass({
             return;
         }
         this.setState({is_creating_group:true});
-        ServerAPI.createGroup(this.state.group_name,this.refs.GroupMembersAdder.getAllEmails() )
+        ServerAPI.createGroup(this.state.group_name, this.refs.GroupMembersAdder.getAllEmails() )
             .then((response) => {
                 this.props.navigator.replace({id:"group", data:response});
             })

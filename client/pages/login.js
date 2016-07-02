@@ -1,8 +1,8 @@
 'use strict';
 import {AsyncStorage, Alert, View, Text, StyleSheet, TouchableHighlight, Image, TextInput,ScrollView} from 'react-native'
 import React from 'react';
+import Icon from 'react-native-vector-icons/MaterialIcons';
 var LoginInputStyles = require("../styles/email_password.js");
-var Icon = require('react-native-vector-icons/Ionicons');
 var MK = require('react-native-material-kit');
 var ServerAPI = require('../api/server_interaction');
 var LoadingScreen = require('../components/LoadingSpinner');
@@ -14,8 +14,8 @@ var LogIn = React.createClass({
     getInitialState() {
         return {
             loginState: 'idle',
-            email: 'alice',
-            password: '1'
+            email: '',
+            password: ''
         };
     },
     componentDidMount () {
@@ -101,7 +101,9 @@ var LogIn = React.createClass({
                         />
                     </View>
                     <View style={styles.textInputContainer}>
-                        <Text style={styles.textInputLabel}><Icon name="locked" size={30} color="#4F8EF7" /></Text>
+                        <Text style={styles.textInputLabel}>
+                            <Icon name="lock" size={30} color="#4F8EF7" />
+                        </Text>
                         <MKTextField
                             tintColor={MKColor.Blue}
                             secureTextEntry={true}
@@ -174,7 +176,8 @@ var styles = StyleSheet.create({
         alignItems: 'center'
     },
     textInputLabel: {
-        flex: 0.1
+        flex: 0.1,
+        marginLeft: 10
 
     },
     textInput:{

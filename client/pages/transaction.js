@@ -1,4 +1,4 @@
-var React = require('react');
+import React from 'react';
 import {Alert, View, Text, StyleSheet,ScrollView, TouchableHighlight, ListView} from 'react-native'
 var ServerAPI = require('../api/server_interaction');
 var MemberSlider = require('../components/MembersSlider');
@@ -197,11 +197,22 @@ var Transaction = React.createClass({
                 //TODO: change status for requester to pending
 
             })
+            .then(this.fetchTransactionData)
             .catch((error)=> {
                 Alert.alert('ERROR', error.error, [{text: 'OK' ,  style: 'ok'}]);
             })
     },
     approve_share(target_user_id) {
+        if (this.props.user_info.private_key == null) {
+            Alert.alert(
+                'Approving share error',
+                "Please load your private key before opening the file",
+                [
+                    {text: 'OK' ,  style: 'ok'}
+                ]
+            );
+            return;
+        }
         betweenUs.setRSA(RSATools.EncryptWithPublicKey, RSATools.DecryptWithPrivateKey);
         var my_own_share;
         var target_user_pk;
@@ -210,7 +221,6 @@ var Transaction = React.createClass({
             ServerAPI.get_public_key_for_user(target_user_id)
         ])
             .then((all)=> {
-                console.warn(JSON.stringify(all[1]));
                 my_own_share = all[0];
                 target_user_pk = all[1].public_key;
                 return betweenUs.AsymmetricDecrypt(my_own_share, this.props.user_info.private_key.replaceAll("\n",""))
@@ -219,8 +229,8 @@ var Transaction = React.createClass({
                 return betweenUs.AsymmetricEncrypt(my_own_decrypted, target_user_pk.replaceAll("\n",""));
             })
             .then((data) => ServerAPI.commit_share(target_user_id, data, this.state.transaction.id))
+            .then(this.fetchTransactionData)
             .catch((error) => {
-                console.warn("error");
                 console.warn(error);
             });
 
@@ -286,7 +296,17 @@ var Transaction = React.createClass({
         var shares_to_decrypt = [];
         var index = 0;
         var transaction = this.state.transaction;
-        var private_key = this.props.user_info.private_key.replaceAll("\n","");
+        var private_key = this.props.user_info.private_key;
+        if (private_key === null) {
+            Alert.alert(
+                'Show File',
+                "Please load your private key before opening the file",
+                [
+                    {text: 'OK' ,  style: 'ok'}
+                ]
+            );
+            return;
+        }
         function decryptshares() {
             return new Promise((f_resolve, f_reject) =>{
                 promiseWhile(
@@ -294,7 +314,7 @@ var Transaction = React.createClass({
                     function() {
                         if (transaction.transaction_shares_data[index].share) {
                             return new Promise((resolve, reject) => {
-                                betweenUs.AsymmetricDecrypt(transaction.transaction_shares_data[index].share, private_key)
+                                betweenUs.AsymmetricDecrypt(transaction.transaction_shares_data[index].share, private_key.replaceAll("\n",""))
                                     .then((result)=> {
                                         shares_to_decrypt.push(result);
                                         ++index;
@@ -364,7 +384,7 @@ var Transaction = React.createClass({
                  }}/>
 
                 <View style={{marginBottom:20}}/>
-                <Button onPress={this.fetchTransactionData}>Get Data</Button>
+                <Button onPress={this.fetchTransactionData}>Fetch Data</Button>
             </View>
         );
     }

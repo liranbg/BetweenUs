@@ -28,7 +28,7 @@ public class MainActivity extends ReactActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        WalkMe.startWalkMe(getApplication(), "52500fb388334eeeac578e71f9d9fbea");
+        //WalkMe.startWalkMe(getApplication(), "52500fb388334eeeac578e71f9d9fbea");
     }
 
     /**

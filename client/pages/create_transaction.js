@@ -14,7 +14,7 @@ var TransactionCreation = React.createClass({
         return( {
             threshold:2,
             group_id:"",
-            group_member_list_length:1,
+            group_member_list_length:10,
             transaction_data: "",
             transaction_name:"",
             is_creating_transaction: false

@@ -197,9 +197,6 @@ class BetweenUsServer {
             target_user_id: target_user_id,
             encrypted_share: encrypted_share
         });
-        console.warn(target_user_id);
-        console.warn(encrypted_share);
-        console.warn(transaction_id);
         return new Promise(function(resolve, reject)
         {
             fetch(GLOBAL.DB_SERVER + "/transactions/commit_share",

@@ -20,7 +20,7 @@
     "morgan": "^1.6.1",
     "pouchdb": "^5.3.0"
   },
-  "author": [
+  "authors": [
     {
       "name": "Liran Ben Gida",
       "email": "liranbg@gmail.com"

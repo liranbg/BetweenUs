@@ -21,8 +21,12 @@ var Groups = React.createClass({
 
     },
     render(){
-        let private_key = this.props.user_info.private_key.replaceAll("\n","");
-        let public_key = this.props.user_info.public_key.replaceAll("\n","");
+        let private_key;
+        let public_key;
+        if ((this.props.user_info.private_key)&& (public_key = this.props.user_info.public_key)){
+            private_key = this.props.user_info.private_key.replaceAll("\n","");
+            public_key = this.props.user_info.public_key.replaceAll("\n","");
+        }
         return (
             <View style={styles.container}>
                 <Text style={{justifyContent: 'center',  textAlign:'center', fontWeight:'bold', margin: 10, fontSize: 36}}>Settings</Text>
@@ -38,7 +42,7 @@ var Groups = React.createClass({
                         this.setState({show_key_text:private_key, is_show_key_modal_open:!this.state.is_show_key_modal_open});
                         this.refs.show_key_modal.open();
                         }}>
-                        <Text pointerEvents="none">(Click to see)</Text>
+                        {(private_key !== undefined)? <Text pointerEvents="none">(Click to see)</Text>:<View/>}
                     </MKButton>
                 </View>
                 <View style={{flexDirection:'row'}}>
@@ -52,7 +56,7 @@ var Groups = React.createClass({
                         this.setState({show_key_text:public_key, is_show_key_modal_open:!this.state.is_show_key_modal_open});
                         this.refs.show_key_modal.open();
                         }}>
-                        <Text pointerEvents="none">(Click to see)</Text>
+                        {(public_key !== undefined)? <Text pointerEvents="none">(Click to see)</Text>:<View/>}
                     </MKButton>
                 </View>
                 <Modal backdrop={true} style={styles.modal_key_style} position={"center"} ref={"show_key_modal"} isOpen={this.state.is_show_key_modal_open}>

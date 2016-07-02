@@ -126,8 +126,6 @@ class ServerInteraction {
     }
 
     _TestFunctions() {
-        //this.GetShareStatus("b03fe9f22dcbf2a95bfcc304f32b2ca5","0e99b5cccd51354bb2b9024d17fd650c");
-        //this.SetShareStatusToCommited("cd98740b15651c52c1a1376c9991b049", "32c56ded0ca8e3c7697804c344e45fe8", "4a331a1257189ec950063475697150f4");
 
     }
 
@@ -148,7 +146,7 @@ class ServerInteraction {
     }
 
     _InitDataBases() {
-        /* TODO: Check for database existence. create if doesn't exist. */
+        this._InitialDataBasesConnectionVariables();
         Promise.all([
             this._InitUsersDB(),
             this._InitGroupsDB(),
@@ -957,6 +955,9 @@ class ServerInteraction {
             "transaction_list": [ ]
         };
         return new Promise((resolve, reject) => {
+            if (list_of_users_ids.length < 3 || group_name == undefined || group_name.length == 0) {
+                reject("Bad parameters when trying to create group.")
+            }
             this.groups_db.post(group_doc).
                 then((data) => {
                     return this.groups_db.get(data.id, {include_docs: true});
@@ -985,7 +986,7 @@ class ServerInteraction {
         var doc;
         for (var i in users_doc.rows) {
             doc = users_doc.rows[i].doc;
-            doc.groups.push(group_doc.id);
+            doc.groups.push(group_doc._id);
             docs_to_update.push(doc);
         }
         return new Promise((resolve, reject) => {

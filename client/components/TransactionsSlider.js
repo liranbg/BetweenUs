@@ -1,7 +1,6 @@
 var React = require('react');
 import {TouchableOpacity, StyleSheet, ScrollView, View, Text} from 'react-native';
-var Swipeout = require('react-native-swipeout');
-var Icon = require('react-native-vector-icons/Ionicons');
+import Icon from 'react-native-vector-icons/MaterialIcons';
 
 var TransactionsSlider = React.createClass({
     getInitialState: function() {
@@ -14,38 +13,24 @@ var TransactionsSlider = React.createClass({
             values: nextProps.data.transaction_list
         });
     },
-    _buttonTransaction: function() {
-        return {
-            backgroundColor: '',
-            component: (
-                <View style={styles.scrollButton}>
-                    <Icon style={{borderColor:'black'}} size={28} name="pull-request" color="#2980B9"/>
-                    <Text style={{fontSize: 10}}>Settings</Text>
-                </View>
-            ),
-            onPress: null
-        }
-    },
     _renderRow: function(value, index) {
         return (
             <View style={styles.row} key={index}>
-                <Swipeout autoClose={true} right={[this._buttonTransaction()]} backgroundColor={'#EAEAEA'}>
-                    <TouchableOpacity onPress={()=>this.props.data.fetchTransactionThenShow(value.transaction_id)}>
-                        <View style={{flexDirection: 'row',alignItems: 'center'}}>
-                            <View style={styles.shareExistsIcon}>
-                                <Icon size={28} name='social-freebsd-devil' color='#2980B9'/>
-                            </View>
-                            <View style={{flexDirection: 'column'}}>
-                                <View>
-                                    <Text style={{fontSize: 20}}>{value.transaction_name}</Text>
-                                </View>
-                                <View style={{flexDirection: 'row'}}>
-                                    <Text style={{fontSize: 11}}>Threshold: {value.threshold}</Text>
-                                </View>
-                            </View>
+                <TouchableOpacity onPress={()=>this.props.data.fetchTransactionThenShow(value.transaction_id)}>
+                <View style={{flexDirection: 'row',alignItems: 'center'}}>
+                    <View style={styles.shareExistsIcon}>
+                        <Icon size={28} name='label' color='#2980B9'/>
+                    </View>
+                    <View style={styles.scrollButtons} style={{flexDirection: 'column'}}>
+                        <View>
+                            <Text style={{fontSize: 20}}>{value.transaction_name}</Text>
                         </View>
-                    </TouchableOpacity>
-                </Swipeout>
+                        <View style={{flexDirection: 'row'}}>
+                            <Text style={{fontSize: 11}}>Threshold: {value.threshold}</Text>
+                        </View>
+                    </View>
+                </View>
+                </TouchableOpacity>
             </View>
         )
     },
@@ -69,12 +54,13 @@ var styles = StyleSheet.create({
         flexDirection: 'column'
     },
     row: {
+        backgroundColor: '#EAEAEA',
         borderColor: '#d6d7da',
         borderWidth: 2,
         flex: 1,
         height: 50,
         marginTop: 2,
-        marginBottom: 2,
+        marginBottom: 2
     },
     scrollButton: {
         height: 45,
