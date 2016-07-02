@@ -66,6 +66,9 @@ Done creating databases indexes
 - [ ] Add an option to leave a group.
 - [ ] Add confirmation (share) revoking functionality.
 
+### Bugs:
+If you know about any bugs, let us know [here](https://github.com/liranbg/BetweenUs/issues/new)
+
 ## Client Side:
 ### Installation
 
@@ -104,6 +107,7 @@ More information about running a react-native app on android can be found [here]
 - [ ] An option to leave\delete groups\transactions
 - [ ] A button to implement 'Request all shares' in a transaction.
 - [ ] A recall button, to enable revoking a confirmation (share) if it hasn't been used it. 
+
 ### Bugs:
 If you know about any bugs, let us know [here](https://github.com/liranbg/BetweenUs/issues/new)
 
