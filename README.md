@@ -22,8 +22,9 @@ The entire heavy lifting of encrypting / decrypting is done at the client side. 
 #### Calendar Manager
 [Calendar Manager](https://trello.com/b/nJPCPDXT/jcefinalproject)
 
-# Server usage:
-## Installation
+# Developer Manual
+## Server Side:
+### Installation
 In order to install the server, make sure npm (node.js package manager) is installed, tested with npm version 3.3.12.
 
 Navigate to the directory of the server-side (/server), Install the dependencies, by executing the following command:
@@ -58,10 +59,8 @@ Start creating databases indexes
 Done creating databases indexes
 ```
 
-
-
-# Client Side:
-## Installation
+## Client Side:
+### Installation
 
 In order to install the client, make sure npm (node.js package manager) is installed.
 
@@ -90,14 +89,14 @@ and wait couple of seconds untill you will see the client-side app running on th
 That's it, the client should be up and running at this point.
 
 More information about running a react-native app on android can be found [here](https://facebook.github.io/react-native/)
-## Todo
+### Todo
 - [ ] Add Auto login with passphrase 
 - [ ] Set long-polling to get automatical updates from server
 - [ ] Add in User-settings to change password and edit-email
 - [ ] An option to import\export private key
 - [ ] An option to leave\delete groups\transactions
 
-## Bugs:
+### Bugs:
 If you know about any bugs, let us know [here](https://github.com/liranbg/BetweenUs/issues/new)
 
 
