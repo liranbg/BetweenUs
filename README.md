@@ -60,7 +60,7 @@ Done creating databases indexes
 
 
 
-# Client usage:
+# Client Side:
 ## Installation
 
 In order to install the client, make sure npm (node.js package manager) is installed.
@@ -90,3 +90,16 @@ and wait couple of seconds untill you will see the client-side app running on th
 That's it, the client should be up and running at this point.
 
 More information about running a react-native app on android can be found [here](https://facebook.github.io/react-native/)
+## Todo
+- [ ] Add Auto login with passphrase 
+- [ ] Set long-polling to get automatical updates from server
+- [ ] Add in User-settings to change password and edit-email
+- [ ] An option to import\export private key
+- [ ] An option to leave\delete groups\transactions
+
+## Bugs:
+If you know about any bugs, let us know [here](https://github.com/liranbg/BetweenUs/issues/new)
+
+
+
+
