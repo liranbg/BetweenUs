@@ -16,7 +16,7 @@ We've implemented a certain flow containing said algorithms in a client side, an
 The entire heavy lifting of encrypting / decrypting is done at the client side. The server is just the (encrypted) data broker.
 
 
-> ###Repository Information
+### Repository Information
 #### Issues Manager
 [Issues Backlog](https://waffle.io/liranbg/JCEFinalProject)
 #### Calendar Manager
