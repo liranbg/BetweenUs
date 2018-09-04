@@ -18,7 +18,7 @@
     "express": "4.13.3",
     "express-session": "1.12.1",
     "morgan": "^1.6.1",
-    "pouchdb": "^5.3.0"
+    "pouchdb": "^6.0.5"
   },
   "authors": [
     {
